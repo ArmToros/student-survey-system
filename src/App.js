@@ -4,6 +4,7 @@ import { ThemeProvider } from './contexts/ThemeContext';
 import Header from './components/Header';
 import ProtectedRoute from './components/ProtectedRoute';
 import Dashboard from './pages/Dashboard';
+import Surveys from './pages/Surveys';
 import SurveyForm from './pages/SurveyForm';
 import CreateSurvey from './pages/CreateSurvey';
 import SurveyResults from './pages/SurveyResults';
@@ -43,7 +44,7 @@ function AppContent() {
             path="/surveys"
             element={
               <ProtectedRoute>
-                <Dashboard />
+                <Surveys />
               </ProtectedRoute>
             }
           />

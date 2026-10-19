@@ -12,6 +12,8 @@ const Dashboard = () => {
 
   // The API restricts aggregated results to staff, so students never see the link.
   const canViewResults = user?.role === 'admin' || user?.role === 'lecturer';
+  // Survey creation is staff-only too, so students are not offered the shortcut.
+  const canCreateSurvey = canViewResults;
   const [stats, setStats] = useState({
     totalSurveys: 0,
     activeSurveys: 0,
@@ -173,11 +175,13 @@ const Dashboard = () => {
           <div className="quick-actions">
             <h2>{t('dashboard.quickActions')}</h2>
             <div className="actions-grid">
-              <Link to="/create-survey" className="action-card">
-                <Plus size={32} />
-                <h3>{t('dashboard.createNewSurvey')}</h3>
-                <p>{t('dashboard.createNewSurveyDesc')}</p>
-              </Link>
+              {canCreateSurvey && (
+                <Link to="/create-survey" className="action-card">
+                  <Plus size={32} />
+                  <h3>{t('dashboard.createNewSurvey')}</h3>
+                  <p>{t('dashboard.createNewSurveyDesc')}</p>
+                </Link>
+              )}
               <Link to="/surveys" className="action-card">
                 <BarChart3 size={32} />
                 <h3>{t('dashboard.browseSurveys')}</h3>

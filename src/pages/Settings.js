@@ -418,7 +418,7 @@ const [showSettingsModal, setShowSettingsModal] = useState(false);
                       }, 2000);
                     })
                     .catch((err) => {
-                      setEmailError(t('registration.errors.failedSend'));
+                      setEmailError(t('register.errors.failedSend'));
                     });
                 }}
               >
