@@ -8,31 +8,28 @@ services:
       - "1434:1433"
     volumes:
       - sqlserver-data:/var/opt/mssql
+      # RESTORE FROM DISK reads the backup server-side, so the folder has to be
+      # mounted here as well as in db-restore. It may be empty: without SSS.bak the
+      # database is seeded with synthetic data instead.
       - "./new database:/var/opt/mssql/backup:ro"
 
+  # Prepares the SSS database, then exits. It restores "new database/SSS.bak" when
+  # that file is there and seeds scripts/seed-dev-data.sql when it is not, so the
+  # stack comes up either way; set SSS_DB_INIT to restore or seed to choose
+  # explicitly. The service keeps the name db-restore because scripts/restore.sh
+  # and the README refer to it.
   db-restore:
     image: mcr.microsoft.com/mssql/server:2022-latest
     depends_on:
       - db
     environment:
       SA_PASSWORD: "${MSSQL_SA_PASSWORD:?Set MSSQL_SA_PASSWORD in your local .env file}"
+      SSS_DB_INIT: "${SSS_DB_INIT:-auto}"
     volumes:
       - ./scripts:/app/scripts:ro
-    command: >
-      /bin/bash -c '
-      set -e;
-      echo "Waiting for SQL Server...";
-      until /opt/mssql-tools18/bin/sqlcmd -S db -U sa -P "$$SA_PASSWORD" -C -Q "SELECT 1" > /dev/null 2>&1; do
-        sleep 2;
-      done;
-      echo "Restoring /var/opt/mssql/backup/SSS.bak into database SSS...";
-      /opt/mssql-tools18/bin/sqlcmd -S db -U sa -P "$$SA_PASSWORD" -C -b -i /app/scripts/restore.sql;
-      echo "Applying additive schema scripts...";
-      /opt/mssql-tools18/bin/sqlcmd -S db -U sa -P "$$SA_PASSWORD" -C -b -i /app/scripts/schema-password-reset-token.sql;
-      echo "Verifying restored tables...";
-      /opt/mssql-tools18/bin/sqlcmd -S db -U sa -P "$$SA_PASSWORD" -C -b -d SSS -i /app/scripts/verify.sql;
-      echo "Database restore finished.";
-      '
+      # Read-only, and only so the script can see whether the backup exists.
+      - "./new database:/var/opt/mssql/backup:ro"
+    command: /bin/bash /app/scripts/db-init.sh
     restart: "no"
 
   backend:

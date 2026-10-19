@@ -1,5 +1,7 @@
 -- Restores /var/opt/mssql/backup/SSS.bak into the database SSS (Docker / Linux paths).
--- Run scripts/seed.sql afterwards to add the demo accounts.
+-- The restored backup already contains real accounts, surveys and news, so there is
+-- nothing to seed afterwards; scripts/seed-dev-data.sql is the separate path for
+-- machines that do not have the backup at all.
 --
 -- SSS.bak holds several appended backup sets, so the set has to be named
 -- explicitly: without WITH FILE the server restores the FIRST (oldest) set.

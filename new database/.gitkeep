@@ -1,0 +1,3 @@
+# Keeps this folder in the repository so the Docker bind mount has something to
+# point at. SSS.bak itself is distributed separately and is git-ignored; without
+# it "docker compose up" seeds synthetic data instead of restoring the backup.

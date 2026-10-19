@@ -4,6 +4,12 @@ What is wired up, what is not, and what should not ship as it stands. Written
 while connecting the React app and the ASP.NET backend to the `SSS` database
 restored from `new database/SSS.bak` (backup set 7).
 
+There is now a second way to get a database — `scripts/seed-dev-data.sql` builds
+the same schema from scratch with synthetic data, for machines without the backup.
+Everything below describes the restored database unless it says otherwise;
+[section 8](#8-the-seeded-database-is-not-the-real-data) lists where the seeded one
+differs.
+
 The database schema was deliberately left untouched: no table or column was
 altered, added or dropped. The only data change is `UserAccount.PasswordHash`,
 which now holds PBKDF2 hashes instead of plain text — the passwords themselves are
@@ -114,6 +120,9 @@ Current behaviour, since the schema is frozen:
 `Options` as nullable columns and is **deliberately not applied**. It is additive
 and re-runnable, and leaves the misspelled `Answear` column alone.
 
+The seeded database puts readable question text in `Answear`, which hides this gap
+rather than fixing it — see [section 8](#8-the-seeded-database-is-not-the-real-data).
+
 ## 3. The Survey table has no status or dates
 
 `dbo.Survey` is `(SurveyID, CreatedBy, Topic)`. There is no created date, end date
@@ -170,8 +179,55 @@ feature was presumably intended.
   admin or lecturer through the app.
 - The Docker path (`docker compose up -d`) was not run during this work, because
   Docker Desktop is not installed on this machine. Its scripts were updated in the
-  same way as the LocalDB ones but are unverified.
+  same way as the LocalDB ones but are unverified. This also covers
+  `scripts/db-init.sh`: its restore/seed branching was exercised with a stubbed
+  `sqlcmd`, and the SQL it runs was verified against SQL Server, but no container
+  was ever started.
 - Only backup set 7 is ever restored. Sets 1-6 are older, and set 1 is empty.
+
+## 8. The seeded database is not the real data
+
+`scripts/seed-dev-data.sql` exists so the stack can run without
+`new database/SSS.bak` — in a container, in CI, on a fresh clone. It creates `SSS`
+with the schema backup set 7 produces (verified column for column and constraint
+for constraint against a restored copy: same types, nullability, identity columns,
+defaults, collation and constraint names, including the misspelled
+`Question.Answear` and the `PK__Survey__…` names `Chat` inherited from the rename)
+and fills it with invented data of comparable shape: 18 accounts, 10 courses with
+36 enrolments, 12 news items across the 5 types with 22 target roles, 12 support
+conversations with 26 messages, and 6 surveys with 14 questions answered through
+18 sessions and 44 answers.
+
+What it does **not** reproduce:
+
+- **It is not the real data.** Every name, email address, phone number and body of
+  text is made up, and nothing in it reflects what real students said. It is good
+  enough to develop and review against, and useless as a data sample.
+- **Question text reads better than it should.** The real `Answear` values are
+  answer fragments (`"A"`, `"B"`), which is why the survey form shows questions
+  called "A" — see [section 2](#2-the-question-table-has-no-question-text). The
+  seeded rows hold the actual question text instead, so that gap is invisible on
+  the seeded path. Restore the backup to see how bad it really is.
+- **Every seeded question has answer options.** Options are derived from the
+  answers already recorded, so the seed makes sure each question has at least two
+  distinct answers; the script fails if it ever does not. The real data has two
+  questions with no `Answear` text at all, which fall back to a free-text box.
+- **No question ever has a single option or an empty answer set,** so the
+  free-text fallback is not exercised on the seeded path.
+- **The login page's "Quick role access" buttons do not work.** They are
+  hardcoded in `src/contexts/AuthContext.js` to the three backup accounts, which do
+  not exist in the seeded database. Typing a seeded address from README.md works;
+  the buttons return "invalid credentials". Making the panel follow the database
+  would mean fetching the accounts from the API, which is a change to the app
+  rather than to the seed.
+- **`sysdiagrams` is not created.** The backup carries that SSMS table; nothing in
+  the application reads it.
+- **One cosmetic schema difference.** `SurveySession.ID` sits at `column_id` 4 in
+  the backup, because a column was dropped from that table at some point, and at 3
+  in the seeded database. It is the third column of the table either way.
+
+Both paths store passwords as the same clear-text placeholders, so
+`npm run db:hash-passwords` behaves identically after either one.
 
 ## What changed in the code
 
@@ -202,3 +258,10 @@ For context when reviewing the diff. No database changes.
   create-survey routes.
 - The only database change in this work: `UserAccount.PasswordHash` now holds
   hashes instead of plain text. Everything else is exactly as restored.
+- A second, separate database path was added for machines without the backup:
+  `scripts/seed-dev-data.sql` (schema plus synthetic data, including
+  `schema-password-reset-token.sql` rather than repeating it),
+  `scripts/seed-db.js` behind `npm run db:seed`, and `scripts/db-init.sh`, which
+  Compose now runs to restore when `SSS.bak` is present and seed when it is not.
+  The restore scripts themselves were not changed, beyond one stale comment in
+  `scripts/restore.sql` that pointed at a seed script deleted earlier.
