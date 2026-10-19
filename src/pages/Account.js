@@ -14,6 +14,15 @@ const Account = () => {
   const [editData, setEditData] = useState({ ...userData });
   const displayId = userData?.studentId || userData?.dbId || userData?.id?.split('-').pop() || '—';
 
+  // The same field holds the account number for every role, so only the label
+  // changes: a lecturer is not carrying a student id.
+  const ID_LABEL_KEYS = {
+    student: 'accountPage.studentId',
+    lecturer: 'accountPage.lecturerId',
+    admin: 'accountPage.adminId'
+  };
+  const idLabel = t(ID_LABEL_KEYS[userData?.role] || 'accountPage.accountId');
+
   useEffect(() => {
     setUserData(user);
     setEditData({ ...user });
@@ -191,7 +200,7 @@ const Account = () => {
                   <div className="detail-item">
                     <label className="detail-label">
                       <User size={18} />
-                      {t('accountPage.studentId')}
+                      {idLabel}
                     </label>
                     <span className="detail-value">{displayId}</span>
                   </div>

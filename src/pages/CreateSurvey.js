@@ -313,7 +313,7 @@ const CreateSurvey = () =>{
                           className="form-input"
                           value={question.question}
                           onChange={(e) => updateQuestion(question.id, 'question', e.target.value)}
-                          placeholder={t('createSurvey.text')}
+                          placeholder={t('createSurvey.enterQuestion')}
                         />
                       </div>
                       

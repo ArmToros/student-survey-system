@@ -99,6 +99,9 @@ export const translations = {
   email: "Email",
   phone: "Phone",
   studentId: "Student ID",
+  lecturerId: "Lecturer ID",
+  adminId: "Administrator ID",
+  accountId: "Account ID",
   major: "Major",
   academicYear: "Academic Year",
   address: "Address",
@@ -155,7 +158,19 @@ dashboard: {
       createNewSurveyDesc: 'Design and publish a new survey',
       browseSurveys: 'Browse Surveys',
       browseSurveysDesc: 'View all available surveys'
-      
+
+    },
+
+    surveysPage: {
+      title: 'All Surveys',
+      subtitle: 'Every survey in the system, newest first',
+      loading: 'Loading surveys...',
+      questions: 'questions',
+      empty: 'No surveys yet',
+      emptyDesc: 'Surveys appear here as soon as one is created.',
+      error: 'Could not load the surveys',
+      errorDesc: 'The server did not answer. Please try again.',
+      retry: 'Try again'
     },
 
     news: {
@@ -401,7 +416,7 @@ student:"Student"
         sendBroadcast:'Send Broadcast',
         enterTitle:"Enter message title",
         enterContent:"Enter your message...",
-        
+        unavailable:'Broadcasts are not available yet. Nothing is sending these messages, so the form below is switched off and anything typed into it would be lost.',
       },
       roles: {
         title: 'Manage role templates',
@@ -427,6 +442,7 @@ student:"Student"
         gradeAssignments:'Grade Assignments',
         cancel:'Cancel',
         save:'Save changes',
+        readOnly:'These are the three built-in roles and the permissions the system enforces today. They are fixed in the code, so this is a reference list and cannot be edited here.',
       },
       pending: {
         title: 'Approvals',
@@ -437,6 +453,7 @@ student:"Student"
         by: 'by',
         approve:'Approve',
         reject:'Reject',
+        unavailable:'Approvals are not available yet. Nothing in the system is queued for review, and there is no approval step behind surveys, accounts or news.',
       },
     },
     permissionsTitle: 'Current capabilities',
@@ -485,6 +502,12 @@ student:"Student"
       totalSurveys:'Total Surveys',
       responsesCollected:'Responses Collected',
       averageScore:'Average Feedback Score',
+    },
+    scheduleTitle: 'Upcoming sessions',
+    scheduleSubtitle: 'Plan the day without the rush.',
+    schedule: {
+      algorithms: 'Focus: live code walkthrough',
+      capstone: 'Focus: prototype review'
     },
 
     toolsTitle: 'Teaching tools',
@@ -697,6 +720,9 @@ sendCode: 'Отправить код подтверждения',
   email: "Электронная почта",
   phone: "Телефон",
   studentId: "ID студента",
+  lecturerId: "ID преподавателя",
+  adminId: "ID администратора",
+  accountId: "ID аккаунта",
   major: "Специальность",
   academicYear: "Курс",
   address: "Адрес",
@@ -749,6 +775,18 @@ dashboard: {
       createNewSurveyDesc: 'Разработать и опубликовать новый опрос',
       browseSurveys: 'Просмотреть опросы',
       browseSurveysDesc: 'Смотреть все доступные опросы'
+    },
+
+    surveysPage: {
+      title: 'Все опросы',
+      subtitle: 'Все опросы системы, начиная с новых',
+      loading: 'Загрузка опросов...',
+      questions: 'вопросов',
+      empty: 'Опросов пока нет',
+      emptyDesc: 'Опросы появятся здесь, как только будет создан первый.',
+      error: 'Не удалось загрузить опросы',
+      errorDesc: 'Сервер не ответил. Попробуйте еще раз.',
+      retry: 'Повторить'
     },
 
     news: {
@@ -994,7 +1032,7 @@ students: 'Студенты',
 sendBroadcast: 'Отправить рассылку',
 enterTitle: "Введите заголовок сообщения",
 enterContent: "Введите ваше сообщение...",
-
+unavailable: 'Рассылки пока недоступны. Отправлять эти сообщения нечему, поэтому форма ниже отключена, а введенный текст был бы потерян.',
       },
       roles: {
         title: "Управлять ролями",
@@ -1007,7 +1045,7 @@ update: 'Роль успешно обновлена',
 areSure: 'Вы уверены, что хотите удалить эту роль?',
 admin: 'Администратор',
 lecturer: 'Преподаватель',
-Student: 'Студент',
+student: 'Студент',
 manageUsers: 'Управлять пользователями',
 publish: 'Публиковать опросы',
 viewResults: 'Просматривать результаты',
@@ -1020,7 +1058,7 @@ moderateChat: 'Модерировать чат',
 gradeAssignments: 'Оценивать задания',
 cancel: 'Отмена',
 save: 'Сохранить изменения',
-
+readOnly: 'Это три встроенные роли и права, которые система применяет сегодня. Они заданы в коде, поэтому список приведен для справки и не редактируется здесь.',
       },
       pending: {
         title: 'Подтверждения',
@@ -1031,6 +1069,7 @@ submitted: 'Отправлено:',
 by: 'от',
 approve: 'Одобрить',
 reject: 'Отклонить',
+unavailable: 'Подтверждения пока недоступны. В системе нет элементов, ожидающих проверки, и для опросов, аккаунтов и новостей нет шага подтверждения.',
 }
 
     },
@@ -1303,6 +1342,9 @@ sendCode: 'Ուղարկել վավերացման կոդը',
   email: "Էլ. փոստ",
   phone: "Հեռախոսահամար",
   studentId: "Ուսանողի ID",
+  lecturerId: "Դասախոսի ID",
+  adminId: "Ադմինիստրատորի ID",
+  accountId: "Հաշվի ID",
   major: "Մասնագիտություն",
   academicYear: "Ուսումնական տարի",
   address: "Հասցե",
@@ -1357,6 +1399,18 @@ dashboard: {
       createNewSurveyDesc: 'Նախագծել և հրապարակել նոր հարցում',
       browseSurveys: 'Դիտել հարցումները',
       browseSurveysDesc: 'Դիտել բոլոր հասանելի հարցումները'
+    },
+
+    surveysPage: {
+      title: 'Բոլոր հարցումները',
+      subtitle: 'Համակարգի բոլոր հարցումները՝ նորերից սկսած',
+      loading: 'Հարցումները բեռնվում են...',
+      questions: 'հարց',
+      empty: 'Հարցումներ դեռ չկան',
+      emptyDesc: 'Հարցումները կհայտնվեն այստեղ, հենց որ ստեղծվի առաջինը։',
+      error: 'Չհաջողվեց բեռնել հարցումները',
+      errorDesc: 'Սերվերը չպատասխանեց։ Խնդրում ենք փորձել նորից։',
+      retry: 'Փորձել կրկին'
     },
 
     news: {
@@ -1603,6 +1657,7 @@ students: 'Ուսանողներ',
 sendBroadcast: 'Ուղարկել հաղորդագրությունը',
 enterTitle: "Մուտքագրեք հաղորդագրության վերնագիրը",
 enterContent: "Մուտքագրեք ձեր հաղորդագրությունը...",
+unavailable: 'Հաղորդագրությունների ուղարկումը դեռ հասանելի չէ։ Այս հաղորդագրությունները ուղարկող ծառայություն չկա, ուստի ներքևի ձևը անջատված է, իսկ մուտքագրվածը կկորչեր։',
     },
     roles: {
       title: "Կառավարել դերերը",
@@ -1628,7 +1683,7 @@ moderateChat: 'Մոդերացնել չաթը',
 gradeAssignments: 'Գնահատել հանձնարարությունները',
 cancel: 'Չեղարկել',
 save: 'Պահպանել փոփոխությունները',
-
+readOnly: 'Սրանք համակարգի երեք ներդրված դերերն են և այն իրավունքները, որոնք համակարգը կիրառում է այսօր։ Դրանք ամրագրված են կոդում, ուստի ցանկը տեղեկատվական է և այստեղից չի խմբագրվում։',
     },
     pending: {
      title: 'Հաստատումներ',
@@ -1639,7 +1694,7 @@ submitted: 'Ներկայացված է՝',
 by: 'կողմից',
 approve: 'Հաստատել',
 reject: 'Մերժել',
-
+unavailable: 'Հաստատումները դեռ հասանելի չեն։ Համակարգում ստուգման սպասող տարրեր չկան, և հարցումների, հաշիվների ու նորությունների համար հաստատման քայլ գոյություն չունի։',
 }
 
   },

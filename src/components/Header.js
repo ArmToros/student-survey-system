@@ -34,6 +34,9 @@ const Header = () => {
     return location.pathname === path;
   };
 
+  // Only staff may create surveys, so students are not offered the link at all.
+  const canCreateSurvey = user?.role === 'admin' || user?.role === 'lecturer';
+
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -138,14 +141,16 @@ const Header = () => {
                 <MessageCircle size={20} />
                 <span className="nav-link-text">{t('chat.title')}</span>
               </Link>
-              <Link 
-                to="/create-survey" 
-                className={`nav-link ${isActive('/create-survey') ? 'active' : ''}`}
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                <Plus size={20} />
-                <span className="nav-link-text">{t('createSurvey.pageTitle')}</span>
-              </Link>
+              {canCreateSurvey && (
+                <Link
+                  to="/create-survey"
+                  className={`nav-link ${isActive('/create-survey') ? 'active' : ''}`}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  <Plus size={20} />
+                  <span className="nav-link-text">{t('createSurvey.pageTitle')}</span>
+                </Link>
+              )}
               {user?.role === 'admin' && (
                 <Link
                   to="/admin"
