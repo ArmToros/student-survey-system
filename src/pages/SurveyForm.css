@@ -1,0 +1,257 @@
+.survey-form {
+  padding: 40px 0;
+  min-height: calc(100vh - 80px);
+}
+
+.survey-header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: none;
+  color: #64748b;
+  font-size: 16px;
+  cursor: pointer;
+  margin-bottom: 20px;
+  padding: 8px 0;
+  transition: color 0.2s ease;
+}
+
+.back-btn:hover {
+  color: #2563eb;
+}
+
+.survey-header h1 {
+  font-size: 2.5rem;
+  color: #1e293b;
+  margin-bottom: 12px;
+}
+
+.survey-header p {
+  font-size: 1.1rem;
+  color: #64748b;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.progress-container {
+  margin-bottom: 40px;
+  text-align: center;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 8px;
+  background: #f1f5f9;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #2563eb, #3b82f6);
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.progress-text {
+  color: #64748b;
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.question-container {
+  max-width: 800px;
+  margin: 0 auto;
+  background: white;
+  border-radius: 12px;
+  padding: 40px;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+}
+
+.question-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 32px;
+  gap: 16px;
+}
+
+.question-header h2 {
+  font-size: 1.5rem;
+  color: #1e293b;
+  line-height: 1.4;
+  flex: 1;
+}
+
+.required {
+  background: #fef2f2;
+  color: #dc2626;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.question-content {
+  margin-bottom: 40px;
+}
+
+.question-options {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.radio-item, .checkbox-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: white;
+}
+
+.radio-item:hover, .checkbox-item:hover {
+  border-color: #2563eb;
+  background-color: #f8fafc;
+}
+
+.radio-item input[type="radio"], .checkbox-item input[type="checkbox"] {
+  margin: 0;
+  width: 18px;
+  height: 18px;
+  accent-color: #2563eb;
+}
+
+.radio-item.selected, .checkbox-item.selected {
+  border-color: #2563eb;
+  background-color: #eff6ff;
+}
+
+.rating-scale {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.rating-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  padding: 12px;
+  border-radius: 8px;
+  transition: background-color 0.2s ease;
+}
+
+.rating-item:hover {
+  background-color: #f8fafc;
+}
+
+.rating-item input[type="radio"] {
+  margin: 0;
+  width: 20px;
+  height: 20px;
+  accent-color: #2563eb;
+}
+
+.rating-number {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #1e293b;
+  min-width: 40px;
+  text-align: center;
+}
+
+.rating-labels {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 300px;
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
+.question-navigation {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 20px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.question-navigation .btn {
+  min-width: 120px;
+}
+
+.loading, .success-message, .error-message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  text-align: center;
+}
+
+.loading p, .success-message p, .error-message p {
+  color: #64748b;
+  font-size: 1.1rem;
+  margin-top: 16px;
+}
+
+.success-message svg {
+  color: #059669;
+  margin-bottom: 16px;
+}
+
+.error-message svg {
+  color: #dc2626;
+  margin-bottom: 16px;
+}
+
+.success-message h2, .error-message h2 {
+  color: #1e293b;
+  margin-bottom: 8px;
+}
+
+@media (max-width: 768px) {
+  .question-container {
+    padding: 24px;
+    margin: 0 16px;
+  }
+  
+  .question-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .question-navigation {
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  .question-navigation .btn {
+    width: 100%;
+  }
+  
+  .rating-scale {
+    gap: 16px;
+  }
+  
+  .rating-item {
+    padding: 8px;
+  }
+}
+

@@ -1,0 +1,600 @@
+.lecturer-page {
+  padding: 40px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.lecturer-hero {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 20px;
+  padding: 32px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 32px;
+  align-items: center;
+  box-shadow: var(--shadow);
+}
+
+.lecturer-hero-text {
+  flex: 1;
+  min-width: 280px;
+}
+
+.lecturer-hero-label {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--accent);
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.lecturer-hero h1 {
+  margin: 0 0 12px;
+  font-size: 2rem;
+  color: var(--text-primary);
+}
+
+.lecturer-hero p {
+  margin: 0;
+  color: var(--text-secondary);
+}
+
+.lecturer-meta {
+  margin-top: 16px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  color: var(--text-secondary);
+}
+
+.lecturer-hero-profile {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-width: 220px;
+}
+
+.lecturer-avatar {
+  width: 72px;
+  height: 72px;
+  border-radius: 16px;
+  object-fit: cover;
+  border: 3px solid var(--accent);
+}
+
+.lecturer-hero-name {
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.lecturer-hero-role {
+  color: var(--accent);
+  font-weight: 500;
+}
+
+.lecturer-hero-id {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.lecturer-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+}
+
+.lecturer-stat-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  padding: 18px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  box-shadow: var(--shadow);
+}
+
+.lecturer-stat-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background: rgba(16, 185, 129, 0.1);
+  color: rgb(16, 185, 129);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.lecturer-stat-label {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.lecturer-stat-value {
+  margin: 4px 0 0;
+  font-size: 1.6rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.lecturer-main-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  gap: 24px;
+}
+
+.lecturer-schedule,
+.lecturer-permissions,
+.lecturer-tools,
+.lecturer-insights {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 18px;
+  padding: 24px;
+  box-shadow: var(--shadow);
+}
+
+.lecturer-section-head h2 {
+  margin: 0 0 8px;
+  font-size: 1.4rem;
+  color: var(--text-primary);
+}
+
+.lecturer-section-head p {
+  margin: 0;
+  color: var(--text-secondary);
+}
+
+.lecturer-session-list {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.lecturer-session-card {
+  border: 1px solid var(--border-color);
+  border-radius: 14px;
+  padding: 16px;
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  background: var(--bg-primary);
+}
+
+.lecturer-session-card h3 {
+  margin: 0 0 6px;
+  font-size: 1.1rem;
+}
+
+.lecturer-session-card p {
+  margin: 0;
+  color: var(--text-secondary);
+}
+
+.lecturer-session-card span {
+  align-self: center;
+  background: rgba(99, 102, 241, 0.1);
+  color: var(--accent);
+  border-radius: 999px;
+  padding: 6px 16px;
+  font-size: 0.9rem;
+}
+
+.lecturer-permission-list {
+  margin-top: 16px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.lecturer-permission-chip {
+  background: rgba(59, 130, 246, 0.1);
+  color: rgb(59, 130, 246);
+  border-radius: 999px;
+  padding: 8px 14px;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  font-size: 0.9rem;
+}
+
+.lecturer-empty-state {
+  margin: 0;
+  color: var(--text-secondary);
+}
+
+.lecturer-tools-grid {
+  margin-top: 18px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.lecturer-tool-card {
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  padding: 16px;
+  display: flex;
+  gap: 14px;
+  background: var(--bg-primary);
+}
+
+.lecturer-tool-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: rgba(16, 185, 129, 0.15);
+  color: rgb(16, 185, 129);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.lecturer-tool-card h3 {
+  margin: 0 0 6px;
+  font-size: 1.05rem;
+  color: var(--text-primary);
+}
+
+.lecturer-tool-card p {
+  margin: 0;
+  color: var(--text-secondary);
+}
+
+.lecturer-insight-list {
+  list-style: none;
+  padding: 0;
+  margin: 16px 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.lecturer-insight-list li {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.lecturer-insight-list li:last-child {
+  border-bottom: none;
+}
+
+.lecturer-insight-list span {
+  color: var(--text-primary);
+}
+
+@media (max-width: 900px) {
+  .lecturer-main-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ============================
+   TOOL BUTTONS (Clickable Cards)
+   ============================ */
+.lecturer-button {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  padding: 16px;
+  display: flex;
+  gap: 14px;
+  cursor: pointer;
+  transition: 0.2s ease;
+  text-align: left;
+}
+
+.lecturer-button:hover {
+  background: var(--bg-hover);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow);
+}
+
+/* ============================
+   TOOL PANEL (Full Content Area)
+   ============================ */
+.lecturer-panel {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 18px;
+  padding: 24px;
+  box-shadow: var(--shadow);
+  margin-top: 10px;
+}
+
+.lecturer-panel-back {
+  padding: 8px 14px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  cursor: pointer;
+  margin-bottom: 20px;
+  transition: 0.2s ease;
+}
+
+.lecturer-panel-back:hover {
+  background: var(--bg-hover);
+}
+
+/* ============================
+   PANEL CONTENT SECTION
+   ============================ */
+.lecturer-panel-content h2 {
+  margin: 0 0 6px;
+  font-size: 1.5rem;
+  color: var(--text-primary);
+}
+
+.lecturer-panel-content p {
+  color: var(--text-secondary);
+  margin-bottom: 20px;
+}
+
+/* ============================
+   COURSES LIST
+   ============================ */
+.course-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+}
+
+.course-card {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 14px;
+  padding: 16px;
+  box-shadow: var(--shadow);
+}
+
+.course-card h3 {
+  margin: 0 0 8px;
+  color: var(--text-primary);
+}
+
+.course-card p {
+  margin: 4px 0;
+  color: var(--text-secondary);
+}
+
+/* ============================
+   ASSIGNMENTS LIST
+   ============================ */
+.assignment-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.assignment-card {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 14px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-shadow: var(--shadow);
+}
+
+.assignment-card h3 {
+  margin: 0;
+  font-size: 1.2rem;
+  color: var(--text-primary);
+}
+
+.assignment-card p {
+  margin: 0;
+  color: var(--text-secondary);
+}
+
+.assignment-card .submit-button {
+  align-self: flex-start;
+  padding: 8px 14px;
+  background: var(--accent);
+  border-radius: 12px;
+  color: white;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.assignment-card .submit-button:hover {
+  opacity: 0.9;
+}
+
+.course-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.reschedule-btn {
+  padding: 6px 12px;
+  background: rgba(99,102,241,0.15);
+  border: 1px solid rgba(99,102,241,0.3);
+  color: var(--accent);
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.delete-btn {
+  padding: 6px 12px;
+  background: rgba(239,68,68,0.15);
+  border: 1px solid rgba(239,68,68,0.3);
+  color: rgb(239,68,68);
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.reschedule-form {
+  margin-top: 14px;
+  padding: 12px;
+  background: var(--bg-primary);
+  border-radius: 10px;
+  border: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.reschedule-form input{
+  padding: 8px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+}
+
+.add-course-form {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.add-course-form input {
+  padding: 8px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+}
+
+
+/* ===========================
+   Courses Panel & List
+   =========================== */
+.lecturer-tool-panel {
+  padding: 20px;
+  background: var(--bg-secondary);
+  border-radius: 16px;
+  margin-top: 20px;
+}
+
+.sessions-list {
+  list-style: none;
+  padding: 0;
+  margin-top: 20px;
+}
+
+.session-item {
+  background: var(--bg-primary);
+  padding: 16px;
+  border-radius: 12px;
+  margin-bottom: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border: 1px solid var(--border-color);
+}
+
+.session-item h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.session-item p {
+  margin: 0;
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+/* Buttons for each course */
+.course-info button {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 6px 12px;
+  margin-right: 8px;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.course-info button:hover {
+  background: var(--bg-hover);
+}
+
+/* ===========================
+   Reschedule Form
+   =========================== */
+.reschedule-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.reschedule-form input {
+  padding: 8px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  font-size: 14px;
+}
+
+.reschedule-form button {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 6px 12px;
+  margin-top: 8px;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.reschedule-form button:hover {
+  background: var(--bg-hover);
+}
+
+/* ===========================
+   Add Course Form
+   =========================== */
+.add-course-form {
+  background: var(--bg-primary);
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.add-course-form input {
+  padding: 8px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  font-size: 14px;
+}
+
+.add-course-form button {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin-top: 8px;
+  cursor: pointer;
+  transition: 0.2s ease;
+  align-self: flex-start;
+}
+
+.add-course-form button:hover {
+  background: var(--bg-hover);
+}
+
+/* Back button */
+.lecturer-back-button {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 6px 12px;
+  margin-bottom: 12px;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.lecturer-back-button:hover {
+  background: var(--bg-hover);
+}

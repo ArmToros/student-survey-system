@@ -1,0 +1,1817 @@
+export const translations = {
+  en: {
+    settings: {
+      title: 'Settings',
+      subtitle: 'Customize your experience and manage your preferences',
+      save: 'Save Changes',
+      reset: 'Reset to Default',
+      resetConfirm: 'Are you sure you want to reset all settings to default?',
+      saveSuccess: 'Settings saved successfully!',
+      notMatch:'Email Not Match to Your Account',
+      enterEmail:'Enter your account email',
+      codeSend:'Verification code has been sent!',
+      sendCode:'Send Verification Code',
+    },
+    tabs: {
+      notifications: 'Notifications',
+      privacy: 'Privacy',
+      appearance: 'Appearance',
+      account: 'Account'
+    },
+    notifications: {
+      title: 'Notification Preferences',
+      subtitle: 'Choose how you want to be notified about updates and activities.',
+      methods: 'Notification Methods',
+      types: 'Notification Types',
+      email: 'Email Notifications',
+      emailDesc: 'Receive notifications via email',
+      push: 'Push Notifications',
+      pushDesc: 'Receive push notifications in your browser',
+      sms: 'SMS Notifications',
+      smsDesc: 'Receive notifications via text message',
+      surveys: 'Survey Updates',
+      surveysDesc: 'Get notified about new surveys and survey results',
+      news: 'News Updates',
+      newsDesc: 'Get notified about university news and announcements',
+      chat: 'Chat Messages',
+      chatDesc: 'Get notified about new chat messages'
+    },
+    privacy: {
+      title: 'Privacy Settings',
+      subtitle: 'Control your privacy and data sharing preferences.',
+      visibility: 'Profile Visibility',
+      visibilityLabel: 'Profile Visibility',
+      visibilityDesc: 'Who can see your profile information',
+      public: 'Public',
+      friends: 'Friends Only',
+      private: 'Private',
+      showEmail: 'Show Email Address',
+      showEmailDesc: 'Display your email address on your profile',
+      showPhone: 'Show Phone Number',
+      showPhoneDesc: 'Display your phone number on your profile',
+      dataSharing: 'Data Sharing',
+      dataSharingDesc: 'Allow anonymous data sharing for research purposes'
+    },
+    appearance: {
+      title: 'Appearance Settings',
+      subtitle: 'Customize the look and feel of your interface.',
+      theme: 'Theme',
+      light: 'Light',
+      dark: 'Dark',
+      language: 'Language',
+      languageLabel: 'Language',
+      languageDesc: 'Choose your preferred language',
+      fontSize: 'Font Size',
+      fontSizeLabel: 'Font Size',
+      fontSizeDesc: 'Adjust the size of text in the interface',
+      small: 'Small',
+      medium: 'Medium',
+      large: 'Large'
+    },
+    account: {
+      title: 'Account Security',
+      subtitle: 'Manage your account security and session settings.',
+      security: 'Security',
+      twoFactor: 'Two-Factor Authentication',
+      twoFactorDesc: 'Add an extra layer of security to your account',
+      sessionTimeout: 'Session Timeout (minutes)',
+      sessionTimeoutDesc: 'Automatically log out after inactivity',
+      autoLogout: 'Auto Logout',
+      autoLogoutDesc: 'Automatically log out when session expires',
+      minutes15: '15 minutes',
+      minutes30: '30 minutes',
+      hour1: '1 hour',
+      hours2: '2 hours'
+    },
+    accountPage: {
+  title: "My Account",
+  subtitle: "Manage your personal information and account settings",
+
+  // Buttons
+  editProfile: "Edit Profile",
+  save: "Save",
+  cancel: "Cancel",
+
+  // Profile labels
+  student: "Student",
+  firstName: "First Name",
+  lastName: "Last Name",
+  email: "Email",
+  phone: "Phone",
+  studentId: "Student ID",
+  major: "Major",
+  academicYear: "Academic Year",
+  address: "Address",
+  joinDate: "Join Date",
+
+  // Stats
+  statsTitle: "Account Statistics",
+  surveysCompleted: "Surveys Completed",
+  daysActive: "Days Active",
+  messagesSent: "Messages Sent",
+
+  // Majors
+  majors: {
+    cs: "Computer Science",
+    engineering: "Engineering",
+    business: "Business",
+    medicine: "Medicine",
+    arts: "Arts"
+  },
+
+  // Academic levels
+  years: {
+    freshman: "Freshman",
+    sophomore: "Sophomore",
+    junior: "Junior",
+    senior: "Senior",
+    graduate: "Graduate"
+  },
+  
+},
+dashboard: {
+      title: 'Dashboard',
+      subtitle: 'Welcome to the Student Survey and Feedback System',
+      stats: {
+        totalSurveys: 'Total Surveys',
+        activeSurveys: 'Active Surveys',
+        completed: 'Completed',
+        oneCompleted: 'Completed',
+        active: 'Active',
+        totalResponses: 'Total Responses'
+      },
+        survey: {
+        courseFeedback: "Course Feedback - Computer Science 101",
+        libraryServices: "Library Services Survey",
+        campus: "Campus Facilities Assessment",
+      },
+      responses: 'responses',
+      recentSurveys: 'Recent Surveys',
+      viewAll: 'View All',
+      takeSurvey: 'Take Survey',
+      viewResults: 'View Results',
+      quickActions: 'Quick Actions',
+      createNewSurvey: 'Create New Survey',
+      createNewSurveyDesc: 'Design and publish a new survey',
+      browseSurveys: 'Browse Surveys',
+      browseSurveysDesc: 'View all available surveys'
+      
+    },
+
+    news: {
+      title: 'University News',
+      subtitle: 'Stay updated with the latest news and announcements',
+      filters: {
+        all: 'All',
+        academic: 'Academic',
+        events: 'Events',
+        announcements: 'Announcements',
+        sports: 'Sports'
+      },
+      featuredNews: 'Featured News',
+      latestNews: 'Latest News',
+      readMore: 'Read More',
+      noNews: 'No news found',
+      noNewsDesc: 'No articles found for the selected category',
+      meta: {
+        author: 'Author',
+        date: 'Date',
+        views: 'Views',
+        comments: 'Comments'
+      },
+      articles: {
+  article1: {
+    title: "New Computer Science Program Launched",
+    excerpt: "The university is excited to announce the launch of our new Advanced Computer Science program starting next semester.",
+    content: "The new Advanced Computer Science program will focus on cutting-edge technologies including artificial intelligence, machine learning, and blockchain development. Students will have access to state-of-the-art laboratories and industry partnerships.",
+    author: "Dr. Sarah Johnson"
+  },
+  article2: {
+    title: "Annual Tech Conference 2024",
+    excerpt: "Join us for the biggest technology conference of the year featuring industry leaders and innovative presentations.",
+    content: "The Annual Tech Conference will feature keynote speakers from major tech companies, hands-on workshops, and networking opportunities. Registration is now open for all students and faculty.",
+    author: "Event Committee"
+  },
+  article3: {
+    title: "Library Extended Hours During Finals",
+    excerpt: "The main library will be open 24/7 during the final examination period to support student studies.",
+    content: "Starting from next week, the main library will operate around the clock to provide students with a quiet study environment during the crucial exam period. Extra rooms and resources will also be available.",
+    author: "Library Services"
+  },
+  article4: {
+    title: "Basketball Team Wins Championship",
+    excerpt: "Our university basketball team secured the regional championship title with an outstanding performance.",
+    content: "The team's victory marks the third consecutive championship win. The final game was incredibly intense and went into overtime.",
+    author: "Sports Department"
+  },
+  article5: {
+    title: "New Research Grant Opportunities",
+    excerpt: "Several research grant opportunities are now available for graduate students and faculty members.",
+    content: "The university has secured funding for research projects in various STEM fields. Grants range from $5,000 to $50,000, and applications are open until March 1st.",
+    author: "Research Office"
+  }
+},
+},
+chat: {
+  title: "Chat",
+  empty: "No messages yet",
+  inputPlaceholder: "Type your message...",
+  sendBtn: "Send",
+  messages: "Messages",
+  search: "Search...",
+  chatUnavailable: "Select a conversation",
+  chatUnavailableDesc: "Choose a chat from the sidebar to start messaging",
+
+  online: "Online",
+  offline: "Offline",
+
+  typeMessage: "Type a message...",
+  send: "Send",
+
+  // MockChats Names
+  botName: "AI Assistant Bot",
+  universityAdmin: "University Administration",
+  librarySupport: "Library Support",
+
+  // Bot Chat Messages
+  last_message1: "Hello! I'm here to help you with any questions about the university.",
+  bot_msg1: "Hello! I'm your AI assistant. I can help you with university information, course details, and general questions. How can I assist you today?",
+  bot_msg2: "Hi! Can you tell me about the Computer Science program?",
+  bot_msg3: "The Computer Science program offers courses in programming, algorithms, data structures, software engineering, and more. It's a 4-year program with both theoretical and practical components.",
+  bot_msg4: "What are the admission requirements?",
+  bot_msg5: "You need a high school diploma with good grades in mathematics and science. SAT/ACT scores are also required. Would you like more details?",
+
+  // University Chat Messages
+  last_message2:"Welcome to the university chat support. How can we assist you?",
+  uni_msg1: "Welcome to University Administration chat! We're here to help with admissions, enrollment, financial aid, and general university services.",
+  uni_msg2: "Hello! I have questions about my enrollment status.",
+  uni_msg3: "I'd be happy to help! Please provide your student ID number so I can check your information.",
+  uni_msg4: "My student ID is 12345678.",
+  uni_msg5: "Thank you! You are currently enrolled in 4 courses this semester. What would you like to know?",
+
+  // Library Chat Messages
+  last_message3: "Your book reservation is ready for pickup",
+  lib_msg1: "Hello! This is Library Support. We can help with book reservations, research assistance, study room bookings, and library services.",
+  lib_msg2: "Hi! I need help finding resources for my research paper.",
+  lib_msg3: "Sure! What's your research topic? I can guide you to the right databases.",
+  lib_msg4: "I'm researching machine learning applications in healthcare.",
+  lib_msg5: "Great! I recommend ScienceDirect, IEEE Xplore, and PubMed. Would you like suggested search terms?"
+},
+createSurvey: {
+  pageTitle: "Create New Survey",
+  pageDescription: "Design and configure your survey questions",
+  surveyInformation: "Survey Information",
+  surveyTitle: "Survey Title *",
+  surveyDescription: "Description",
+  surveyCategory: "Category",
+  addQuestion: "Add Question",
+  questions: "Questions",
+  noQuestions: "No questions added yet. Click 'Add Question' to get started.",
+  questionText: "Question Text *",
+  questionType: "Question Type",
+  requiredQuestion: "Required question",
+  addOption: "Add Option",
+  cancel: "Cancel",
+  saveSurvey: "Save Survey",
+  saving: "Saving...",
+  placeholderText: "Placeholder Text",
+  ratingScale: "Rating Scale",
+  minValue: "Minimum Value",
+  maxValue: "Maximum Value",
+  options: "Options",
+  academic: "Academic",
+  services:"Services",
+  infrastructure: "Infrastructure",
+  studentLife: "Student Life",
+  single: "Single Choice",
+  multiple: "Multiple Choice",
+  textInput:"Text Input",
+  ratingScale: "Rating Scale",
+  checkBox: "Checkbox",
+  enterTitle: "Enter survey title...",
+  desc:"Enter survey description...",
+  enterQuestion:"Enter your question...",
+  text:"Enter placeholder text...",
+  successfully:"Survey created successfully!",
+  addOneQuestion:"Please add at least one question",
+  alertTitle:"Please enter a survey title",
+  option: "Option"
+  },
+  form:{
+    title:"Course Feedback - Computer Science 101",
+    description: "Help us improve our Computer Science course by providing your feedback.",
+    q1: "How would you rate the overall quality of this course?",
+    excellent: "Excellent",
+    good: "Good",
+    average: "Average",
+    poor:"Poor",
+    veryPoor: "Very Poor",
+    q2:"Which aspect of the course did you find most valuable?",
+    lect:"Lectures and presentations",
+    handOn:"Hands-on programming exercises",
+    groupProj:"Group projects",
+    assign:"Assignments and homework",
+    instruct:"Instructor feedback",
+    q3:"What suggestions do you have for improving this course?",
+    placeholder3:"Please provide your suggestions...",
+    q4:"Rate the instructor's teaching effectiveness (1-5 scale)",
+    q5:"Which topics would you like to see covered more in depth? (Select all that apply)",
+    data: "Data Structures and Algorithms",
+    web:"Web Development",
+    database: "Database Design",
+    software: "Software Engineering Principles",
+    mobileApp:"Mobile App Development",
+    machineLearning:"Machine Learning",
+    loading: "Loading survey...",
+    thanks: "Thank you for your feedback!",
+    submit:"Your response has been submitted successfully.",
+    redirecting:"Redirecting to surveys list...",
+    notFound:"Survey not found",
+    deleted:"The survey you're looking for doesn't exist or has been removed.",
+    back:" Back to Surveys",
+    question:"Question",
+    of:"of",
+    required:"* Required",
+    previous:"Previous",
+    next: "Next",
+    submitting:"Submitting...",
+    sample:"Sample Responses:",
+    and:"... and ",
+    more:"more responses",
+    loading:"Loading results...",
+    noRes:"Results not found",
+    notExist:"The survey results you're looking for don't exist.",
+    totalResponses:"Total Responses",
+    endDate:"End Date",
+    export:"Export Results",
+    responses:"responses",
+    moreInter:"More interactive coding session",
+    additional:  "Additional practice problems",
+    better:"Better explanation of complex algorithms",
+    realWorld:"More real-world examples",
+    improved:"Improved course materials",
+  },
+  header:{
+sss:"Student Survey System",
+fullName:"Sergey Ashughyan",
+signOut:"Sign Out",
+switchAccount:"Switch Account",
+firstName:"Sergey",
+lastName:"Ashughyan",
+adminConsole:"Admin Console",
+lecturerConsole:"Lecturer Console",
+roleLabels:{
+admin:"Administrator",
+lecturer:"Lecturer",
+student:"Student"
+}
+  },
+  adminPage: {
+    eyebrow: 'Platform oversight',
+    title: 'Admin Control Center',
+    subtitle: 'Monitor surveys, permissions, and campus-wide engagement.',
+    roleFallback: 'Administrator',
+    back:' Back',
+    stats: {
+      totalUsers: 'Total Users',
+      activeSurveys: 'Active Surveys',
+      pendingApprovals: 'Pending Approvals',
+      incidents: 'Open Incidents',
+      trendStable: 'Stable'
+    },
+    quickActionsTitle: 'Admin Actions',
+    quickActionsSubtitle: 'Resolve priority requests in a single click.',
+    quickActions: {
+      audit: {
+        title: 'Launch audit mode',
+        description: 'Review survey access and compliance logs.'
+      },
+      broadcast: {
+        title: 'Send broadcast notice',
+        description: 'Push urgent updates to every student inbox.',
+        broadcast: 'Broadcast Message',
+        send:'Send notifications to all users or specific groups',
+        messageTitle:'Message Title',
+        messageContent:'Message Content',
+        target:'Target Audience',
+        allUsers:'All Users',
+        admins:'Admins',
+        lecturers:'Lecturers',
+        students:'Students',
+        sendBroadcast:'Send Broadcast',
+        enterTitle:"Enter message title",
+        enterContent:"Enter your message...",
+        
+      },
+      roles: {
+        title: 'Manage role templates',
+        description: 'Update lecturer and student permissions.',
+        manage:'Manage Roles & Permissions',
+        configure:'Configure user roles and their permissions',
+        edit:'Edit',
+        delete:'Delete',
+        update:'Role updated successfully',
+        areSure:'Are you sure you want to delete this role?',
+        admin:'Admin',
+        lecturer:'Lecturer',
+        student:'Student',
+        manageUsers:'Manage Users',
+        publish:'Publish Surveys',
+        viewResults:'View Results',
+        editSystem:'Edit System',
+        create:'Create Surveys',
+        viewCourses:'View Courses',
+        takeSurveys:'Take Surveys',
+        viewNews:'View News',
+        moderateChat:'Moderate Chat',
+        gradeAssignments:'Grade Assignments',
+        cancel:'Cancel',
+        save:'Save changes',
+      },
+      pending: {
+        title: 'Approvals',
+        description: 'Approve changes.',
+        pendingApprovals: 'Pending Approvals',
+        desc:'Items awaiting admin review',
+        submitted:'Submitted:',
+        by: 'by',
+        approve:'Approve',
+        reject:'Reject',
+      },
+    },
+    permissionsTitle: 'Current capabilities',
+    permissionsEmpty: 'No elevated permissions assigned.',
+    insightsTitle: 'Operations feed',
+    insights: {
+      systemHealth: {
+        title: 'System health',
+        detail: 'Uptime holding at 99.9% over the last 7 days.'
+      },
+      pending: {
+        title: 'Approvals',
+        detail: 'Three lecturer surveys are waiting for clearance.'
+      },
+      incidents: {
+        title: 'Incidents',
+        detail: 'No active incidents in the past 24 hours.'
+      }
+    }
+  },
+  lecturerPage: {
+    eyebrow: 'Teaching overview',
+    title: 'Lecturer Workspace',
+    subtitle: 'Track course momentum and gather student sentiment.',
+    stats: {
+      courses: 'Active Courses',
+      surveys: 'Surveys Created',
+      responses: 'Responses Collected',
+      score: 'Feedback Score',
+      algorithms: 'Algorithms II',
+      capstone:'Capstone Workshop',
+      room:'room',
+      innovation:'Innovation Lab',
+      view:'View statistics',
+      viewCourses:'View Courses',
+      addCourse:'Add New Course',
+      reschedule:'Reschedule',
+      delete:'Delete',
+      save:'Save',
+      cancel:'Cancel',
+      courseTitle:'Course Title',
+      time:'Time & Room',
+      focus: "Focus / Description",
+      statistics:'Statistics',
+      totalCourses:'Total Courses',
+      totalSurveys:'Total Surveys',
+      responsesCollected:'Responses Collected',
+      averageScore:'Average Feedback Score',
+    },
+
+    toolsTitle: 'Teaching tools',
+    tools: {
+      survey: {
+        title: 'View Courses',
+        description: 'See all your courses, manage sessions, and track student progress.'
+      },
+      feedback: {
+        title: 'Statistics',
+        description: 'Quick overview of your courses, surveys, responses, and feedback scores to track progress and engagement.'
+      },
+    },
+    insightsTitle: 'Engagement highlights',
+    insights: {
+      participation: '82% of seniors completed the latest survey.',
+      topCourse: 'Algorithms II holds the top satisfaction score.',
+      followUps: '5 students requested follow-up mentoring.'
+    }
+  },
+  login: {
+  title: "Welcome Back",
+  subtitle: "Sign in to your account to continue",
+  email: "Email",
+  emailPlaceholder: "Enter your email",
+  password: "Password",
+  passwordPlaceholder: "Enter your password",
+  rememberMe: "Remember me",
+  forgotPassword: "Forgot password?",
+  loginButton: "Sign In",
+  loggingIn: "Signing in...",
+  noAccount: "Don't have an account?",
+  signUp: "Sign up",
+  showPassword: "Show password",
+  hidePassword: "Hide password",
+  quickAccessTitle: "Quick role access",
+  quickAccessSubtitle: "Prefill the demo admin, lecturer, or student credentials.",
+  errors: {
+    required: "Please fill in all fields",
+    invalid: "Invalid email or password",
+    tooManyAttempts: "Too many sign-in attempts. Please wait a few minutes and try again."
+  },
+  recovery: {
+    title: "Forgot your password?",
+    subtitle: "Enter your university email and we will email recovery instructions.",
+    emailLabel: "University email",
+    emailPlaceholder: "name@sss.edu",
+    submit: "Send recovery link",
+    sending: "Sending...",
+    back: "Back to sign in",
+    success: "Recovery instructions were sent to",
+    submitted: "If that email is registered, password reset instructions have been sent.",
+    errors: {
+      required: "Please enter the email you used for registration",
+      notFound: "We couldn't find an account with that email",
+      generic: "We couldn't send the recovery email. Please try again."
+    }
+  }
+  
+},
+  resetPassword: {
+    title: "Choose a new password",
+    subtitle: "This link works once. Pick a password of at least 8 characters.",
+    newPassword: "New password",
+    newPasswordPlaceholder: "At least 8 characters",
+    confirmPassword: "Confirm new password",
+    confirmPasswordPlaceholder: "Repeat the new password",
+    togglePassword: "Show or hide the password",
+    submit: "Change password",
+    submitting: "Changing...",
+    doneTitle: "Password changed",
+    doneSubtitle: "You can now sign in with your new password.",
+    errors: {
+      required: "Please fill in both fields",
+      tooShort: "Password must be at least 8 characters",
+      mismatch: "The two passwords do not match",
+      invalidToken: "This reset link is invalid or has expired. Please request a new one.",
+      missingToken: "This link is missing its reset code. Please request a new one."
+    }
+  },
+register:{
+    title: "Create Your Account",
+    subtitle: 'Join our community',
+    registerButton: "Create Account",
+    name:'Full Name',
+    namePlaceholder:'Enter your full name',
+    email: 'Email Address',
+    emailPlaceholder: 'Enter your email address',
+    password: 'Password',
+    passwordPlaceholder: 'Enter your password',
+    confirmPassword: 'Confirm Password',
+    confirmPasswordPlaceholder: 'Confirm your password',
+    registering: 'Creating Account...',
+    registerButton: 'Create Account',
+    hasAccount: 'Already have an account?',
+    login: 'Sign In',
+    back: 'Back to Login',
+    success: 'Registration successful! You can now login with your credentials.',
+    errors: {
+      required: 'All fields are required',
+      passwordMismatch: 'Passwords do not match',
+      passwordTooShort: 'Password must be at least 6 characters',
+      emailExists: 'This email is already registered',
+      invalidEmail: 'Please enter a valid email address',
+      networkError: 'Could not reach the server. Is the API running (e.g. docker compose)?',
+      serverError: 'The server could not complete registration. Please try again.',
+      generic:'Registration failed. Please try again.',
+      failedSend:'Failed to send email. Please try again later.',
+      send:'Password reset email sent to ',
+      emailNotRegistered:'This email is not registered',
+  },
+
+},
+},
+  ru: {
+    settings: {
+      title: 'Настройки',
+      subtitle: 'Настройте свой опыт и управляйте своими предпочтениями',
+      save: 'Сохранить изменения',
+      reset: 'Сбросить по умолчанию',
+      resetConfirm: 'Вы уверены, что хотите сбросить все настройки по умолчанию?',
+      saveSuccess: 'Настройки успешно сохранены!',
+      notMatch: 'Электронная почта не соответствует вашему аккаунту',
+enterEmail: 'Введите email вашего аккаунта',
+codeSend: 'Код подтверждения был отправлен!',
+sendCode: 'Отправить код подтверждения',
+    },
+    tabs: {
+      notifications: 'Уведомления',
+      privacy: 'Конфиденциальность',
+      appearance: 'Внешний вид',
+      account: 'Аккаунт'
+    },
+    notifications: {
+      title: 'Настройки уведомлений',
+      subtitle: 'Выберите, как вы хотите получать уведомления об обновлениях и активности.',
+      methods: 'Способы уведомлений',
+      types: 'Типы уведомлений',
+      email: 'Email уведомления',
+      emailDesc: 'Получать уведомления по электронной почте',
+      push: 'Push уведомления',
+      pushDesc: 'Получать push-уведомления в браузере',
+      sms: 'SMS уведомления',
+      smsDesc: 'Получать уведомления через текстовые сообщения',
+      surveys: 'Обновления опросов',
+      surveysDesc: 'Получать уведомления о новых опросах и результатах',
+      news: 'Новости',
+      newsDesc: 'Получать уведомления о новостях и объявлениях университета',
+      chat: 'Сообщения в чате',
+      chatDesc: 'Получать уведомления о новых сообщениях в чате'
+    },
+    privacy: {
+      title: 'Настройки конфиденциальности',
+      subtitle: 'Управляйте своими настройками конфиденциальности и обмена данными.',
+      visibility: 'Видимость профиля',
+      visibilityLabel: 'Видимость профиля',
+      visibilityDesc: 'Кто может видеть информацию вашего профиля',
+      public: 'Публичный',
+      friends: 'Только друзья',
+      private: 'Приватный',
+      showEmail: 'Показать email адрес',
+      showEmailDesc: 'Отображать ваш email адрес в профиле',
+      showPhone: 'Показать номер телефона',
+      showPhoneDesc: 'Отображать ваш номер телефона в профиле',
+      dataSharing: 'Обмен данными',
+      dataSharingDesc: 'Разрешить анонимный обмен данными в исследовательских целях'
+    },
+    appearance: {
+      title: 'Настройки внешнего вида',
+      subtitle: 'Настройте внешний вид вашего интерфейса.',
+      theme: 'Тема',
+      light: 'Светлая',
+      dark: 'Темная',
+      language: 'Язык',
+      languageLabel: 'Язык',
+      languageDesc: 'Выберите предпочитаемый язык',
+      fontSize: 'Размер шрифта',
+      fontSizeLabel: 'Размер шрифта',
+      fontSizeDesc: 'Настройте размер текста в интерфейсе',
+      small: 'Маленький',
+      medium: 'Средний',
+      large: 'Большой'
+    },
+    account: {
+      title: 'Безопасность аккаунта',
+      subtitle: 'Управляйте настройками безопасности и сеансов вашего аккаунта.',
+      security: 'Безопасность',
+      twoFactor: 'Двухфакторная аутентификация',
+      twoFactorDesc: 'Добавить дополнительный уровень безопасности к вашему аккаунту',
+      sessionTimeout: 'Тайм-аут сеанса (минуты)',
+      sessionTimeoutDesc: 'Автоматический выход после неактивности',
+      autoLogout: 'Автоматический выход',
+      autoLogoutDesc: 'Автоматически выходить при истечении сеанса',
+      minutes15: '15 минут',
+      minutes30: '30 минут',
+      hour1: '1 час',
+      hours2: '2 часа'
+    },
+    accountPage: {
+  title: "Мой профиль",
+  subtitle: "Управляйте личной информацией и настройками аккаунта",
+
+  editProfile: "Редактировать",
+  save: "Сохранить",
+  cancel: "Отмена",
+
+  student: "Студент",
+  firstName: "Имя",
+  lastName: "Фамилия",
+  email: "Электронная почта",
+  phone: "Телефон",
+  studentId: "ID студента",
+  major: "Специальность",
+  academicYear: "Курс",
+  address: "Адрес",
+  joinDate: "Дата присоединения",
+
+  statsTitle: "Статистика аккаунта",
+  surveysCompleted: "Пройденные опросы",
+  daysActive: "Дней активности",
+  messagesSent: "Отправленные сообщения",
+
+  majors: {
+    cs: "Информатика",
+    engineering: "Инженерия",
+    business: "Бизнес",
+    medicine: "Медицина",
+    arts: "Искусство"
+  },
+
+  years: {
+    freshman: "1 курс",
+    sophomore: "2 курс",
+    junior: "3 курс",
+    senior: "4 курс",
+    graduate: "Магистратура"
+  }
+},
+dashboard: {
+      title: 'Панель управления',
+      subtitle: 'Добро пожаловать в систему опросов студентов',
+      stats: {
+        totalSurveys: 'Всего опросов',
+        activeSurveys: 'Активные опросы',
+        completed: 'Завершенные',
+        oneCompleted: 'Завершено',
+        active:'Активный',
+        totalResponses: 'Всего ответов'
+      },
+      survey: {
+        courseFeedback: "Обратная связь по курсу - Компьютерные науки 101",
+        libraryServices: "Опрос услуг библиотеки",
+        campus:"Оценка объектов кампуса",
+      },
+      responses: 'ответов',
+      recentSurveys: 'Последние опросы',
+      viewAll: 'Смотреть все',
+      takeSurvey: 'Пройти опрос',
+      viewResults: 'Посмотреть результаты',
+      quickActions: 'Быстрые действия',
+      createNewSurvey: 'Создать новый опрос',
+      createNewSurveyDesc: 'Разработать и опубликовать новый опрос',
+      browseSurveys: 'Просмотреть опросы',
+      browseSurveysDesc: 'Смотреть все доступные опросы'
+    },
+
+    news: {
+      title: 'Новости университета',
+      subtitle: 'Будьте в курсе последних новостей и объявлений',
+      filters: {
+        all: 'Все',
+        academic: 'Академические',
+        events: 'События',
+        announcements: 'Объявления',
+        sports: 'Спорт'
+      },
+      featuredNews: 'Избранные новости',
+      latestNews: 'Последние новости',
+      readMore: 'Читать далее',
+      noNews: 'Новости не найдены',
+      noNewsDesc: 'Нет статей для выбранной категории',
+      meta: {
+        author: 'Автор',
+        date: 'Дата',
+        views: 'Просмотры',
+        comments: 'Комментарии'
+      },
+      articles: {
+  article1: {
+    title: "Запущена новая программа по компьютерным наукам",
+    excerpt: "Университет с радостью объявляет о запуске новой программы по компьютерным наукам со следующего семестра.",
+    content: "Новая программа сосредоточится на современных технологиях, включая искусственный интеллект, машинное обучение и блокчейн. Студенты получат доступ к современным лабораториям и партнерствам с индустрией.",
+    author: "Доктор Сара Джонсон"
+  },
+  article2: {
+  title: "Ежегодная технологическая конференция 2024",
+    excerpt: "Присоединяйтесь к крупнейшей технологической конференции года с участием лидеров индустрии и инновационных презентаций.",
+    content: "Конференция включает выступления спикеров из крупных IT-компаний, практические мастер-классы и возможности для нетворкинга. Регистрация уже открыта.",
+    author: "Оргкомитет"
+  },
+  article3: {
+    title: "Библиотека работает круглосуточно во время сессии",
+    excerpt: "Главная библиотека будет открыта 24/7 в период экзаменов.",
+    content: "Со следующей недели библиотека будет работать круглосуточно, обеспечивая студентам спокойное место для подготовки. Будут доступны дополнительные помещения и ресурсы.",
+    author: "Библиотечная служба"
+  },
+  article4: {
+    title: "Команда университета выиграла чемпионат",
+    excerpt: "Баскетбольная команда университета выиграла региональный чемпионат.",
+    content: "Это уже третья победа подряд. Финальная игра была напряжённой и завершилась в овертайме.",
+    author: "Спортивный отдел"
+  },
+  article5: {
+    title: "Новые возможности исследовательских грантов",
+    excerpt: "Доступны новые исследовательские гранты для студентов и преподавателей.",
+    content: "Университет получил финансирование для различных STEM-проектов. Размер грантов — от $5,000 до $50,000. Подача заявок открыта до 1 марта.",
+    author: "Исследовательский отдел"
+  }
+},
+},
+chat: {
+  title: "Чат",
+  empty: "Сообщений пока нет",
+  inputPlaceholder: "Введите сообщение...",
+  sendBtn: "Отправить",
+  messages: "Сообщения",
+  search: "Поиск...",
+  chatUnavailable: "Выберите чат",
+  chatUnavailableDesc: "Выберите беседу в боковом меню, чтобы начать общение",
+
+  online: "Онлайн",
+  offline: "Офлайн",
+
+  typeMessage: "Введите сообщение...",
+  send: "Отправить",
+
+  // MockChats Names
+  botName: "AI Ассистент Бот",
+  universityAdmin: "Администрация университета",
+  librarySupport: "Поддержка библиотеки",
+
+  // Bot Chat Messages
+  last_message1:"Здравствуйте! Я здесь, чтобы помочь вам с любыми вопросами об университете",
+  bot_msg1: "Здравствуйте! Я ваш AI-ассистент. Я могу помочь с информацией об университете, курсах и общих вопросах. Чем могу помочь?",
+  bot_msg2: "Привет! Расскажите, пожалуйста, о программе «Компьютерные науки».",
+  bot_msg3: "Программа включает курсы по программированию, алгоритмам, структурам данных, разработке ПО и многое другое. Обучение длится 4 года и включает теорию и практику.",
+  bot_msg4: "Какие требования для поступления?",
+  bot_msg5: "Необходим аттестат со хорошими оценками по математике и естественным наукам. Также требуются результаты SAT/ACT. Хотите подробнее?",
+
+  // University Chat Messages
+  last_message2: "Добро пожаловать в чат поддержки университета. Чем мы можем вам помочь?",
+  uni_msg1: "Добро пожаловать в чат Администрации университета! Мы помогаем с поступлением, зачислением, финансовой поддержкой и другими услугами.",
+  uni_msg2: "Здравствуйте! У меня вопросы о моем статусе зачисления.",
+  uni_msg3: "С удовольствием помогу! Пожалуйста, укажите ваш студенческий ID, чтобы я мог проверить информацию.",
+  uni_msg4: "Мой студенческий ID: 12345678.",
+  uni_msg5: "Спасибо! Вы записаны на 4 курса в этом семестре. Что бы вы хотели уточнить?",
+
+  // Library Chat Messages
+  last_message3: "Ваша забронированная книга готова к получению",
+  lib_msg1: "Здравствуйте! Это поддержка библиотеки. Мы помогаем с бронированием книг, исследовательской помощью, бронированием аудиторий и другими услугами.",
+  lib_msg2: "Здравствуйте! Мне нужна помощь с поиском материалов для моей научной работы.",
+  lib_msg3: "Конечно! Какова ваша тема исследования? Я подскажу подходящие базы данных.",
+  lib_msg4: "Я исследую применение машинного обучения в медицине.",
+  lib_msg5: "Отличная тема! Рекомендую ScienceDirect, IEEE Xplore и PubMed. Хотите предложу поисковые ключевые слова?"
+},
+createSurvey: {
+        pageTitle: "Создать новый опрос",
+        pageDescription: "Создайте и настройте вопросы вашего опроса",
+        surveyInformation: "Информация об опросе",
+        surveyTitle: "Название опроса *",
+        surveyDescription: "Описание",
+        surveyCategory: "Категория",
+        addQuestion: "Добавить вопрос",
+        questions: "Вопросы",
+        noQuestions: "Вопросы ещё не добавлены. Нажмите «Добавить вопрос», чтобы начать.",
+        questionText: "Текст вопроса *",
+        questionType: "Тип вопроса",
+        requiredQuestion: "Обязательный вопрос",
+        addOption: "Добавить вариант",
+        cancel: "Отмена",
+        saveSurvey: "Сохранить опрос",
+        saving: "Сохранение...",
+        placeholderText: "Текст подсказки",
+        ratingScale: "Шкала оценки",
+        minValue: "Минимальное значение",
+        maxValue: "Максимальное значение",
+        options: "Варианты",
+        academic: "Академический",
+        services: "Сервисы",
+        infrastructure: "Инфраструктура",
+        studentLife: "Студенческая жизнь",
+        single: "Один выбор",
+        multiple: "Множественный выбор",
+        textInput: "Текстовый ввод",
+        ratingScale: "Шкала оценки",
+        checkBox: "Флажок",
+        enterTitle: "Введите название опроса…",
+        desc:"Введите описание опроса…",
+        enterQuestion: "Введите ваш вопрос...",
+        text: "Введите текст заполнителя...",
+        successfully: "Опрос успешно создан!",
+        addOneQuestion: "Пожалуйста, добавьте хотя бы один вопрос",
+        alertTitle: "Пожалуйста, введите название опроса",
+        option: "Вариант"
+      },
+      form: {
+  title: "Обратная связь по курсу - Компьютерные науки 101",
+  description: "Помогите нам улучшить курс по компьютерным наукам, предоставив ваш отзыв.",
+  q1: "Как бы вы оценили общее качество этого курса?",
+  excellent: "Отлично",
+  good: "Хорошо",
+  average: "Средне",
+  poor: "Плохо",
+  veryPoor: "Очень плохо",
+  q2: "Какой аспект курса вы считаете наиболее ценным?",
+  lect: "Лекции и презентации",
+  handOn: "Практические задания по программированию",
+  groupProj: "Групповые проекты",
+  assign: "Домашние задания",
+  instruct: "Обратная связь преподавателя",
+  q3: "Какие у вас есть предложения по улучшению этого курса?",
+  placeholder3: "Пожалуйста, предоставьте ваши предложения...",
+  q4: "Оцените эффективность преподавания (шкала 1-5)",
+  q5: "Какие темы вы хотели бы изучить более подробно? (Выберите все, что применимо)",
+  data: "Структуры данных и алгоритмы",
+  web: "Веб-разработка",
+  database: "Проектирование баз данных",
+  software: "Принципы разработки ПО",
+  mobileApp: "Разработка мобильных приложений",
+  machineLearning: "Машинное обучение",
+  loading: "Загрузка опроса...",
+  thanks: "Спасибо за ваш отзыв!",
+  submit: "Ваш ответ успешно отправлен.",
+  redirecting: "Перенаправление к списку опросов...",
+  notFound: "Опрос не найден",
+  deleted: "Искомый опрос не существует или был удален.",
+  back: " Вернуться к списку опросов",
+  question: "Вопрос",
+  of: "из",
+  required: "* Обязательный",
+  previous: "Предыдущий",
+  next: "Следующий",
+  submitting: "Отправка...",
+  sample: "Примеры ответов:",
+and: "... и ",
+more: "дополнительные ответы",
+loading: "Загрузка результатов...",
+noRes: "Результаты не найдены",
+notExist: "Результаты опроса, которые вы ищете, не существуют.",
+totalResponses: "Общее количество ответов",
+endDate: "Дата окончания",
+export: "Экспортировать результаты",
+responses: "ответы",
+moreInter: "Более интерактивная сессия по программированию",
+additional: "Дополнительные практические задачи",
+better: "Лучшее объяснение сложных алгоритмов",
+realWorld: "Больше примеров из реального мира",
+improved: "Улучшенные материалы курса"
+},
+  header: {
+  sss: "Система Студенческих Опросов",
+  fullName: "Сергей Ашугян ",
+  signOut: "Выйти",
+  switchAccount: "Сменить аккаунт",
+  firstName: "Сергей",
+  lastName:"Ашугян",
+  adminConsole: "Админ-панель",
+  lecturerConsole: "Панель преподавателя",
+  roleLabels: {
+    admin: "Администратор",
+    lecturer: "Преподаватель",
+    student: "Студент"
+  }
+  },
+  adminPage: {
+    eyebrow: "Контроль платформы",
+    title: "Центр администратора",
+    subtitle: "Отслеживайте опросы, роли и вовлеченность кампуса.",
+    roleFallback: "Администратор",
+    back: "Вернуться",
+    stats: {
+      totalUsers: "Пользователей",
+      activeSurveys: "Активных опросов",
+      pendingApprovals: "На модерации",
+      incidents: "Инцидентов",
+      trendStable: "Стабильно"
+    },
+    quickActionsTitle: "Действия администратора",
+    quickActionsSubtitle: "Закрывайте приоритетные задачи одним кликом.",
+    quickActions: {
+      audit: {
+        title: "Запустить аудит",
+        description: "Проверить доступы и журналы соответствия."
+      },
+      broadcast: {
+        title: "Отправить объявление",
+        description: "Разослать срочное сообщение всем студентам.",
+        broadcast: 'Рассылка',
+send: 'Отправить уведомления всем пользователям или определённым группам',
+messageTitle: 'Заголовок сообщения',
+messageContent: 'Содержание сообщения',
+target: 'Целевая аудитория',
+allUsers: 'Все пользователи',
+admins: 'Администраторы',
+lecturers: 'Преподаватели',
+students: 'Студенты',
+sendBroadcast: 'Отправить рассылку',
+enterTitle: "Введите заголовок сообщения",
+enterContent: "Введите ваше сообщение...",
+
+      },
+      roles: {
+        title: "Управлять ролями",
+        description: "Настроить права преподавателей и студентов.",
+        manage: 'Управление ролями и разрешениями',
+configure: 'Настройка ролей пользователей и их разрешений',
+edit: 'Редактировать',
+delete: 'Удалить',
+update: 'Роль успешно обновлена',
+areSure: 'Вы уверены, что хотите удалить эту роль?',
+admin: 'Администратор',
+lecturer: 'Преподаватель',
+Student: 'Студент',
+manageUsers: 'Управлять пользователями',
+publish: 'Публиковать опросы',
+viewResults: 'Просматривать результаты',
+editSystem: 'Редактировать систему',
+create: 'Создавать опросы',
+viewCourses: 'Просматривать курсы',
+takeSurveys: 'Проходить опросы',
+viewNews: 'Просматривать новости',
+moderateChat: 'Модерировать чат',
+gradeAssignments: 'Оценивать задания',
+cancel: 'Отмена',
+save: 'Сохранить изменения',
+
+      },
+      pending: {
+        title: 'Подтверждения',
+        description: 'Подтвердите изменения.',
+        pendingApprovals: 'Ожидающие подтверждения',
+desc: 'Элементы, ожидающие проверки администратором',
+submitted: 'Отправлено:',
+by: 'от',
+approve: 'Одобрить',
+reject: 'Отклонить',
+}
+
+    },
+    permissionsTitle: "Текущие полномочия",
+    permissionsEmpty: "Нет расширенных прав.",
+    insightsTitle: "Лента операций",
+    insights: {
+      systemHealth: {
+        title: "Состояние системы",
+        detail: "Аптайм 99.9% за последние 7 дней."
+      },
+      pending: {
+        title: "Одобрения",
+        detail: "3 опроса преподавателей ждут проверки."
+      },
+      incidents: {
+        title: "Инциденты",
+        detail: "За последние сутки инцидентов не было."
+      }
+    }
+  },
+  lecturerPage: {
+    eyebrow: "Обзор преподавателя",
+    title: "Рабочее место преподавателя",
+    subtitle: "Следите за динамикой курсов и обратной связью студентов.",
+    stats: {
+      courses: "Активные курсы",
+      surveys: "Создано опросов",
+      responses: "Собрано ответов",
+      score: "Оценка обратной связи",
+      algorithms: 'Алгоритмы II',
+capstone: 'Воркшоп по итоговому проекту',
+room: 'аудитория',
+innovation: 'Лаборатория инноваций',
+view: 'Просмотреть статистику',
+viewCourses: 'Просмотреть курсы',
+addCourse: 'Добавить новый курс',
+reschedule: 'Переназначить',
+delete: 'Удалить',
+save: 'Сохранить',
+cancel: 'Отмена',
+courseTitle: 'Название курса',
+time: 'Время и аудитория',
+focus: 'Фокус / Описание',
+statistics: 'Статистика',
+totalCourses: 'Всего курсов',
+totalSurveys: 'Всего опросов',
+responsesCollected: 'Собранные ответы',
+averageScore: 'Средняя оценка обратной связи',
+
+    },
+    scheduleTitle: "Ближайшие занятия",
+    scheduleSubtitle: "Планируйте день без спешки.",
+    schedule: {
+      algorithms: "Фокус: разбор кода",
+      capstone: "Фокус: проверка прототипов"
+    },
+    permissionsTitle: "Права преподавателя",
+    permissionsEmpty: "Нет дополнительных прав.",
+    toolsTitle: "Инструменты",
+    tools: {
+      survey: {
+        title: "Запустить мини-опрос",
+        description: "Соберите мгновенную обратную связь в конце пары."
+      },
+      feedback: {
+        title: "Анализировать отзывы",
+        description: "Отслеживайте тенденции по потокам."
+      },
+      mentoring: {
+        title: "Планировать встречи",
+        description: "Назначайте личные консультации студентам."
+      }
+    },
+    insightsTitle: "Ключевые наблюдения",
+    insights: {
+      participation: "82% старшекурсников прошли последний опрос.",
+      topCourse: "«Алгоритмы II» лидирует по удовлетворённости.",
+      followUps: "5 студентов запросили дополнительные встречи."
+    }
+  },
+  login: {
+  title: "Добро пожаловать",
+  subtitle: "Войдите в свой аккаунт, чтобы продолжить",
+  email: "Электронная почта",
+  emailPlaceholder: "Введите ваш email",
+  password: "Пароль",
+  passwordPlaceholder: "Введите ваш пароль",
+  rememberMe: "Запомнить меня",
+  forgotPassword: "Забыли пароль?",
+  loginButton: "Войти",
+  loggingIn: "Вход...",
+  noAccount: "Нет аккаунта?",
+  signUp: "Зарегистрироваться",
+  showPassword: "Показать пароль",
+  hidePassword: "Скрыть пароль",
+  quickAccessTitle: "Быстрый доступ к ролям",
+  quickAccessSubtitle: "Автозаполните данные администратора, преподавателя или студента.",
+  errors: {
+    required: "Пожалуйста, заполните все поля",
+    invalid: "Неверный email или пароль",
+    tooManyAttempts: "Слишком много попыток входа. Подождите несколько минут и попробуйте снова."
+  },
+  recovery: {
+    title: "Забыли пароль?",
+    subtitle: "Введите университетскую почту, и мы отправим инструкцию по восстановлению.",
+    emailLabel: "Email",
+    emailPlaceholder: "name@sss.edu",
+    submit: "Отправить ссылку",
+    sending: "Отправляем...",
+    back: "Назад ко входу",
+    success: "Инструкции отправлены на",
+    submitted: "Если этот адрес зарегистрирован, инструкции по сбросу пароля отправлены.",
+    errors: {
+      required: "Введите email",
+      notFound: "Пользователь с таким email не найден",
+      generic: "Не удалось отправить письмо. Попробуйте снова."
+    }
+  },
+  
+},
+  resetPassword: {
+    title: "Выберите новый пароль",
+    subtitle: "Ссылка действует один раз. Пароль должен содержать минимум 8 символов.",
+    newPassword: "Новый пароль",
+    newPasswordPlaceholder: "Минимум 8 символов",
+    confirmPassword: "Подтвердите новый пароль",
+    confirmPasswordPlaceholder: "Повторите новый пароль",
+    togglePassword: "Показать или скрыть пароль",
+    submit: "Изменить пароль",
+    submitting: "Изменяем...",
+    doneTitle: "Пароль изменён",
+    doneSubtitle: "Теперь вы можете войти с новым паролем.",
+    errors: {
+      required: "Пожалуйста, заполните оба поля",
+      tooShort: "Пароль должен содержать минимум 8 символов",
+      mismatch: "Пароли не совпадают",
+      invalidToken: "Ссылка недействительна или истекла. Запросите новую.",
+      missingToken: "В ссылке отсутствует код сброса. Запросите новую."
+    }
+  },
+register: {
+  title: "Создайте свой аккаунт",
+  subtitle: "Присоединяйтесь к нашему сообществу",
+  registerButton: "Создать аккаунт",
+  name: "Полное имя",
+  namePlaceholder: "Введите ваше полное имя",
+  email: "Эл. почта",
+  emailPlaceholder: "Введите ваш адрес эл. почты",
+  password: "Пароль",
+  passwordPlaceholder: "Введите ваш пароль",
+  confirmPassword: "Подтверждение пароля",
+  confirmPasswordPlaceholder: "Введите пароль повторно",
+  registering: "Создание аккаунта...",
+  hasAccount: "Уже есть аккаунт?",
+  login: "Войти",
+  back: "Вернуться к входу",
+  success: "Регистрация прошла успешно! Теперь вы можете войти с вашими данными.",
+  errors: {
+    required: "Все поля обязательны для заполнения",
+    passwordMismatch: "Пароли не совпадают",
+    passwordTooShort: "Пароль должен содержать не менее 6 символов",
+    emailExists: "Этот адрес эл. почты уже зарегистрирован",
+    invalidEmail: "Пожалуйста, введите корректный адрес эл. почты",
+    networkError: "Не удалось связаться с сервером. Запущен ли API (например, docker compose)?",
+    serverError: "Сервер не смог завершить регистрацию. Попробуйте снова.",
+    generic: "Регистрация не удалась. Пожалуйста, попробуйте снова.",
+    failedSend: "Не удалось отправить письмо. Попробуйте позже.",
+    send: "Письмо для сброса пароля отправлено на ",
+    emailNotRegistered: "Этот адрес эл. почты не зарегистрирован"
+  }
+},
+
+ },
+  am: {
+    settings: {
+      title: 'Կարգավորումներ',
+      subtitle: 'Հարմարեցրեք ձեր փորձը և կառավարեք ձեր նախընտրությունները',
+      save: 'Պահպանել փոփոխությունները',
+      reset: 'Վերականգնել լռելյայն',
+      resetConfirm: 'Վստա՞ հ եք, որ ցանկանում եք վերականգնել բոլոր կարգավորումները լռելյայն վիճակի:',
+      saveSuccess: 'Կարգավորումները հաջողությամբ պահպանվեցին:',
+      notMatch: 'Էլ. փոստը չի համապատասխանում ձեր հաշվին',
+enterEmail: 'Մուտքագրեք ձեր հաշվի էլ. փոստը',
+codeSend: 'Վավերացման կոդը ուղարկվել է!',
+sendCode: 'Ուղարկել վավերացման կոդը',
+    },
+    tabs: {
+      notifications: 'Ծանուցումներ',
+      privacy: 'Գաղտնիություն',
+      appearance: 'Տեսք',
+      account: 'Հաշիվ'
+    },
+    notifications: {
+      title: 'Ծանուցումների կարգավորումներ',
+      subtitle: 'Ընտրեք, թե ինչպես եք ցանկանում ծանուցումներ ստանալ թարմացումների և գործունեության մասին:',
+      methods: 'Ծանուցման մեթոդներ',
+      types: 'Ծանուցման տեսակներ',
+      email: 'Email ծանուցումներ',
+      emailDesc: 'Ստանալ ծանուցումներ էլեկտրոնային փոստով',
+      push: 'Push ծանուցումներ',
+      pushDesc: 'Ստանալ push ծանուցումներ ձեր զննարկիչում',
+      sms: 'SMS ծանուցումներ',
+      smsDesc: 'Ստանալ ծանուցումներ տեքստային հաղորդագրությունների միջոցով',
+      surveys: 'Հարցումների թարմացումներ',
+      surveysDesc: 'Ստանալ ծանուցումներ նոր հարցումների և արդյունքների մասին',
+      news: 'Նորությունների թարմացումներ',
+      newsDesc: 'Ստանալ ծանուցումներ համալսարանի նորությունների և հայտարարությունների մասին',
+      chat: 'Զրուցարան',
+      chatDesc: 'Ստանալ ծանուցումներ զրուցարանի հաղորդագրությունների մասին'
+    },
+    privacy: {
+      title: 'Գաղտնիության կարգավորումներ',
+      subtitle: 'Վերահսկեք ձեր գաղտնիությունը և տվյալների փոխանակման նախընտրությունները:',
+      visibility: 'Պրոֆիլի տեսանելիություն',
+      visibilityLabel: 'Պրոֆիլի տեսանելիություն',
+      visibilityDesc: 'Ո՞վ կարող է տեսնել ձեր պրոֆիլի տեղեկատվությունը',
+      public: 'Հրապարակային',
+      friends: 'Միայն ընկերներ',
+      private: 'Անձնական',
+      showEmail: 'Ցույց տալ email հասցեն',
+      showEmailDesc: 'Ցուցադրել ձեր email հասցեն ձեր պրոֆիլում',
+      showPhone: 'Ցույց տալ հեռախոսահամարը',
+      showPhoneDesc: 'Ցուցադրել ձեր հեռախոսահամարը ձեր պրոֆիլում',
+      dataSharing: 'Տվյալների փոխանակում',
+      dataSharingDesc: 'Թույլատրել անանուն տվյալների փոխանակումը հետազոտական նպատակներով'
+    },
+    appearance: {
+      title: 'Տեսքի կարգավորումներ',
+      subtitle: 'Հարմարեցրեք ձեր ինտերֆեյսի տեսքն ու զգացողությունը:',
+      theme: 'Թեմա',
+      light: 'Լուսավոր',
+      dark: 'Մուգ',
+      language: 'Լեզու',
+      languageLabel: 'Լեզու',
+      languageDesc: 'Ընտրեք ձեր նախընտրած լեզուն',
+      fontSize: 'Տառաչափ',
+      fontSizeLabel: 'Տառաչափ',
+      fontSizeDesc: 'Կարգավորեք տեքստի չափը ինտերֆեյսում',
+      small: 'Փոքր',
+      medium: 'Միջին',
+      large: 'Մեծ'
+    },
+    account: {
+      title: 'Հաշվի անվտանգություն',
+      subtitle: 'Կառավարեք ձեր հաշվի անվտանգությունը և սեսիայի կարգավորումները:',
+      security: 'Անվտանգություն',
+      twoFactor: 'Երկփուլ նույնականացում',
+      twoFactorDesc: 'Ավելացրեք լրացուցիչ անվտանգության մակարդակ ձեր հաշվին',
+      sessionTimeout: 'Սեսիայի ժամանակի սպառում (րոպե)',
+      sessionTimeoutDesc: 'Ավտոմատ դուրս գալ անգործության դեպքում',
+      autoLogout: 'Ավտոմատ դուրս գալ',
+      autoLogoutDesc: 'Ավտոմատ դուրս գալ սեսիայի ավարտից հետո',
+      minutes15: '15 րոպե',
+      minutes30: '30 րոպե',
+      hour1: '1 ժամ',
+      hours2: '2 ժամ'
+    },
+  accountPage: {
+  title: "Իմ հաշիվը",
+  subtitle: "Կառավարեք ձեր անձնական տվյալներն ու հաշվի կարգավորումները",
+
+  editProfile: "Խմբագրել",
+  save: "Պահպանել",
+  cancel: "Չեղարկել",
+
+  student: "Ուսանող",
+  firstName: "Անուն",
+  lastName: "Ազգանուն",
+  email: "Էլ. փոստ",
+  phone: "Հեռախոսահամար",
+  studentId: "Ուսանողի ID",
+  major: "Մասնագիտություն",
+  academicYear: "Ուսումնական տարի",
+  address: "Հասցե",
+  joinDate: "Միանալու ամսաթիվ",
+
+  statsTitle: "Հաշվի վիճակագրություն",
+  surveysCompleted: "Ավարտված հարցումներ",
+  daysActive: "Ակտիվ օրեր",
+  messagesSent: "Ուղարկված հաղորդագրություններ",
+
+  majors: {
+    cs: "Տեղեկատվական տեխնոլոգիա",
+    engineering: "Ինժեներություն",
+    business: "Բիզնես",
+    medicine: "Բժշկություն",
+    arts: "Արվեստ"
+  },
+
+  years: {
+    freshman: "1-ին կուրս",
+    sophomore: "2-րդ կուրս",
+    junior: "3-րդ կուրս",
+    senior: "4-րդ կուրս",
+    graduate: "Մագիստրատուրա"
+  }
+},
+
+dashboard: {
+      title: 'Վահանակ',
+      subtitle: 'Բարի գալուստ Ուսանողների հարցումների և արձագանքների համակարգ',
+      stats: {
+        totalSurveys: 'Ընդհանուր հարցումներ',
+        activeSurveys: 'Ակտիվ հարցումներ',
+        completed: 'Ավարտված',
+        oneCompleted: 'Ավարտված',
+        active:'Ակտիվ',
+        totalResponses: 'Ընդհանուր պատասխաններ'
+      },
+      survey: {
+        courseFeedback: "Դասընթացի կարծիքը - Համակարգչային գիտություն 101",
+        libraryServices: "Գրադարանի ծառայությունների հարցում",
+        campus:"Համալսարանի հարմարությունների գնահատում",
+      },
+      
+      responses: 'պատասխաններ',
+      recentSurveys: 'Վերջին հարցումներ',
+      viewAll: 'Դիտել բոլորը',
+      takeSurvey: 'Լրացնել հարցումը',
+      viewResults: 'Դիտել արդյունքները',
+      quickActions: 'Արագ գործողություններ',
+      createNewSurvey: 'Ստեղծել նոր հարցում',
+      createNewSurveyDesc: 'Նախագծել և հրապարակել նոր հարցում',
+      browseSurveys: 'Դիտել հարցումները',
+      browseSurveysDesc: 'Դիտել բոլոր հասանելի հարցումները'
+    },
+
+    news: {
+      title: 'Նորություններ',
+      subtitle: 'Մնացեք տեղեկացված վերջին նորությունների և հայտարարությունների մասին',
+      filters: {
+        all: 'Բոլորը',
+        academic: 'Ակադեմիական',
+        events: 'Միջոցառումներ',
+        announcements: 'Հայտարարություններ',
+        sports: 'Սպորտ'
+      },
+      featuredNews: 'Առանձնացված նորություններ',
+      latestNews: 'Վերջին նորություններ',
+      readMore: 'Կարդալ ավելին',
+      noNews: 'Նորություններ չեն գտնվել',
+      noNewsDesc: 'Ընտրված կատեգորիայի համար հոդվածներ չեն գտնվել',
+      meta: {
+        author: 'Հեղինակ',
+        date: 'Ամսաթիվ',
+        views: 'Դիտումներ',
+        comments: 'Մեկնաբանություններ'
+      },
+      articles: {
+  article1: {
+    title: "Գործարկվել է նոր Համակարգչային գիտությունների ծրագիրը",
+    excerpt: "Համալսարանը հայտարարում է նոր առաջադեմ համակարգչային գիտությունների ծրագրի մեկնարկի մասին:",
+    content: "Ծրագիրը կկենտրոնանա ԱԲ-ի, մեքենայական ուսուցման և բլոկչեյն տեխնոլոգիաների վրա։ Ուսանողները կունենան մուտք նորարարական լաբորատորիաներ և գործընկերություններ ոլորտի կազմակերպությունների հետ։",
+    author: "Դոկտոր Սարա Ջոնսոն"
+  },
+  article2: {
+    title: "Տեխնոլոգիական տարեկան կոնֆերանս 2024",
+    excerpt: "Միացեք տարվա ամենամեծ տեխնոլոգիական կոնֆերանսին՝ ոլորտի առաջատարների մասնակցությամբ:",
+    content: "Կոնֆերանսը կունենա հիմնական բանախոսներ, աշխատարաններ և կապեր հաստատելու հնարավորություններ։ Գրանցումը բաց է բոլոր ուսանողների և դասախոսների համար։",
+    author: "Միջոցառման հանձնաժողով"
+  },
+  article3: {
+    title: "Գրադարանը կաշխատի շուրջօրյա քննությունների ընթացքում",
+    excerpt: "Գլխավոր գրադարանը քննությունների ժամանակ կաշխատի 24/7։",
+    content: "Սկսած հաջորդ շաբաթից գրադարանը կաշխատի շուրջօրյա՝ ապահովելով ուսանողների ուսման խաղաղ միջավայրը։ Կլինեն նաև հավելյալ սենյակներ և ռեսուրսներ։",
+    author: "Գրադարանի ծառայություններ"
+  },
+  article4: {
+    title: "Համալսարանի բասկետբոլի թիմը հաղթեց առաջնությունում",
+    excerpt: "Համալսարանի բասկետբոլի թիմը դարձել է տարածաշրջանային չեմպիոն։",
+    content: "Սա թիմի արդեն երրորդ անընդմեջ հաղթանակն է։ Ինտրիգային վերջնական խաղը տեղափոխվեց օվերտայմ։",
+    author: "Սպորտային բաժին"
+  },
+  article5: {
+    title: "Նոր գիտական դրամաշնորհների հնարավորություններ",
+    excerpt: "Հայտարարված են մի շարք նոր գիտական դրամաշնորհներ։",
+    content: "Համալսարանը ստացել է ֆինանսավորում STEM նախագծերի համար։ Դրամաշնորհները կազմում են $5,000–$50,000։ Հայտերի վերջնաժամկետը՝ մարտի 1։",
+    author: "Հետազոտական բաժին"
+  }
+},
+},
+chat: {
+  title: "Զրուցարան",
+    empty: "Դուք դեռ հաղորդագրություններ չունեք",
+    inputPlaceholder: "Գրեք ձեր հաղորդագրությունը...",
+    sendBtn: "Ուղարկել",
+  messages: "Հաղորդագրություններ",
+  search: "Որոնել...",
+  chatUnavailable: "Ընտրեք զրույց",
+  chatUnavailableDesc: "Սկսելու համար ընտրեք զրույց ցանկից",
+
+  online: "Առցանց",
+  offline: "Անցանց",
+
+  typeMessage: "Գրեք հաղորդագրություն...",
+  send: "Ուղարկել",
+
+  // MockChats Names
+  botName: "AI Օգնական Բոտ",
+  universityAdmin: "Համալսարանի ղեկավարություն",
+  librarySupport: "Գրադարանի աջակցություն",
+
+  // Bot Chat Messages
+  last_message1:"Բարև ձեզ։ Ես այստեղ եմ՝ ձեզ օգնելու համալսարանի վերաբերյալ ցանկացած հարցի հետ կապված",
+  bot_msg1: "Բարև! Ես ձեր AI օգնականն եմ։ Կարող եմ օգնել համալսարանի, առարկաների և այլ հարցերի վերաբերյալ։ Ինչպե՞ս կարող եմ օգնել ձեզ այսօր։",
+  bot_msg2: "Բարև, կարո՞ղ եք պատմել «Համակարգչային գիտություն» ծրագրի մասին։",
+  bot_msg3: "Ծրագիրը ներառում է ծրագրավորում, ալգորիթմներ, տվյալների կառուցվածքներ, ծրագրային ճարտարագիտություն և այլ առարկաներ։ Այն 4 տարվա ծրագիր է՝ տեսական և գործնական բաղադրիչներով։",
+  bot_msg4: "Որո՞նք են ընդունելության պահանջները։",
+  bot_msg5: "Պետք է ունենաք միջնակարգ կրթություն, լավ գնահատականներ մաթեմատիկայից ու գիտությունից։ Անհրաժեշտ են նաև SAT/ACT արդյունքներ։ Ցանկանու՞մ եք ավելի մանրամասն տեղեկություն։",
+
+  // University Chat Messages
+  last_message2: "Բարի գալուստ համալսարանի չաթի աջակցության ծառայություն։ Ինչպե՞ս կարող ենք օգնել ձեզ",
+  uni_msg1: "Բարի գալուստ համալսարանի վարչության չաթ։ Մենք օգնում ենք ընդունելության, գրանցման, ֆինանսական աջակցության և այլ ծառայությունների հարցերով։",
+  uni_msg2: "Բարև, ունեմ հարցեր իմ գրանցման կարգավիճակի մասին։",
+  uni_msg3: "Հաճույքով կօգնեմ։ Նշեք ձեր ուսանողական ID-ն, որպեսզի ստուգեմ ձեր տվյալները։",
+  uni_msg4: "Իմ ուսանողական ID-ն՝ 12345678։",
+  uni_msg5: "Շնորհակալություն։ Դուք գրանցված եք այս կիսամյակ 4 առարկայի։ Ինչի՞ մասին կցանկանայիք իմանալ։",
+
+  // Library Chat Messages
+  last_message3: "Ձեր գրքի ամրագրումը պատրաստ է վերցնելու համար",
+  lib_msg1: "Բարև! Սա գրադարանի աջակցությունն է։ Մենք օգնում ենք գրքերի ամրագրման, հետազոտական օգնության, սենյակների ամրագրումների և այլ ծառայությունների հարցերով։",
+  lib_msg2: "Բարև, օգնություն է պետք իմ հետազոտական աշխատանքի նյութերի որոնման համար։",
+  lib_msg3: "Իհարկե։ Ի՞նչ թեմա եք ուսումնասիրում։ Կարող եմ ուղղորդել համապատասխան տվյալների բազաներ։",
+  lib_msg4: "Ուսումնասիրում եմ մեքենայական ուսուցման կիրառությունները բժշկության մեջ։",
+  lib_msg5: "Հիանալի թեմա է։ Առաջարկում եմ ScienceDirect, IEEE Xplore և PubMed։ Ուզու՞մ եք առաջարկեմ որոնման հիմնական բառեր։"
+},
+createSurvey: {
+        pageTitle: "Ստեղծել Նոր Հարցում",
+        pageDescription: "Նախագծեք և կարգավորեք ձեր հարցումների հարցերը",
+        surveyInformation: "Հարցման Տվյալներ",
+        surveyTitle: "Հարցման Անուն *",
+        surveyDescription: "Նկարագրություն",
+        surveyCategory: "Կատեգորիա",
+        addQuestion: "Ավելացնել Հարց",
+        questions: "Հարցեր",
+        noQuestions: "Հարցեր դեռ չեն ավելացվել։ Սեղմեք «Ավելացնել Հարց»՝ սկսելու համար։",
+        questionText: "Հարցի Տեքստ *",
+        questionType: "Հարցի Տիպ",
+        requiredQuestion: "Պարտադիր հարց",
+        addOption: "Ավելացնել Ընտրանք",
+        cancel: "Չեղարկել",
+        saveSurvey: "Պահպանել Հարցումը",
+        saving: "Պահպանում...",
+        placeholderText: "Placeholder Տեքստ",
+        ratingScale: "Արժանշման Սանդղակ",
+        minValue: "Նվազագույն Արժեք",
+        maxValue: "Առավելագույն Արժեք",
+        options: "Ընտրանքներ",
+        academic: "Ակադեմիական",
+        services: "Ծառայություններ",
+        infrastructure: "Հիմնարկային կառուցվածք",
+        studentLife: "Ուսանողական կյանք",
+        single: "Միակ ընտրություն",
+        multiple: "Բազմակի ընտրություն",
+        textInput: "Տեքստային Մուտք",
+        ratingScale: "Արժանշման Սանդղակ",
+        checkBox: "Մակնշիչ",
+        enterTitle: "Մուտքագրեք հարցման վերնագիրը…",
+        desc:"Մուտքագրեք հարցման նկարագրությունը…",
+        enterQuestion: "Մուտքագրեք ձեր հարցը...",
+        text: "Մուտքագրեք հարցման տեքստը...",
+        successfully: "Հարցումը հաջողությամբ ստեղծվեց!",
+        addOneQuestion: "Խնդրում ենք ավելացնել առնվազն մեկ հարց",
+        alertTitle: "Խնդրում ենք մուտքագրել հարցման վերնագիրը",
+        option: "Տարբերակ"
+
+      },
+     form: {
+  title: "Հարցման Հետադարձ Կապ - Համակարգիչների Գիտություն 101",
+  description: "Օգնեք մեզ բարելավել մեր Համակարգչային Գիտության դասընթացը՝ տրամադրելով ձեր կարծիքները։",
+  q1: "Ինչպե՞ս կգնահատեիք դասընթացի ընդհանուր որակը",
+  excellent: "Անթերի",
+  good: "Լավ",
+  average: "Միջին",
+  poor: "Մեղմ վատ",
+  veryPoor: "Շատ վատ",
+  q2: "Դասընթացի ո՞ր ասպեկտը համարեցիք առավել արժեքավոր:",
+  lect: "Դասախոսություններ և ներկայացումներ",
+  handOn: "Գործնական ծրագրավորման վարժություններ",
+  groupProj: "Խումբային նախագծեր",
+  assign: "Առաջադրանքներ և տնային աշխատանք",
+  instruct: "Ուսուցչի արձագանք",
+  q3: "Որո՞նք կլինեին ձեր առաջարկները դասընթացը բարելավելու համար:",
+  placeholder3: "Խնդրում ենք տրամադրել ձեր առաջարկները...",
+  q4: "Գնահատեք ուսուցչի դասավանդման արդյունավետությունը (1-5 սանդղակ)",
+  q5: "Ո՞ր թեմաները կցանկանայիք ավելի խորքային լուսաբանել(Ընտրեք բոլորը, որոնք վերաբերում են)",
+  data: "Տվյալների կառուցվածքներ և ալգորիթմներ",
+  web: "Վեբ ծրագրավորում",
+  database: "Տվյալների բազայի նախագծում",
+  software: "Ծրագրային ապահովման սկզբունքներ",
+  mobileApp: "Բջջային հավելվածների զարգացում",
+  machineLearning: "Մեքենայական ուսուցում ",
+  loading: "Հարցումը բեռնվում է...",
+  thanks: "Շնորհակալություն ձեր կարծիքի համար!",
+  submit: "Ձեր պատասխանն ուղարկվել է հաջողությամբ։",
+  redirecting: "Վերահղվում է հարցումների ցանկին...",
+  notFound: "Հարցում չի գտնվել",
+  deleted: "Հարցումը, որը դուք փնտրում եք, գոյություն չունի կամ ջնջվել է։",
+  back: " Վերադառնալ Հարցումների Ցանկին",
+  question: "Հարց",
+  of: "/",
+  required: "* Պարտադիր",
+  previous: "Նախորդ",
+  next: "Հաջորդ",
+  submitting: "Ուղարկվում է...",
+  sample: "Օրինակային պատասխաններ:",
+and: "... և ",
+more: "ավելին պատասխաններից",
+loading: "Արդյունքների բեռնվում է...",
+noRes: "Արդյունքներ չեն գտնվել",
+notExist: "Հարցման արդյունքները, որոնք դուք փնտրում եք, գոյություն չունեն։",
+totalResponses: "Ընդհանուր պատասխաններ",
+endDate: "Ավարտի ամսաթիվ",
+export: "Արտահանել արդյունքները",
+responses: "պատասխաններ",
+moreInter: "Ավելին ինտերակտիվ ծրագրավորման նստաշրջան",
+additional: "Լրացուցիչ վարժություններ",
+better: "Լավագույն բացատրություն բարդ ալգորիթմների համար",
+realWorld: "Ավելին իրական աշխարհից օրինակներ",
+improved: "Բարելավված դասընթացի նյութեր"
+},
+header: {
+  sss: "Ուսանողական Հարցումների և Հետադարձ Կապի Համակարգ",
+  fullName: "Սերգեյ Աշուղյան ",
+  signOut: "Դուրս գալ",
+  switchAccount: "Փոխել հաշիվ",
+  firstName: "Սերգեյ",
+  lastName:"Աշուղյան",
+  adminConsole: "Ադմին վահանակ",
+  lecturerConsole: "Դասախոսական վահանակ",
+  roleLabels: {
+    admin: "Ադմինիստրատոր",
+    lecturer: "Դասախոս",
+    student: "Ուսանող"
+  }
+},
+adminPage: {
+  eyebrow: "Հարթակի վերահսկում",
+  title: "Ադմինի կառավարման կենտրոն",
+  subtitle: "Վերահսկեք հարցումները, դերերը և համալսարանի ներգրավվածությունը։",
+  roleFallback: "Ադմինիստրատոր",
+  back: "Վերադառնալ",
+  stats: {
+    totalUsers: "Ընդհանուր օգտատերեր",
+    activeSurveys: "Ակտիվ հարցումներ",
+    pendingApprovals: "Սպասող հաստատումներ",
+    incidents: "Ինցիդենտներ",
+    trendStable: "Կայուն"
+  },
+  quickActionsTitle: "Ադմինի արագ գործողություններ",
+  quickActionsSubtitle: "Լուծեք առաջնային խնդրանքները մեկ սեղմումով։",
+  quickActions: {
+    audit: {
+      title: "Սկսել աուդիտը",
+      description: "Ստուգել հասանելիությունները և համապատասխանության գրառումները։"
+    },
+    broadcast: {
+      title: "Ուղարկել հայտարարություն",
+      description: "Ստուգված հաղորդագրություն բոլոր ուսանողներին։",
+      broadcast: 'Հաղորդագրություն',
+send: 'Ուղարկել ծանուցումներ բոլոր օգտատերերին կամ ընտրած խմբերին',
+messageTitle: 'Հաղորդագրության վերնագիր',
+messageContent: 'Հաղորդագրության բովանդակություն',
+target: 'Նպատակային լսարան',
+allUsers: 'Բոլոր օգտատերերը',
+admins: 'Ադմիններ',
+lecturers: 'Դասախոսներ',
+students: 'Ուսանողներ',
+sendBroadcast: 'Ուղարկել հաղորդագրությունը',
+enterTitle: "Մուտքագրեք հաղորդագրության վերնագիրը",
+enterContent: "Մուտքագրեք ձեր հաղորդագրությունը...",
+    },
+    roles: {
+      title: "Կառավարել դերերը",
+      description: "Թարմացնել դասախոսների և ուսանողների իրավունքները։",
+      manage: 'Կառավարել դերերը և թույլտվությունները',
+configure: 'Կազմաձևել օգտատերերի դերերն ու նրանց թույլտվությունները',
+edit: 'Խմբագրել',
+delete: 'Ջնջել',
+update: 'Դերը հաջողությամբ թարմացվեց',
+areSure: 'Վստա՞հ եք, որ ցանկանում եք ջնջել այս դերը։',
+admin: 'Ադմին',
+lecturer: 'Դասախոս',
+student: 'Ուսանող',
+manageUsers: 'Կառավարել օգտատերերին',
+publish: 'Հրապարակել հարցումները',
+viewResults: 'Դիտել արդյունքները',
+editSystem: 'Խմբագրել համակարգը',
+create: 'Ստեղծել հարցումներ',
+viewCourses: 'Դիտել դասընթացները',
+takeSurveys: 'Լրացնել հարցումներ',
+viewNews: 'Դիտել նորությունները',
+moderateChat: 'Մոդերացնել չաթը',
+gradeAssignments: 'Գնահատել հանձնարարությունները',
+cancel: 'Չեղարկել',
+save: 'Պահպանել փոփոխությունները',
+
+    },
+    pending: {
+     title: 'Հաստատումներ',
+     description: 'Հաստատեք փոփոխությունները։',
+     pendingApprovals: 'Սպասման մեջ գտնվող հաստատումներ',
+desc: 'Տարրեր, որոնք սպասում են ադմինի ստուգմանը',
+submitted: 'Ներկայացված է՝',
+by: 'կողմից',
+approve: 'Հաստատել',
+reject: 'Մերժել',
+
+}
+
+  },
+  permissionsTitle: "Լրացուցիչ իրավունքներ",
+  permissionsEmpty: "Լրացուցիչ իրավունքներ չկան։",
+  insightsTitle: "Գործողությունների հոսք",
+  insights: {
+    systemHealth: {
+      title: "Համակարգի վիճակը",
+      detail: "99.9% աշխատանք վերջին յոթ օրում։"
+    },
+    pending: {
+      title: "Հաստատումներ",
+      detail: "Երեք դասախոսական հարցում սպասում է հաստատման։"
+    },
+    incidents: {
+      title: "Ինցիդենտներ",
+      detail: "Վերջին 24 ժամում խնդիր չի գրանցվել։"
+    }
+  }
+},
+lecturerPage: {
+  eyebrow: "Դասավանդման ակնարկ",
+  title: "Դասախոսի աշխատանքային տարածք",
+  subtitle: "Հետևեք դասընթացների ընթացքին և ուսանողների արձագանքին։",
+  stats: {
+    courses: "Ակտիվ դասընթացներ",
+    surveys: "Ստեղծված հարցումներ",
+    responses: "Ստացված պատասխաններ",
+    score: "Հետադարձ կապի գնահատական",
+    algorithms: 'Ալգորիթմներ II',
+capstone: 'Եզրափակիչ աշխատանքների աշխատարան',
+room: 'դասասենյակ',
+innovation: 'Նորարարությունների լաբորատորիա',
+view: 'Դիտել վիճակագրությունը',
+viewCourses: 'Դիտել դասընթացները',
+addCourse: 'Ավելացնել նոր դասընթաց',
+reschedule: 'Վերաժամանակացույցել',
+delete: 'Ջնջել',
+save: 'Պահպանել',
+cancel: 'Չեղարկել',
+courseTitle: 'Դասընթացի վերնագիր',
+time: 'Ժամ և սենյակ',
+focus: 'Ուղղվածություն / Նկարագրություն',
+statistics: 'Վիճակագրություն',
+totalCourses: 'Ընդհանուր դասընթացներ',
+totalSurveys: 'Ընդհանուր հարցումներ',
+responsesCollected: 'Ստացված պատասխաններ',
+averageScore: 'Միջին արձագանքման միավոր',
+
+  },
+  scheduleTitle: "Մոտակա սեանսներ",
+  scheduleSubtitle: "Պլանավորեք օրը առանց շտապելու։",
+  schedule: {
+    algorithms: "Կենտրոնացում՝ կենդանի կոդի վերլուծություն",
+    capstone: "Կենտրոնացում՝ պրոտոտիպերի ստուգում"
+  },
+  permissionsTitle: "Դասախոսի իրավունքներ",
+  permissionsEmpty: "Ավելորդ իրավունքներ չկան։",
+  toolsTitle: "Գործիքներ",
+  tools: {
+    survey: {
+      title: "Գործարկել հարցում",
+      description: "Հետևեք ձեր դասընթացներին",
+    },
+    feedback: {
+      title: "Դիտել արձագանքները",
+      description: "Մեկ վայրկյանում տեսնել վիճակագրությունը"
+    },
+    mentoring: {
+      title: "Պլանավորել մենթորություն",
+      description: "Նախանշել անհատական հանդիպումներ ուսանողների հետ։"
+    }
+  },
+  insightsTitle: "Ներգրավվածության դիտարկումներ",
+  insights: {
+    participation: "82% ավագներ ավարտել են վերջին հարցումը։",
+    topCourse: "«Ալգորիթմներ II»-ը ամենաբարձր գնահատականն ունի։",
+    followUps: "5 ուսանող խնդրել է լրացուցիչ հանդիպում։"
+  }
+},
+login: {
+  title: "Բարի վերադարձ",
+  subtitle: "Մուտքագրեք ձեր հաշիվը՝ շարունակելու համար",
+  email: "Էլ. փոստ",
+  emailPlaceholder: "Մուտքագրեք ձեր էլ. փոստը",
+  password: "Գաղտնաբառ",
+  passwordPlaceholder: "Մուտքագրեք ձեր գաղտնաբառը",
+  rememberMe: "Հիշել ինձ",
+  forgotPassword: "Մոռացե՞լ եք գաղտնաբառը",
+  loginButton: "Մուտք",
+  loggingIn: "Մուտքագրվում է...",
+  noAccount: "Չունե՞ք հաշիվ",
+  signUp: "Գրանցվել",
+  showPassword: "Ցույց տալ գաղտնաբառը",
+  hidePassword: "Թաքցնել գաղտնաբառը",
+  quickAccessTitle: "Արագ մուտք դերերով",
+  quickAccessSubtitle: "Լրացրեք ադմինի, դասախոսի կամ ուսանողի ցուցադրական տվյալները։",
+  errors: {
+    required: "Խնդրում ենք լրացնել բոլոր դաշտերը",
+    invalid: "Անվավեր էլ. փոստ կամ գաղտնաբառ",
+    tooManyAttempts: "Մուտքի չափազանց շատ փորձեր։ Սպասեք մի քանի րոպե և փորձեք նորից։"
+  },
+  recovery: {
+    title: "Մոռացե՞լ եք գաղտնաբառը",
+    subtitle: "Մուտքագրեք համալսարանի email-ը, և մենք կուղարկենք վերականգնման հղում։",
+    emailLabel: "Email",
+    emailPlaceholder: "name@sss.edu",
+    submit: "Ուղարկել վերականգնման հղումը",
+    sending: "Ուղարկվում է...",
+    back: "Վերադառնալ մուտք",
+    success: "Վերականգնման ցուցումները ուղարկվել են",
+    submitted: "Եթե այդ հասցեն գրանցված է, գաղտնաբառի վերականգնման ցուցումներն ուղարկվել են։",
+    errors: {
+      required: "Խնդրում ենք մուտքագրել email-ը",
+      notFound: "Այդ email-ով օգտատեր չի գտնվել",
+      generic: "Չհաջողվեց ուղարկել նամակը։ Փորձեք նորից։"
+    }
+  }
+},
+  resetPassword: {
+    title: "Ընտրեք նոր գաղտնաբառ",
+    subtitle: "Հղումը գործում է մեկ անգամ։ Գաղտնաբառը պետք է լինի առնվազն 8 նիշ։",
+    newPassword: "Նոր գաղտնաբառ",
+    newPasswordPlaceholder: "Առնվազն 8 նիշ",
+    confirmPassword: "Հաստատեք նոր գաղտնաբառը",
+    confirmPasswordPlaceholder: "Կրկնեք նոր գաղտնաբառը",
+    togglePassword: "Ցույց տալ կամ թաքցնել գաղտնաբառը",
+    submit: "Փոխել գաղտնաբառը",
+    submitting: "Փոխվում է...",
+    doneTitle: "Գաղտնաբառը փոխվեց",
+    doneSubtitle: "Այժմ կարող եք մուտք գործել նոր գաղտնաբառով։",
+    errors: {
+      required: "Խնդրում ենք լրացնել երկու դաշտերը",
+      tooShort: "Գաղտնաբառը պետք է լինի առնվազն 8 նիշ",
+      mismatch: "Գաղտնաբառերը չեն համընկնում",
+      invalidToken: "Հղումն անվավեր է կամ ժամկետն անցել է։ Խնդրեք նորը։",
+      missingToken: "Հղումը չունի վերականգնման կոդ։ Խնդրեք նորը։"
+    }
+  },
+register: {
+  title: "Ստեղծեք ձեր հաշիվը",
+  subtitle: "Միացեք մեր համայնքին",
+  registerButton: "Ստեղծել հաշիվ",
+  name: "Անուն Ազգանուն",
+  namePlaceholder: "Մուտքագրեք ձեր ամբողջական անունը",
+  email: "Էլ. հասցե",
+  emailPlaceholder: "Մուտքագրեք ձեր էլ. հասցեն",
+  password: "Գաղտնաբառ",
+  passwordPlaceholder: "Մուտքագրեք ձեր գաղտնաբառը",
+  confirmPassword: "Գաղտնաբառի հաստատում",
+  confirmPasswordPlaceholder: "Մուտքագրեք գաղտնաբառը կրկին",
+  registering: "Հաշիվը ստեղծվում է...",
+  hasAccount: "Արդյո՞ք արդեն ունեք հաշիվ։",
+  login: "Մուտք գործել",
+  back: "Վերադառնալ մուտքի էջ",
+  success: "Հաշիվը հաջողությամբ ստեղծվեց։ Այժմ կարող եք մուտք գործել ձեր տվյալներով։",
+  errors: {
+    required: "Բոլոր դաշտերը պարտադիր են",
+    passwordMismatch: "Գաղտնաբառերը չեն համընկնում",
+    passwordTooShort: "Գաղտնաբառը պետք է լինի առնվազն 6 նիշ",
+    emailExists: "Այս էլ. հասցեն արդեն գրանցված է",
+    invalidEmail: "Խնդրում ենք մուտքագրել վավեր էլ. հասցե",
+    networkError: "Չհաջողվեց կապ հաստատել սերվերի հետ։ Արդյո՞ք API-ն աշխատում է (օր. docker compose)։",
+    serverError: "Սերվերը չկարողացավ ավարտել գրանցումը։ Խնդրում ենք կրկին փորձել։",
+    generic: "Գրանցումը ձախողվեց։ Խնդրում ենք փորձել կրկին։",
+    failedSend: "Էլ. փոստը չի ուղարկվել։ Խնդրում ենք փորձել ավելի ուշ։",
+    send: "Գաղտնաբառի վերականգնման էլ. փոստը ուղարկվել է՝ ",
+    emailNotRegistered: "Այս էլ. հասցեն գրանցված չէ"
+  }
+},
+}
+  }
+
+

@@ -1,0 +1,20 @@
+node_modules/
+dist/
+build/
+.cache/
+*.log
+.env
+.DS_Store
+*.session.sql
+.vscode/settings.json
+mcp-tools.yaml
+
+# .NET
+**/bin/
+**/obj/
+*.user
+*.suo
+
+# SQL Server backups (large; restore locally)
+*.bak
+database/*.bak

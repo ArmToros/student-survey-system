@@ -1,0 +1,58 @@
+services:
+  db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "${MSSQL_SA_PASSWORD:?Set MSSQL_SA_PASSWORD in your local .env file}"
+    ports:
+      - "1434:1433"
+    volumes:
+      - sqlserver-data:/var/opt/mssql
+      - "./new database:/var/opt/mssql/backup:ro"
+
+  db-restore:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    depends_on:
+      - db
+    environment:
+      SA_PASSWORD: "${MSSQL_SA_PASSWORD:?Set MSSQL_SA_PASSWORD in your local .env file}"
+    volumes:
+      - ./scripts:/app/scripts:ro
+    command: >
+      /bin/bash -c '
+      set -e;
+      echo "Waiting for SQL Server...";
+      until /opt/mssql-tools18/bin/sqlcmd -S db -U sa -P "$$SA_PASSWORD" -C -Q "SELECT 1" > /dev/null 2>&1; do
+        sleep 2;
+      done;
+      echo "Restoring /var/opt/mssql/backup/SSS.bak into database SSS...";
+      /opt/mssql-tools18/bin/sqlcmd -S db -U sa -P "$$SA_PASSWORD" -C -b -i /app/scripts/restore.sql;
+      echo "Applying additive schema scripts...";
+      /opt/mssql-tools18/bin/sqlcmd -S db -U sa -P "$$SA_PASSWORD" -C -b -i /app/scripts/schema-password-reset-token.sql;
+      echo "Verifying restored tables...";
+      /opt/mssql-tools18/bin/sqlcmd -S db -U sa -P "$$SA_PASSWORD" -C -b -d SSS -i /app/scripts/verify.sql;
+      echo "Database restore finished.";
+      '
+    restart: "no"
+
+  backend:
+    image: mcr.microsoft.com/dotnet/sdk:8.0
+    working_dir: /app/backend
+    volumes:
+      - .:/app
+    ports:
+      - "5001:5001"
+    command: dotnet watch run --urls "http://0.0.0.0:5001"
+    depends_on:
+      db-restore:
+        condition: service_completed_successfully
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Server=db;Database=SSS;User Id=sa;Password=${MSSQL_SA_PASSWORD:?Set MSSQL_SA_PASSWORD in your local .env file};TrustServerCertificate=True;
+      - JWT_SIGNING_KEY=${JWT_SIGNING_KEY:?Set JWT_SIGNING_KEY in your local .env file}
+      - CORS_ALLOWED_ORIGINS=${CORS_ALLOWED_ORIGINS:-http://localhost:3000}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - OpenAI__Model=${OPENAI_MODEL:-gpt-4o-mini}
+
+volumes:
+  sqlserver-data:
