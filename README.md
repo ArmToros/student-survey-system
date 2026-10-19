@@ -235,6 +235,7 @@ backend loads it at startup, by the backend too. It is git-ignored.
 | `SMTP_HOST`, `SMTP_PORT`, `SMTP_USERNAME`, `SMTP_PASSWORD`, `SMTP_FROM`, `SMTP_USE_SSL` | backend | Outgoing mail. With `SMTP_HOST` unset, mail is written to the backend log instead |
 | `MSSQL_SA_PASSWORD` | Docker, `npm run db:seed` | SA password for the SQL Server container; `db:seed` uses it when `--user` is given without `--password` |
 | `SSS_DB_INIT` | Docker only | `auto` (default), `restore` or `seed`; see [Option B](#option-b-docker) |
+| `SSS_SQL_INSTANCE` | `npm run db:restore` | SQL Server instance to restore into; defaults to `(localdb)\MSSQLLocalDB`. Set it to e.g. `.\SQLEXPRESS` to use SQL Server Express instead, which runs as a service rather than per user |
 | `OPENAI_API_KEY` | backend | Enables the AI assistant; without it the Chat page shows a clear "not configured" notice and everything else keeps working |
 | `OPENAI_MODEL` | backend | Defaults to `gpt-4o-mini` |
 

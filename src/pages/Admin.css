@@ -1058,3 +1058,47 @@
   }
 }
 
+
+/* Notice for parts of the console that have nothing behind them yet, so the
+   screen says so instead of looking like a control that works. */
+.feature-unavailable {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 0 0 24px;
+  padding: 14px 16px;
+  border: 1px solid var(--border-color);
+  border-left: 4px solid #f59e0b;
+  border-radius: 8px;
+  background: rgba(245, 158, 11, 0.08);
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.feature-unavailable svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: #f59e0b;
+}
+
+.broadcast-form fieldset {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  border: none;
+  margin: 0;
+  padding: 0;
+}
+
+.broadcast-form.is-disabled {
+  opacity: 0.6;
+}
+
+.broadcast-form.is-disabled .submit-button {
+  cursor: not-allowed;
+}
+
+.broadcast-form.is-disabled .submit-button:hover {
+  background: var(--accent-color);
+  transform: none;
+}

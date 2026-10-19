@@ -6,11 +6,13 @@ using backend.Models;
 using backend.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -24,8 +26,19 @@ LoadDotEnvFile();
 // "dotnet run --project backend/backend.csproj -- migrate-passwords" hashes the
 // plain-text passwords still in the database instead of starting the server.
 const string MigratePasswordsCommand = "migrate-passwords";
+const string SetPasswordsCommand = "set-passwords";
 var runPasswordMigration = args.Contains(MigratePasswordsCommand);
-var hostArgs = args.Where(argument => argument != MigratePasswordsCommand).ToArray();
+var runPasswordAssignment = args.Contains(SetPasswordsCommand);
+
+// "set-passwords" takes an optional output path; anything that is not a command
+// name is treated as that path.
+var passwordOutputPath = args
+    .FirstOrDefault(argument => argument != MigratePasswordsCommand && argument != SetPasswordsCommand)
+    ?? "credentials.local.txt";
+
+var hostArgs = args
+    .Where(argument => argument != MigratePasswordsCommand && argument != SetPasswordsCommand)
+    .ToArray();
 
 var builder = WebApplication.CreateBuilder(hostArgs);
 
@@ -171,10 +184,57 @@ if (runPasswordMigration)
     return await PasswordMigration.RunAsync(app.Services);
 }
 
-app.UseSwagger();
-app.UseSwaggerUI();
+if (runPasswordAssignment)
+{
+    return await PasswordAssignment.RunAsync(app.Services, passwordOutputPath);
+}
+
+if (app.Environment.IsDevelopment())
+{
+    // Both of these are developer tools and neither belongs on a published URL:
+    // the exception page prints stack traces and configuration, and Swagger maps
+    // out the whole API. Outside Development the handler below answers instead.
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
+else
+{
+    // Without this an unhandled exception returns an empty 500, which the React
+    // app cannot report usefully. The detail goes to the log, never to the client.
+    app.UseExceptionHandler(branch => branch.Run(async context =>
+    {
+        var error = context.Features.Get<IExceptionHandlerFeature>()?.Error;
+        var logger = context.RequestServices.GetRequiredService<ILogger<Program>>();
+        logger.LogError(error, "Unhandled exception for {Method} {Path}",
+            context.Request.Method, context.Request.Path);
+
+        context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+        await context.Response.WriteAsJsonAsync(new
+        {
+            message = "Something went wrong. Please try again."
+        });
+    }));
+}
 
 app.UseCors("Frontend");
+
+// When "npm run build" has produced a frontend bundle, serve it from the same
+// origin as the API. getApiBaseUrl() in src/services/api.js then falls back to
+// relative URLs, so one build works on any hostname - localhost, a Tailscale
+// name, a server - without being rebuilt or needing a CORS entry.
+var frontendBuildPath = Environment.GetEnvironmentVariable("FRONTEND_BUILD_PATH")
+    ?? Path.Combine(app.Environment.ContentRootPath, "..", "build");
+
+var frontendBuildExists = Directory.Exists(frontendBuildPath);
+IFileProvider? frontendFiles = frontendBuildExists
+    ? new PhysicalFileProvider(Path.GetFullPath(frontendBuildPath))
+    : null;
+
+if (frontendFiles != null)
+{
+    app.UseDefaultFiles(new DefaultFilesOptions { FileProvider = frontendFiles });
+    app.UseStaticFiles(new StaticFileOptions { FileProvider = frontendFiles });
+}
 
 app.UseRateLimiter();
 
@@ -182,6 +242,13 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+if (frontendFiles != null)
+{
+    // Client-side routes (/surveys/2, /admin, ...) are not files on disk, so
+    // anything the API did not handle falls back to the React entry point.
+    app.MapFallbackToFile("index.html", new StaticFileOptions { FileProvider = frontendFiles });
+}
 
 app.Run();
 return 0;

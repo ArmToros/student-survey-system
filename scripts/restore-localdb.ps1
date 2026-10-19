@@ -11,7 +11,10 @@
 #>
 [CmdletBinding()]
 param(
-    [string] $Instance   = '(localdb)\MSSQLLocalDB',
+    # Defaults to LocalDB, which is what a fresh clone has. Set SSS_SQL_INSTANCE
+    # (for example '.\SQLEXPRESS') to restore somewhere else without passing
+    # -Instance every time; an explicit -Instance still wins.
+    [string] $Instance   = $(if ($env:SSS_SQL_INSTANCE) { $env:SSS_SQL_INSTANCE } else { '(localdb)\MSSQLLocalDB' }),
     [string] $BackupFile,
     [int]    $BackupSet  = 7,
     [switch] $SkipVerify

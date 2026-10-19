@@ -37,9 +37,8 @@ const SurveyForm = () => {
         const data = await response.json();
         setSurvey({
           ...data,
-          questions: (data.questions || []).map((question, index) => ({
+          questions: (data.questions || []).map((question) => ({
             ...question,
-            id: index + 1,
             min: question.min || 1,
             max: question.max || 5,
             options: question.options || []

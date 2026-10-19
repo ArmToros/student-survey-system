@@ -266,6 +266,7 @@ const handleRecoverySubmit = async (e) => {
             </button>
           </form>
 
+          {credentialHints.length > 0 && (
           <div className="quick-access">
             <div className="quick-access-header">
               <h3>{t('login.quickAccessTitle')}</h3>
@@ -289,6 +290,7 @@ const handleRecoverySubmit = async (e) => {
               ))}
             </div>
           </div>
+          )}
 
           {isRecoveryMode && (
             <div className="password-recovery" ref={recoveryRef}>

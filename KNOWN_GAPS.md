@@ -173,8 +173,11 @@ feature was presumably intended.
 
 - No automated tests of any kind, frontend or backend.
 - `GET /api/surveys` and `/api/news` return everything with no pagination.
-- Unhandled exceptions return a full stack trace, because the developer exception
-  page is on and there is no exception handler for production.
+- Unhandled exceptions return a full stack trace **in Development**, which is
+  still how `npm run start:api` runs. Outside Development the developer exception
+  page is off, Swagger is not mapped, and an exception handler answers with
+  `{"message":"Something went wrong. Please try again."}` while logging the
+  detail. `npm run start:app` uses that mode.
 - Registration always creates a Student; there is no way to create or change an
   admin or lecturer through the app.
 - The Docker path (`docker compose up -d`) was not run during this work, because
