@@ -123,7 +123,9 @@ const CreateSurvey = () =>{
           category: survey.category,
           createdBy: user?.dbId,
           assignedAdmin: user?.role === 'admin' ? user?.dbId : undefined,
-          questions: survey.questions
+          // The question id here is only a local React key. The server assigns the
+          // real QuestionID, and rejects a Date.now() value as too large for it.
+          questions: survey.questions.map(({ id, ...question }) => question)
         })
       });
 

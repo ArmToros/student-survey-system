@@ -18,3 +18,6 @@ mcp-tools.yaml
 # SQL Server backups (large; restore locally)
 *.bak
 database/*.bak
+
+# Generated account passwords (the only copy - see PERSONAL_ACCESS.md)
+credentials.local.txt

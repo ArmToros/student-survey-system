@@ -6,9 +6,11 @@
   "scripts": {
     "start": "cross-env DISABLE_ESLINT_PLUGIN=true react-scripts start",
     "start:api": "dotnet run --project backend/backend.csproj --launch-profile http",
+    "start:app": "cross-env ASPNETCORE_ENVIRONMENT=Production PORT=5001 dotnet run --project backend/backend.csproj --no-launch-profile",
     "db:restore": "powershell -ExecutionPolicy Bypass -File scripts/restore-localdb.ps1",
     "db:seed": "node scripts/seed-db.js",
     "db:hash-passwords": "cross-env ASPNETCORE_ENVIRONMENT=Development dotnet run --project backend/backend.csproj -- migrate-passwords",
+    "db:set-passwords": "cross-env ASPNETCORE_ENVIRONMENT=Development dotnet run --project backend/backend.csproj -- set-passwords",
     "build": "cross-env SKIP_PREFLIGHT_CHECK=true DISABLE_ESLINT_PLUGIN=true react-scripts build",
     "build:strict": "react-scripts build",
     "postinstall": "node scripts/fix-ajv-keywords.js || exit 0",

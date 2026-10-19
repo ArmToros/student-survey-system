@@ -75,15 +75,26 @@ export const AuthProvider = ({ children }) => {
     return () => window.removeEventListener(AUTH_EXPIRED_EVENT, handleExpired);
   }, []);
 
+  // Only ever shown on localhost. Published anywhere else - a Tailscale name, a
+  // server, the proxy on the VPS - the panel would print working addresses of
+  // real accounts on a page anyone can open, so it is withheld. The passwords it
+  // lists are the placeholders from the backup and stop working as soon as
+  // "npm run db:set-passwords" has been run.
   const credentialHints = useMemo(
-    () =>
-      DEMO_ACCOUNTS.map(({ role, roleLabel, email, password, firstName, lastName }) => ({
+    () => {
+      const hostname = typeof window === 'undefined' ? '' : window.location.hostname;
+      if (hostname !== 'localhost' && hostname !== '127.0.0.1') {
+        return [];
+      }
+
+      return DEMO_ACCOUNTS.map(({ role, roleLabel, email, password, firstName, lastName }) => ({
         role,
         roleLabel,
         email,
         password,
         name: `${firstName} ${lastName}`
-      })),
+      }));
+    },
     []
   );
 
