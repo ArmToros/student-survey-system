@@ -24,3 +24,6 @@ credentials.local.txt
 
 # Uploaded profile pictures (served from /uploads, not source)
 uploads/
+
+# Generated credential hand-offs - never commit these
+*.local.txt

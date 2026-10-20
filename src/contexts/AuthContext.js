@@ -3,14 +3,13 @@ import { AUTH_EXPIRED_EVENT, apiFetch, getAuthToken, setAuthToken } from '../ser
 
 const STORAGE_KEY = 'sss-auth-user';
 
-// Accounts that exist in the restored SSS database, shown by the "Quick role
-// access" panel on the login page so the app can be tried without hunting for a
-// login. These replace an earlier hardcoded set (admin@sss.edu / Admin@123) that
-// no longer exists in the database.
+// Accounts that exist in the restored SSS database, offered on the login page
+// so the app can be tried without hunting for a login.
 //
-// The passwords really are these strings: UserAccount.PasswordHash holds
-// placeholder values such as "hash_admin_1" and the backend compares them in
-// plain text. Replace this with real hashing before any deployment.
+// The passwords below are the placeholders the backup ships with. They only
+// work on a database that has not had "npm run db:set-passwords" run against
+// it; once it has, these open nothing, which is why the hints are shown on
+// localhost alone.
 const DEMO_ACCOUNTS = [
   {
     role: 'admin',
@@ -139,72 +138,6 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const register = async (name, email, password) => {
-    const normalizedEmail = email.toLowerCase().trim();
-
-    // Validation
-    if (!normalizedEmail || !password || !name) {
-      throw new Error('MISSING_FIELDS');
-    }
-
-    // Email format validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(normalizedEmail)) {
-      throw new Error('INVALID_EMAIL');
-    }
-
-    let response;
-    try {
-      response = await apiFetch('/api/auth/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ name, email: normalizedEmail, password })
-      });
-    } catch (networkErr) {
-      console.error(networkErr);
-      throw new Error('NETWORK_ERROR');
-    }
-
-    if (!response.ok) {
-      let apiMessage = '';
-      try {
-        const errBody = await response.json();
-        apiMessage = String(errBody?.message ?? errBody?.title ?? '');
-      } catch {
-        // non-JSON error body
-      }
-
-      const looksLikeDuplicate =
-        response.status === 400 &&
-        /email\s+already|already\s+exists|duplicate/i.test(apiMessage);
-
-      if (looksLikeDuplicate) {
-        throw new Error('EMAIL_ALREADY_EXISTS');
-      }
-
-      if (response.status >= 500) {
-        throw new Error('SERVER_ERROR');
-      }
-
-      throw new Error('REGISTRATION_FAILED');
-    }
-
-    try {
-      const session = await response.json();
-      setAuthToken(session.token);
-
-      const safeUser = session.user;
-      setUser(safeUser);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(safeUser));
-      return safeUser;
-    } catch (parseErr) {
-      console.error(parseErr);
-      throw new Error('INVALID_RESPONSE');
-    }
-  };
-
   const updateUser = (nextUser) => {
     setUser(nextUser);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(nextUser));
@@ -296,7 +229,6 @@ export const AuthProvider = ({ children }) => {
     user,
     isAuthenticated: Boolean(user),
     login,
-    register,
     logout,
     updateUser,
     requestPasswordReset,

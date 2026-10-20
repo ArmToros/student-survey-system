@@ -9,33 +9,20 @@ const Login = () => {
   const { t } = useLanguage();
   const navigate = useNavigate();
   const location = useLocation();
-  const { login, credentialHints, requestPasswordReset, register } = useAuth();
+  const { login, credentialHints, requestPasswordReset } = useAuth();
   const [formData, setFormData] = useState({
     email: '',
     password: ''
   });
-  const [registerFormData, setRegisterFormData] = useState({
-    name: '',
-    email: '',
-    password: '',
-    confirmPassword: ''
-  });
   const [showPassword, setShowPassword] = useState(false);
-  const [showRegisterPassword, setShowRegisterPassword] = useState(false);
-  const [showRegisterConfirmPassword, setShowRegisterConfirmPassword] = useState(false);
   const [error, setError] = useState('');
-  const [registerError, setRegisterError] = useState('');
-  const [registerSuccess, setRegisterSuccess] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [isRegistering, setIsRegistering] = useState(false);
-  const [isRegisterMode, setIsRegisterMode] = useState(false);
   const [isRecoveryMode, setIsRecoveryMode] = useState(false);
   const [recoveryEmail, setRecoveryEmail] = useState('');
   const [recoveryMessage, setRecoveryMessage] = useState('');
   const [recoveryError, setRecoveryError] = useState('');
   const [isRecovering, setIsRecovering] = useState(false);
   const recoveryRef = useRef(null);
-  const registerRef = useRef(null);
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -45,27 +32,11 @@ const Login = () => {
     setError('');
   };
 
-  const handleRegisterChange = (e) => {
-    const { name, value } = e.target;
-    setRegisterFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-    setRegisterError('');
-  };
-
   const toggleRecoveryMode = () => {
     setIsRecoveryMode((prev) => !prev);
     setRecoveryEmail('');
     setRecoveryMessage('');
     setRecoveryError('');
-  };
-
-  const toggleRegisterMode = () => {
-    setIsRegisterMode((prev) => !prev);
-    setRegisterFormData({ name: '', email: '', password: '', confirmPassword: '' });
-    setRegisterError('');
-    setRegisterSuccess('');
   };
 
 const handleRecoverySubmit = async (e) => {
@@ -94,67 +65,12 @@ const handleRecoverySubmit = async (e) => {
   }
 };
 
-  const handleRegisterSubmit = async (e) => {
-    e.preventDefault();
-    setRegisterError('');
-    setRegisterSuccess('');
-
-    // Validation
-    if (!registerFormData.name || !registerFormData.email || !registerFormData.password || !registerFormData.confirmPassword) {
-      setRegisterError(t('register.errors.required'));
-      return;
-    }
-
-    if (registerFormData.password !== registerFormData.confirmPassword) {
-      setRegisterError(t('register.errors.passwordMismatch') );
-      return;
-    }
-
-    if (registerFormData.password.length < 6) {
-      setRegisterError(t('register.errors.passwordTooShort'));
-      return;
-    }
-
-    try {
-      setIsRegistering(true);
-      await register(registerFormData.name, registerFormData.email, registerFormData.password);
-      setRegisterSuccess(t('register.success') );
-      
-      // Reset form and switch to login
-      setTimeout(() => {
-        setRegisterFormData({ name: '', email: '', password: '', confirmPassword: '' });
-        setFormData({ email: registerFormData.email, password: registerFormData.password });
-        setIsRegisterMode(false);
-      }, 1500);
-    } catch (err) {
-      const code = err?.message;
-      if (code === 'EMAIL_ALREADY_EXISTS') {
-        setRegisterError(t('register.errors.emailExists'));
-      } else if (code === 'INVALID_EMAIL') {
-        setRegisterError(t('register.errors.invalidEmail'));
-      } else if (code === 'NETWORK_ERROR') {
-        setRegisterError(t('register.errors.networkError'));
-      } else if (code === 'SERVER_ERROR' || code === 'INVALID_RESPONSE') {
-        setRegisterError(t('register.errors.serverError'));
-      } else {
-        setRegisterError(t('register.errors.generic'));
-      }
-    } finally {
-      setIsRegistering(false);
-    }
-  };
-
   useEffect(() => {
     if (isRecoveryMode && recoveryRef.current) {
       recoveryRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   }, [isRecoveryMode]);
 
-  useEffect(() => {
-    if (isRegisterMode && registerRef.current) {
-      registerRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-  }, [isRegisterMode]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -339,135 +255,6 @@ const handleRecoverySubmit = async (e) => {
             </div>
           )}
 
-          <div className="login-footer">
-            <p>
-              {t('login.noAccount')}{' '}
-              <button type="button" className="signup-link" onClick={toggleRegisterMode}>
-                {t('login.signUp')}
-              </button>
-            </p>
-          </div>
-
-          {isRegisterMode && (
-            <div className="register-panel" ref={registerRef}>
-              <div className="register-panel-header">
-                <h3>{t('register.title') || 'Create Account'}</h3>
-                <p>{t('register.subtitle') || 'Join our community'}</p>
-              </div>
-              <form className="register-form" onSubmit={handleRegisterSubmit}>
-                {registerError && (
-                  <div className="error-message">
-                    <AlertTriangle size={18} />
-                    {registerError}
-                  </div>
-                )}
-
-                {registerSuccess && (
-                  <div className="success-message">
-                    <CheckCircle size={18} />
-                    {registerSuccess}
-                  </div>
-                )}
-
-                <div className="form-group">
-                  <label htmlFor="reg-name" className="form-label">
-                    <UserPlus size={18} />
-                    {t('register.name') || 'Full Name'}
-                  </label>
-                  <input
-                    type="text"
-                    id="reg-name"
-                    name="name"
-                    value={registerFormData.name}
-                    onChange={handleRegisterChange}
-                    placeholder={t('register.namePlaceholder') }
-                    className="form-input"
-                    required
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label htmlFor="reg-email" className="form-label">
-                    <Mail size={18} />
-                    {t('register.email') || 'Email Address'}
-                  </label>
-                  <input
-                    type="email"
-                    id="reg-email"
-                    name="email"
-                    value={registerFormData.email}
-                    onChange={handleRegisterChange}
-                    placeholder={t('register.emailPlaceholder')}
-                    className="form-input"
-                    required
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label htmlFor="reg-password" className="form-label">
-                    <Lock size={18} />
-                    {t('register.password') || 'Password'}
-                  </label>
-                  <div className="password-input-wrapper">
-                    <input
-                      type={showRegisterPassword ? 'text' : 'password'}
-                      id="reg-password"
-                      name="password"
-                      value={registerFormData.password}
-                      onChange={handleRegisterChange}
-                      placeholder={t('register.passwordPlaceholder')}
-                      className="form-input"
-                      required
-                    />
-                    <button
-                      type="button"
-                      className="password-toggle"
-                      onClick={() => setShowRegisterPassword(!showRegisterPassword)}
-                      aria-label={showRegisterPassword ? 'Hide password' : 'Show password'}
-                    >
-                      {showRegisterPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                    </button>
-                  </div>
-                </div>
-
-                <div className="form-group">
-                  <label htmlFor="reg-confirm-password" className="form-label">
-                    <Lock size={18} />
-                    {t('register.confirmPassword') }
-                  </label>
-                  <div className="password-input-wrapper">
-                    <input
-                      type={showRegisterConfirmPassword ? 'text' : 'password'}
-                      id="reg-confirm-password"
-                      name="confirmPassword"
-                      value={registerFormData.confirmPassword}
-                      onChange={handleRegisterChange}
-                      placeholder={t('register.confirmPasswordPlaceholder')}
-                      className="form-input"
-                      required
-                    />
-                    <button
-                      type="button"
-                      className="password-toggle"
-                      onClick={() => setShowRegisterConfirmPassword(!showRegisterConfirmPassword)}
-                      aria-label={showRegisterConfirmPassword ? 'Hide password' : 'Show password'}
-                    >
-                      {showRegisterConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                    </button>
-                  </div>
-                </div>
-
-                <div className="register-panel-actions">
-                  <button type="submit" className="register-submit-button" disabled={isRegistering}>
-                    {isRegistering ? (t('register.registering') || 'Creating Account...') : (t('register.registerButton') || 'Create Account')}
-                  </button>
-                  <button type="button" className="register-cancel-button" onClick={toggleRegisterMode}>
-                    {t('register.back')}
-                  </button>
-                </div>
-              </form>
-            </div>
-          )}
         </div>
       </div>
     </div>

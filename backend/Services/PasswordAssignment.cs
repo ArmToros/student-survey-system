@@ -27,12 +27,38 @@ namespace backend.Services;
 public static class PasswordAssignment
 {
     /// <summary>
-    /// Omits characters that are easy to confuse when typed from a phone:
-    /// 0/O, 1/l/I, and anything a shell would need escaping for.
+    /// Three short words and two digits, joined by hyphens - "copper-harbor-mint-47".
+    /// These get read out over the phone and typed on a keyboard that may be set
+    /// to a different layout, so a random string of twenty characters is the wrong
+    /// shape: people mistype it, then report a broken login.
+    ///
+    /// The words avoid anything that reads differently when spoken, and the list
+    /// is long enough that three of them plus two digits gives roughly 10^9
+    /// combinations - fine behind a rate-limited login, not a substitute for a
+    /// password the holder has chosen themselves.
     /// </summary>
-    private const string Alphabet = "abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-
-    private const int PasswordLength = 20;
+    private static readonly string[] Words =
+    {
+        "amber", "anchor", "apple", "arrow", "aspen", "autumn", "basil", "beacon",
+        "birch", "bishop", "bramble", "branch", "bridge", "bronze", "butter", "canyon",
+        "cedar", "chalk", "cherry", "chisel", "cinder", "citrus", "clover", "cobalt",
+        "compass", "copper", "coral", "cotton", "crater", "cricket", "crimson", "crystal",
+        "dahlia", "daisy", "damson", "delta", "domino", "dragon", "driftwood", "ember",
+        "falcon", "fennel", "fern", "fiddle", "flint", "forest", "fossil", "garnet",
+        "ginger", "glacier", "granite", "harbor", "harvest", "hazel", "heather", "hollow",
+        "indigo", "island", "ivory", "jasmine", "juniper", "kestrel", "lantern", "lemon",
+        "lilac", "linen", "lobster", "lotus", "magnet", "mahogany", "maple", "marble",
+        "meadow", "mercury", "mint", "monsoon", "mosaic", "mulberry", "nectar", "nutmeg",
+        "oakwood", "olive", "onyx", "opal", "orchard", "osprey", "otter", "paprika",
+        "pebble", "pelican", "pepper", "pewter", "pigeon", "pine", "plover", "plum",
+        "pollen", "poppy", "prairie", "quartz", "quince", "rabbit", "raven", "ribbon",
+        "river", "rosemary", "rowan", "saffron", "sage", "salmon", "sandal", "sapphire",
+        "scarlet", "seagull", "sequoia", "shadow", "shale", "sierra", "silver", "sorrel",
+        "sparrow", "spruce", "starling", "sugar", "sumac", "summit", "sunset", "sycamore",
+        "tangerine", "teal", "thistle", "thunder", "timber", "topaz", "tulip", "tundra",
+        "turnip", "umber", "valley", "velvet", "vermilion", "vinegar", "violet", "walnut",
+        "willow", "windmill", "winter", "wombat", "yarrow", "yellow", "zephyr", "zinnia"
+    };
 
     public static async Task<int> RunAsync(IServiceProvider services, string outputPath)
     {
@@ -95,12 +121,26 @@ public static class PasswordAssignment
 
     private static string Generate()
     {
-        var characters = new char[PasswordLength];
-        for (var index = 0; index < characters.Length; index++)
-        {
-            characters[index] = Alphabet[RandomNumberGenerator.GetInt32(Alphabet.Length)];
-        }
+        var first = Words[RandomNumberGenerator.GetInt32(Words.Length)];
 
-        return new string(characters);
+        string second;
+        do
+        {
+            second = Words[RandomNumberGenerator.GetInt32(Words.Length)];
+        }
+        while (second == first);
+
+        string third;
+        do
+        {
+            third = Words[RandomNumberGenerator.GetInt32(Words.Length)];
+        }
+        while (third == first || third == second);
+
+        // Two digits, never leading zero, so nothing is lost when the password
+        // is pasted into a spreadsheet cell on the way to whoever needs it.
+        var digits = RandomNumberGenerator.GetInt32(10, 100);
+
+        return $"{first}-{second}-{third}-{digits}";
     }
 }
