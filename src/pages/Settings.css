@@ -635,3 +635,16 @@ margin-top: 20px;
     font-size: 0.85rem;
   }
 }
+
+/* Save feedback ----------------------------------------------------------- */
+.settings-saved {
+  align-self: center;
+  font-size: 14px;
+  color: #16a34a;
+}
+
+.settings-save-error {
+  align-self: center;
+  font-size: 14px;
+  color: #dc2626;
+}

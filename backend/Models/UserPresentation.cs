@@ -1,3 +1,4 @@
+using System.Text.Json;
 using System;
 using System.Collections.Generic;
 
@@ -49,8 +50,32 @@ public static class UserPresentation
             phone = user.Phone,
             address = user.Address,
             language = ToLanguageCode(user.Language),
-            theme = ToTheme(user.Theme)
+            theme = ToTheme(user.Theme),
+            preferences = ToPreferences(user.Preferences)
         };
+    }
+
+    /// <summary>
+    /// The stored preferences document, as an object rather than a string, so the
+    /// client reads it like any other field. Anything unparseable is treated as
+    /// "no preferences saved yet" rather than failing the whole request.
+    /// </summary>
+    public static JsonElement? ToPreferences(string? stored)
+    {
+        if (string.IsNullOrWhiteSpace(stored))
+        {
+            return null;
+        }
+
+        try
+        {
+            using var document = JsonDocument.Parse(stored);
+            return document.RootElement.Clone();
+        }
+        catch (JsonException)
+        {
+            return null;
+        }
     }
 
     /// <summary>"Admin" -> "admin"; anything unrecognised falls back to "student".</summary>

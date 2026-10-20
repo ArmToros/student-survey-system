@@ -27,6 +27,7 @@
 --                           dashboard always reported 0
 --   UserAccount.JoinDate    "Join Date" on the account page had no source
 --   UserAccount.PhotoUrl    somewhere to record an avatar once uploads exist
+--   UserAccount.Preferences  the settings page's switches, which saved nowhere
 --   SurveySession.SubmittedAt  responses carried no timestamp at all
 --   Course.LecturerID       nothing recorded who runs a course, so a lecturer
 --                           could not have courses of their own
@@ -122,6 +123,18 @@ END
 ELSE PRINT '  JoinDate already present';
 GO
 
+-- Notification, privacy and account switches from the settings page. They are
+-- per-person UI preferences with no reporting value, so one JSON document is a
+-- better fit than a column per switch. Language and Theme keep their own
+-- columns, which the backup already had.
+IF COL_LENGTH('dbo.UserAccount', 'Preferences') IS NULL
+BEGIN
+    PRINT '  adding Preferences';
+    ALTER TABLE dbo.UserAccount ADD Preferences nvarchar(max) NULL;
+END
+ELSE PRINT '  Preferences already present';
+GO
+
 IF COL_LENGTH('dbo.UserAccount', 'PhotoUrl') IS NULL
 BEGIN
     PRINT '  adding PhotoUrl';
@@ -195,6 +208,6 @@ SELECT OBJECT_NAME(c.object_id) AS TableName, c.name AS ColumnName, t.name AS Da
 FROM sys.columns c
 JOIN sys.types t ON t.user_type_id = c.user_type_id
 WHERE c.object_id IN (OBJECT_ID('dbo.Question'), OBJECT_ID('dbo.Survey'), OBJECT_ID('dbo.SurveySession'), OBJECT_ID('dbo.Course'))
-   OR (c.object_id = OBJECT_ID('dbo.UserAccount') AND c.name IN ('JoinDate', 'PhotoUrl'))
+   OR (c.object_id = OBJECT_ID('dbo.UserAccount') AND c.name IN ('JoinDate', 'PhotoUrl', 'Preferences'))
 ORDER BY TableName, c.column_id;
 GO

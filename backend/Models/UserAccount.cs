@@ -33,6 +33,12 @@ public partial class UserAccount
     /// <summary>Path or URL of the profile picture, if one has been set.</summary>
     public string? PhotoUrl { get; set; }
 
+    /// <summary>
+    /// The settings page's notification, privacy and account switches, as a JSON
+    /// document. Language and Theme are not in here: they have their own columns.
+    /// </summary>
+    public string? Preferences { get; set; }
+
     public virtual LecturerDatum? LecturerDatum { get; set; }
 
     public virtual StudentDatum? StudentDatum { get; set; }

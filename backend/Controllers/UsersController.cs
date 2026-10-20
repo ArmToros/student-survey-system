@@ -2,6 +2,7 @@ using backend.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 
 namespace backend.Controllers
@@ -27,6 +28,12 @@ namespace backend.Controllers
             public string? Address { get; set; }
             public string? Language { get; set; }
             public string? Theme { get; set; }
+
+            /// <summary>
+            /// The settings page's switches. Sent whole and stored whole; omitting
+            /// it leaves whatever is already saved untouched.
+            /// </summary>
+            public JsonElement? Preferences { get; set; }
         }
 
         /// <summary>The id in the claims, so a caller cannot act as another account.</summary>
@@ -91,6 +98,12 @@ namespace backend.Controllers
             // The app sends 'am' / 'dark'; store "Armenian" / "Dark" like the existing rows.
             user.Language = UserPresentation.ToStoredLanguage(request.Language) ?? user.Language;
             user.Theme = UserPresentation.ToStoredTheme(request.Theme) ?? user.Theme;
+
+            if (request.Preferences.HasValue &&
+                request.Preferences.Value.ValueKind == JsonValueKind.Object)
+            {
+                user.Preferences = request.Preferences.Value.GetRawText();
+            }
 
             await _context.SaveChangesAsync();
 
