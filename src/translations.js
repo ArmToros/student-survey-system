@@ -454,8 +454,8 @@ student:"Student"
     stats: {
       totalUsers: 'Total Users',
       activeSurveys: 'Active Surveys',
-      pendingApprovals: 'Pending Approvals',
-      incidents: 'Open Incidents',
+      completedSurveys: 'Completed Surveys',
+      allTime: 'All time',
       trendStable: 'Stable'
     },
     quickActionsTitle: 'Admin Actions',
@@ -1205,8 +1205,8 @@ improved: "Улучшенные материалы курса"
     stats: {
       totalUsers: "Пользователей",
       activeSurveys: "Активных опросов",
-      pendingApprovals: "На модерации",
-      incidents: "Инцидентов",
+      completedSurveys: "Завершённых опросов",
+      allTime: "За всё время",
       trendStable: "Стабильно"
     },
     quickActionsTitle: "Действия администратора",
@@ -1965,8 +1965,8 @@ adminPage: {
   stats: {
     totalUsers: "Ընդհանուր օգտատերեր",
     activeSurveys: "Ակտիվ հարցումներ",
-    pendingApprovals: "Սպասող հաստատումներ",
-    incidents: "Ինցիդենտներ",
+    completedSurveys: "Ավարտված հարցումներ",
+    allTime: "Ամբողջ ժամանակի",
     trendStable: "Կայուն"
   },
   quickActionsTitle: "Ադմինի արագ գործողություններ",

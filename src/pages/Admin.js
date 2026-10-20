@@ -4,7 +4,6 @@ import {
   Users,
   ClipboardList,
   BellRing,
-  Settings2,
   AlertTriangle,
   Info,
   HelpCircle,
@@ -90,15 +89,15 @@ const Admin = () => {
       icon: ClipboardList
     },
     {
-      label: t('adminPage.stats.pendingApprovals'),
+      label: t('adminPage.stats.completedSurveys'),
       value: adminStats?.completedSurveys ?? '0',
-      trend: t('dashboard.stats.completed'),
+      trend: t('adminPage.stats.allTime'),
       icon: ShieldCheck
     },
     {
-      label: t('adminPage.stats.incidents'),
+      label: t('dashboard.stats.totalResponses'),
       value: adminStats?.totalResponses ?? '0',
-      trend: t('dashboard.stats.totalResponses'),
+      trend: t('adminPage.stats.allTime'),
       icon: AlertTriangle
     }
   ];
@@ -109,12 +108,6 @@ const Admin = () => {
       title: t('adminPage.quickActions.broadcast.title'),
       description: t('adminPage.quickActions.broadcast.description'),
       icon: BellRing
-    },
-    {
-      id: 'roles',
-      title: t('adminPage.quickActions.roles.title'),
-      description: t('adminPage.quickActions.roles.description'),
-      icon: Settings2
     },
     {
       id: 'news',
@@ -134,47 +127,6 @@ const Admin = () => {
       description: t('adminPage.quickActions.support.description'),
       icon: HelpCircle
     },
-    {
-      id: 'pending',
-      title: t('adminPage.quickActions.pending.title'),
-      description: t('adminPage.quickActions.pending.description'),
-      icon: ClipboardList
-    },
-  ];
-
-  // The three roles are fixed in the code and enforced by the API, so this is a
-  // reference list rather than something the console can edit.
-  const roleTemplates = [
-    {
-      id: 'admin',
-      name: t('adminPage.quickActions.roles.admin'),
-      permissions: [
-        t('adminPage.quickActions.roles.manageUsers'),
-        t('adminPage.quickActions.roles.publish'),
-        t('adminPage.quickActions.roles.viewResults'),
-        t('adminPage.quickActions.roles.editSystem')
-      ],
-      color: '#ef4444'
-    },
-    {
-      id: 'lecturer',
-      name: t('adminPage.quickActions.roles.lecturer'),
-      permissions: [
-        t('adminPage.quickActions.roles.create'),
-        t('adminPage.quickActions.roles.viewCourses'),
-        t('adminPage.quickActions.roles.viewResults')
-      ],
-      color: '#f59e0b'
-    },
-    {
-      id: 'student',
-      name: t('adminPage.quickActions.roles.student'),
-      permissions: [
-        t('adminPage.quickActions.roles.takeSurveys'),
-        t('adminPage.quickActions.roles.viewNews')
-      ],
-      color: '#10b981'
-    }
   ];
 
   const setUserPassword = async () => {
@@ -666,28 +618,6 @@ const Admin = () => {
             </div>
           )}
 
-          {activeSection === 'roles' && (
-            <div className="content-section">
-              <h2>{t('adminPage.quickActions.roles.manage')}</h2>
-              <p>{t('adminPage.quickActions.roles.configure')}</p>
-              <UnavailableNotice>
-                {t('adminPage.quickActions.roles.readOnly')}
-              </UnavailableNotice>
-              <div className="roles-grid">
-                {roleTemplates.map((role) => (
-                  <div key={role.id} className="role-card">
-                    <h3 style={{ color: role.color }}>{role.name}</h3>
-                    <div className="permissions-list">
-                      {role.permissions.map((perm) => (
-                        <span key={perm} className="permission-badge">{perm}</span>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
           {activeSection === 'news' && (
             <div className="content-section">
               <h2>{t('adminPage.quickActions.news.heading')}</h2>
@@ -1047,15 +977,6 @@ const Admin = () => {
             </div>
           )}
 
-          {activeSection === 'pending' && (
-            <div className="content-section">
-              <h2>{t('adminPage.quickActions.pending.pendingApprovals')}</h2>
-              <p>{t('adminPage.quickActions.pending.desc')}</p>
-              <UnavailableNotice>
-                {t('adminPage.quickActions.pending.unavailable')}
-              </UnavailableNotice>
-            </div>
-          )}
         </div>
       )}
     </div>

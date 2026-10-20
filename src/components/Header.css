@@ -43,6 +43,10 @@
   display: flex;
   align-items: center;
   gap: 24px;
+  /* A flex item will not shrink past its content unless it is allowed to,
+     and without this the nav pushes the account button off the page. */
+  min-width: 0;
+  flex: 0 1 auto;
 }
 
 .logo {
@@ -98,6 +102,7 @@
   display: flex;
   align-items: center;
   gap: 4px;
+  min-width: 0;
 }
 
 .nav-link {
@@ -310,8 +315,13 @@
   color: #dc2626;
 }
 
-/* Hide nav link text when width < 1245px */
-@media (max-width: 1244px) {
+/* Nav labels give way to icons while there is still room to spare.
+
+   The old threshold was 1244px, but the row stops fitting around 1300px -
+   between the two the account button was pushed past the right edge of the
+   window. The logo keeps its text at every width, because the name of the
+   programme has to stay readable. */
+@media (max-width: 1366px) {
   .nav-link span,
   .nav-link-text {
     display: none;
@@ -359,14 +369,26 @@
   
   .mobile-menu-button {
     display: flex;
+    /* The one control that must never be pushed off the screen: without the
+       menu there is no way to reach any other page. */
+    flex: 0 0 auto;
   }
   
+  /* Once the nav is behind the menu button the logo is the only thing that can
+     give way, so here it may shrink and the name wraps onto a second line.
+     In Armenian the name is 446px wide - wider than a phone screen - and while
+     the logo refused to shrink it carried the menu button off the edge with
+     it. The name still shows in full; it just takes two lines. */
   .logo {
     font-size: 18px;
+    flex: 1 1 auto;
+    min-width: 0;
   }
   
   .logo span {
     font-size: 15px;
+    white-space: normal;
+    overflow-wrap: anywhere;
   }
   
   .logo-image {

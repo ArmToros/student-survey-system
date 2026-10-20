@@ -79,7 +79,7 @@
 
 .featured-article {
   display: grid;
-  grid-template-columns: 300px 1fr;
+  grid-template-columns: 300px minmax(0, 1fr);
   gap: 24px;
   background: var(--bg-secondary);
   border-radius: 12px;
@@ -165,7 +165,7 @@
 
 .news-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(350px, 100%), 1fr));
   gap: 24px;
 }
 
@@ -293,7 +293,7 @@
 
 @media (max-width: 768px) {
   .featured-article {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
   
   .article-image {
@@ -301,7 +301,7 @@
   }
   
   .news-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
   
   .article-meta {
