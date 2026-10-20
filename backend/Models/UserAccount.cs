@@ -27,6 +27,12 @@ public partial class UserAccount
 
     public string? Theme { get; set; }
 
+    /// <summary>When the account was created. Null on rows from the backup.</summary>
+    public DateTime? JoinDate { get; set; }
+
+    /// <summary>Path or URL of the profile picture, if one has been set.</summary>
+    public string? PhotoUrl { get; set; }
+
     public virtual LecturerDatum? LecturerDatum { get; set; }
 
     public virtual StudentDatum? StudentDatum { get; set; }

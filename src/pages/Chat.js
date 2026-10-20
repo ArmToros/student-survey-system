@@ -5,10 +5,18 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
 import { apiFetch } from '../services/api';
 
+// A small fixed palette: enough to be useful without pulling in an emoji library.
+const EMOJIS = ['😀', '🙂', '👍', '🙏', '📚', '✅', '❓', '🎉', '😢', '❤️'];
+
 const Chat = () => {
   const {t} = useLanguage();
   const { user } = useAuth();
-  const [selectedChat, setSelectedChat] = useState(1);
+  // Nothing is selected on arrival, so the panel shows "Select a conversation"
+  // instead of dropping straight into the AI assistant.
+  const [selectedChat, setSelectedChat] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [showSearch, setShowSearch] = useState(false);
+  const [showEmoji, setShowEmoji] = useState(false);
   const [message, setMessage] = useState('');
   const [chats, setChats] = useState([]);
   const [messages, setMessages] = useState([]);
@@ -200,6 +208,12 @@ const Chat = () => {
     setShowChatModal(false);
   };
 
+  const visibleChats = searchTerm.trim()
+    ? chats.filter(chat =>
+        (chat.name || '').toLowerCase().includes(searchTerm.trim().toLowerCase()) ||
+        (chat.lastMessage || '').toLowerCase().includes(searchTerm.trim().toLowerCase()))
+    : chats;
+
   const selectedChatData = chats.find(chat => chat.id === selectedChat);
 
   return (
@@ -210,17 +224,37 @@ const Chat = () => {
           <div className="main-content-header">
             <h2>{t('chat.messages')}</h2>
             <div className="header-actions">
-              <button className="action-btn">
+              <button
+                className="action-btn"
+                onClick={() => {
+                  setShowSearch(open => !open);
+                  setSearchTerm('');
+                }}
+                title={t('chat.search')}
+              >
                 <Search size={20} />
-              </button>
-              <button className="action-btn">
-                <MoreVertical size={20} />
               </button>
             </div>
           </div>
 
+          {showSearch && (
+            <div className="chat-search">
+              <input
+                type="text"
+                className="chat-search-input"
+                placeholder={t('chat.search')}
+                value={searchTerm}
+                onChange={(event) => setSearchTerm(event.target.value)}
+                autoFocus
+              />
+            </div>
+          )}
+
           <div className="chat-list-column">
-            {chats.map(chat => (
+            {visibleChats.length === 0 && (
+              <div className="chat-empty-hint">{t('chat.empty')}</div>
+            )}
+            {visibleChats.map(chat => (
               <div
                 key={chat.id}
                 className={`chat-item ${selectedChat === chat.id ? 'active' : ''}`}
@@ -267,17 +301,6 @@ const Chat = () => {
                     </span>
                   </div>
                 </div>
-                <div className="chat-actions">
-                  <button className="action-btn">
-                    <Phone size={20} />
-                  </button>
-                  <button className="action-btn">
-                    <Video size={20} />
-                  </button>
-                  <button className="action-btn">
-                    <MoreVertical size={20} />
-                  </button>
-                </div>
               </div>
 
               <div className="messages-container">
@@ -302,9 +325,32 @@ const Chat = () => {
               </div>
 
               <div className="message-input">
-                <button className="input-btn">
-                  <Smile size={20} />
-                </button>
+                <div className="emoji-wrapper">
+                  <button
+                    className="input-btn"
+                    onClick={() => setShowEmoji(open => !open)}
+                    title="Emoji"
+                  >
+                    <Smile size={20} />
+                  </button>
+                  {showEmoji && (
+                    <div className="emoji-picker">
+                      {EMOJIS.map(emoji => (
+                        <button
+                          key={emoji}
+                          type="button"
+                          className="emoji-option"
+                          onClick={() => {
+                            setMessage(current => current + emoji);
+                            setShowEmoji(false);
+                          }}
+                        >
+                          {emoji}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
                 <input
                   type="text"
                   placeholder="Type a message..."
@@ -352,17 +398,6 @@ const Chat = () => {
                     {selectedChatData.online ? 'Online' : 'Offline'}
                   </span>
                 </div>
-              </div>
-              <div className="chat-actions">
-                <button className="action-btn">
-                  <Phone size={20} />
-                </button>
-                <button className="action-btn">
-                  <Video size={20} />
-                </button>
-                <button className="action-btn">
-                  <MoreVertical size={20} />
-                </button>
               </div>
             </div>
 

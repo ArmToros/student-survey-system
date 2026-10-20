@@ -186,6 +186,8 @@ dashboard: {
       featuredNews: 'Featured News',
       latestNews: 'Latest News',
       readMore: 'Read More',
+      share: 'Share',
+      close: 'Close',
       noNews: 'No news found',
       noNewsDesc: 'No articles found for the selected category',
       meta: {
@@ -802,6 +804,8 @@ dashboard: {
       featuredNews: 'Избранные новости',
       latestNews: 'Последние новости',
       readMore: 'Читать далее',
+      share: 'Поделиться',
+      close: 'Закрыть',
       noNews: 'Новости не найдены',
       noNewsDesc: 'Нет статей для выбранной категории',
       meta: {
@@ -1426,6 +1430,8 @@ dashboard: {
       featuredNews: 'Առանձնացված նորություններ',
       latestNews: 'Վերջին նորություններ',
       readMore: 'Կարդալ ավելին',
+      share: 'Կիսվել',
+      close: 'Փակել',
       noNews: 'Նորություններ չեն գտնվել',
       noNewsDesc: 'Ընտրված կատեգորիայի համար հոդվածներ չեն գտնվել',
       meta: {

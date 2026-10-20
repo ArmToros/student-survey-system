@@ -15,6 +15,9 @@ public partial class SurveySession
 
     public int UserId { get; set; }
 
+    /// <summary>When the response was submitted. Null on rows from the backup.</summary>
+    public DateTime? SubmittedAt { get; set; }
+
     public virtual Survey Survey { get; set; } = null!;
 
     public virtual UserAccount User { get; set; } = null!;

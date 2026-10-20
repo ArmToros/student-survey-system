@@ -45,6 +45,7 @@ namespace backend.Controllers
         {
             public string Title { get; set; } = "";
             public string? Description { get; set; }
+            public string? Category { get; set; }
             public List<SurveyQuestionDto> Questions { get; set; } = new();
             public int? CreatedBy { get; set; }
             public int? AssignedAdmin { get; set; }
@@ -80,9 +81,10 @@ namespace backend.Controllers
                     title = survey.Topic ?? ("Survey " + survey.SurveyId),
                     questionCount = survey.Questions.Count,
                     responses = survey.SurveySessions.Count,
-                    // dbo.Survey has no status column, so nothing can ever be "completed".
-                    status = "active",
-                    createdDate = (DateTime?)null
+                    category = survey.Category,
+                    status = survey.IsClosed ? "completed" : "active",
+                    createdDate = survey.CreatedAt,
+                    closedDate = survey.ClosedAt
                 })
                 .ToListAsync();
 
@@ -108,7 +110,10 @@ namespace backend.Controllers
                 id = survey.SurveyId,
                 title = survey.Topic ?? ("Survey " + survey.SurveyId),
                 description = "",
-                status = "active",
+                category = survey.Category,
+                status = survey.IsClosed ? "completed" : "active",
+                createdDate = survey.CreatedAt,
+                closedDate = survey.ClosedAt,
                 questions
             });
         }
@@ -226,7 +231,10 @@ namespace backend.Controllers
             {
                 SurveyId = await GetNextIdAsync(_context.Surveys.Select(item => item.SurveyId)),
                 Topic = Truncate(request.Title.Trim(), 100),
-                CreatedBy = creatorId.Value
+                CreatedBy = creatorId.Value,
+                Category = Truncate(request.Category?.Trim(), 50),
+                CreatedAt = DateTime.UtcNow,
+                IsClosed = false
             };
 
             _context.Surveys.Add(survey);
@@ -234,13 +242,25 @@ namespace backend.Controllers
             var nextQuestionId = await GetNextIdAsync(_context.Questions.Select(item => item.QuestionId));
             foreach (var question in providedQuestions)
             {
-                // Only the question text can be stored: dbo.Question has no column
-                // for type, options, required or placeholder, so those are dropped.
+                var text = Truncate(question.Question.Trim(), 1000);
+                var options = (question.Options ?? new List<string>())
+                    .Where(option => !string.IsNullOrWhiteSpace(option))
+                    .Select(option => option.Trim())
+                    .ToList();
+
                 _context.Questions.Add(new Question
                 {
                     QuestionId = nextQuestionId++,
                     SurveyId = survey.SurveyId,
-                    Answear = Truncate(question.Question.Trim(), 500)
+                    // Answear is still written so anything reading the original
+                    // column, including the fallback in BuildQuestionsAsync, keeps
+                    // seeing a sensible label.
+                    Answear = Truncate(question.Question.Trim(), 500),
+                    QuestionText = text,
+                    QuestionType = Truncate(
+                        string.IsNullOrWhiteSpace(question.Type) ? "text" : question.Type.Trim(), 20),
+                    Options = options.Count > 0 ? JsonSerializer.Serialize(options) : null,
+                    IsRequired = question.Required
                 });
             }
 
@@ -250,8 +270,8 @@ namespace backend.Controllers
             {
                 id = survey.SurveyId,
                 title = survey.Topic,
-                questionCount = providedQuestions.Count,
-                note = "Question type, options and validation are not stored: the Question table has no columns for them."
+                category = survey.Category,
+                questionCount = providedQuestions.Count
             });
         }
 
@@ -270,6 +290,17 @@ namespace backend.Controllers
                 return BadRequest(new { message = "A user account is required to submit a response" });
             }
 
+            // One response per person per survey. Existing rows are left alone:
+            // the backup already contains people who answered the same survey more
+            // than once, and this only stops new duplicates.
+            var alreadyAnswered = await _context.SurveySessions
+                .AnyAsync(session => session.SurveyId == id && session.UserId == userId.Value);
+
+            if (alreadyAnswered)
+            {
+                return Conflict(new { message = "You have already responded to this survey." });
+            }
+
             var questionIds = await _context.Questions
                 .Where(question => question.SurveyId == id)
                 .Select(question => question.QuestionId)
@@ -280,7 +311,8 @@ namespace backend.Controllers
             var session = new SurveySession
             {
                 SurveyId = id,
-                UserId = userId.Value
+                UserId = userId.Value,
+                SubmittedAt = DateTime.UtcNow
             };
 
             _context.SurveySessions.Add(session);
@@ -314,8 +346,14 @@ namespace backend.Controllers
 
         /// <summary>
         /// Turns the Question rows of a survey into the shape the React form expects.
-        /// Options are derived from the answers already recorded for each question,
-        /// because the schema stores no option list of its own.
+        ///
+        /// Questions authored since scripts/schema-authoring.sql ran carry their own
+        /// text, type and options and are returned as written. Rows restored from the
+        /// backup have those columns null, so they keep the old behaviour: the
+        /// misspelled Answear column is the label and the options are derived from the
+        /// answers already recorded. That fallback is why a question could appear as
+        /// multiple choice in one attempt and free text in another - the derived set
+        /// changes as responses accumulate. Newly authored questions are stable.
         /// </summary>
         private async Task<List<SurveyQuestionDto>> BuildQuestionsAsync(Survey survey)
         {
@@ -336,7 +374,12 @@ namespace backend.Controllers
 
             foreach (var question in questions)
             {
-                var options = knownAnswers
+                var storedOptions = ReadStoredOptions(question.Options);
+                var hasStoredType = !string.IsNullOrWhiteSpace(question.QuestionType);
+
+                // Derived options are only a fallback for rows written before the
+                // authoring columns existed.
+                var derivedOptions = knownAnswers
                     .Where(answer => answer.QuestionId == question.QuestionId)
                     .Select(answer => answer.Answer!)
                     .Where(answer => !string.IsNullOrWhiteSpace(answer))
@@ -344,17 +387,36 @@ namespace backend.Controllers
                     .OrderBy(answer => answer)
                     .ToList();
 
-                var isChoice = options.Count > 1 && options.Count <= MaxDerivedOptions;
+                var label = question.QuestionText;
+                if (string.IsNullOrWhiteSpace(label))
+                {
+                    label = string.IsNullOrWhiteSpace(question.Answear)
+                        ? "Question " + position
+                        : question.Answear;
+                }
+
+                string type;
+                List<string> options;
+
+                if (hasStoredType)
+                {
+                    type = question.QuestionType!;
+                    options = storedOptions;
+                }
+                else
+                {
+                    var isChoice = derivedOptions.Count > 1 && derivedOptions.Count <= MaxDerivedOptions;
+                    type = isChoice ? "single-choice" : "text";
+                    options = isChoice ? derivedOptions : new List<string>();
+                }
 
                 result.Add(new SurveyQuestionDto
                 {
                     Id = question.QuestionId,
-                    Question = string.IsNullOrWhiteSpace(question.Answear)
-                        ? "Question " + position
-                        : question.Answear!,
-                    Type = isChoice ? "single-choice" : "text",
-                    Options = isChoice ? options : new List<string>(),
-                    Required = false,
+                    Question = label!,
+                    Type = type,
+                    Options = options,
+                    Required = question.IsRequired ?? false,
                     Min = 1,
                     Max = 5
                 });
@@ -363,6 +425,29 @@ namespace backend.Controllers
             }
 
             return result;
+        }
+
+        /// <summary>
+        /// Reads the JSON array stored in dbo.Question.Options. A malformed or empty
+        /// value is treated as "no options" rather than failing the whole request.
+        /// </summary>
+        private static List<string> ReadStoredOptions(string? stored)
+        {
+            if (string.IsNullOrWhiteSpace(stored))
+            {
+                return new List<string>();
+            }
+
+            try
+            {
+                return JsonSerializer.Deserialize<List<string>>(stored)?
+                    .Where(option => !string.IsNullOrWhiteSpace(option))
+                    .ToList() ?? new List<string>();
+            }
+            catch (JsonException)
+            {
+                return new List<string>();
+            }
         }
 
         /// <summary>Reads one submitted answer value as the strings to store.</summary>
@@ -433,8 +518,13 @@ namespace backend.Controllers
             return await ids.MaxAsync() + 1;
         }
 
-        private static string Truncate(string value, int maxLength)
+        private static string? Truncate(string? value, int maxLength)
         {
+            if (value == null)
+            {
+                return null;
+            }
+
             return value.Length <= maxLength ? value : value[..maxLength];
         }
     }

@@ -57,9 +57,19 @@ if ($LASTEXITCODE -ne 0) { throw "Restore failed (sqlcmd exit code $LASTEXITCODE
 
 # The backup predates the password reset feature, so its table is created after
 # every restore.
-Write-Host 'Applying additive schema scripts...'
-& sqlcmd -S $Instance -b -C -i (Join-Path $scriptsDir 'schema-password-reset-token.sql')
-if ($LASTEXITCODE -ne 0) { throw "Schema script failed (sqlcmd exit code $LASTEXITCODE)." }
+Write-Host 'Applying additive schema and data scripts...'
+# A restore recreates the database from the backup, which predates all of these,
+# so they run every time. Each one is additive and re-runnable.
+$followUpScripts = @(
+    'schema-password-reset-token.sql',  # the reset token table
+    'schema-authoring.sql',             # question type/options, survey category and status
+    'data-news-categories.sql'          # the four news categories the UI offers
+)
+
+foreach ($followUp in $followUpScripts) {
+    & sqlcmd -S $Instance -b -C -i (Join-Path $scriptsDir $followUp)
+    if ($LASTEXITCODE -ne 0) { throw "$followUp failed (sqlcmd exit code $LASTEXITCODE)." }
+}
 
 if ($SkipVerify) {
     Write-Host 'Skipping verification as requested.'

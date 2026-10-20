@@ -240,6 +240,10 @@ public partial class SssContext : DbContext
                 .ValueGeneratedNever()
                 .HasColumnName("QuestionID");
             entity.Property(e => e.Answear).HasMaxLength(500);
+            entity.Property(e => e.QuestionText).HasMaxLength(1000);
+            entity.Property(e => e.QuestionType)
+                .HasMaxLength(20)
+                .IsUnicode(false);
             entity.Property(e => e.SurveyId).HasColumnName("SurveyID");
 
             entity.HasOne(d => d.Survey).WithMany(p => p.Questions)
@@ -298,6 +302,7 @@ public partial class SssContext : DbContext
                 .ValueGeneratedNever()
                 .HasColumnName("SurveyID");
             entity.Property(e => e.Topic).HasMaxLength(100);
+            entity.Property(e => e.Category).HasMaxLength(50);
 
             entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.SurveysCreated)
                 .HasForeignKey(d => d.CreatedBy)
@@ -357,6 +362,7 @@ public partial class SssContext : DbContext
                 .ValueGeneratedNever()
                 .HasColumnName("ID");
             entity.Property(e => e.Address).HasMaxLength(200);
+            entity.Property(e => e.PhotoUrl).HasMaxLength(400);
             entity.Property(e => e.Email)
                 .HasMaxLength(100)
                 .IsUnicode(false);

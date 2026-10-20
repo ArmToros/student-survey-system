@@ -341,3 +341,86 @@
   }
 }
 
+
+/* Article reader -------------------------------------------------------- */
+/* "Read More" opens the body in place: dbo.News.Content holds the whole
+   article, it simply had nowhere to be shown before. */
+.article-reader {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  z-index: 1000;
+}
+
+.article-reader-panel {
+  position: relative;
+  background: var(--card-bg, #fff);
+  color: var(--text-color, #0f172a);
+  border-radius: 16px;
+  max-width: 720px;
+  width: 100%;
+  max-height: 85vh;
+  overflow-y: auto;
+  padding: 32px;
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.25);
+}
+
+.article-reader-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: inherit;
+  padding: 4px;
+  border-radius: 8px;
+}
+
+.article-reader-close:hover {
+  background: rgba(148, 163, 184, 0.2);
+}
+
+.article-reader-category {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #2563eb;
+  margin-bottom: 8px;
+}
+
+.article-reader-panel h2 {
+  margin: 0 0 12px;
+  padding-right: 32px;
+}
+
+.article-reader-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  font-size: 14px;
+  opacity: 0.75;
+  margin-bottom: 20px;
+}
+
+.article-reader-meta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.article-reader-body p {
+  line-height: 1.7;
+  margin: 0 0 14px;
+}
+
+@media (max-width: 640px) {
+  .article-reader { padding: 16px; }
+  .article-reader-panel { padding: 24px 20px; }
+}

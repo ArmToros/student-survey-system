@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, User, Eye, MessageCircle, Share2, BookOpen } from 'lucide-react';
+import { Calendar, User, Eye, MessageCircle, Share2, BookOpen, X, Check } from 'lucide-react';
 import './News.css';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -12,6 +12,8 @@ const News = () => {
   const [loading, setLoading] = useState(true);
 
   const [selectedCategory, setSelectedCategory] = useState("news.filters.all");
+  const [openArticle, setOpenArticle] = useState(null);
+  const [sharedId, setSharedId] = useState(null);
 
   useEffect(() => {
     const loadNews = async () => {
@@ -44,18 +46,55 @@ const News = () => {
     loadNews();
   }, [user?.role]);
 
-  // Filtering logic
-  const dynamicCategories = [
+  // The four categories the app offers, matching dbo.NewsType after
+  // scripts/data-news-categories.sql. They are fixed rather than derived from
+  // whatever happens to be loaded, so a category a role cannot see shows the
+  // "no news" message instead of disappearing from the filter bar.
+  const categoryFilters = [
     "news.filters.all",
-    ...Array.from(new Set(news.map(article => article.category).filter(Boolean)))
+    "Academic",
+    "Events",
+    "Announcements",
+    "Sports"
   ];
+
+  const categoryLabel = (category) => {
+    if (category.startsWith('news.')) {
+      return t(category);
+    }
+    const translated = t(`news.filters.${category.toLowerCase()}`);
+    return translated.startsWith('news.') ? category : translated;
+  };
   const filteredNews =
     selectedCategory === "news.filters.all"
       ? news
       : news.filter(article => article.category === selectedCategory);
 
-  const featuredNews = news.filter(n => n.featured);
+  // Both lists come from the filtered set. Deriving the featured one from the
+  // full list instead used to hide every featured article whenever a category
+  // was selected, which made most categories look empty.
+  const featuredNews = filteredNews.filter(n => n.featured);
   const regularNews = filteredNews.filter(n => !n.featured);
+
+  // The API returns the whole body, so "Read More" opens it in place.
+  const openReader = (article) => setOpenArticle(article);
+
+  const shareArticle = async (article) => {
+    const link = `${window.location.origin}/news#article-${article.id}`;
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: article.title, text: article.excerpt, url: link });
+        return;
+      }
+      await navigator.clipboard.writeText(link);
+      setSharedId(article.id);
+      setTimeout(() => setSharedId(current => (current === article.id ? null : current)), 2000);
+    } catch (error) {
+      // A cancelled share dialog or a browser that blocks clipboard access is
+      // not worth interrupting the page for.
+      console.warn('Unable to share article', error);
+    }
+  };
 
   const formatDate = (dateString) =>
     new Date(dateString).toLocaleDateString('en-US', {
@@ -90,20 +129,20 @@ const News = () => {
         {/* FILTERS */}
         <div className="news-filters">
           <div className="category-filters">
-            {dynamicCategories.map(category => (
+            {categoryFilters.map(category => (
               <button
                 key={category}
                 className={`filter-btn ${selectedCategory === category ? 'active' : ''}`}
                 onClick={() => setSelectedCategory(category)}
               >
-                {category.startsWith('news.') ? t(category) : category}
+                {categoryLabel(category)}
               </button>
             ))}
           </div>
         </div>
 
         {/* FEATURED NEWS – visible only for ALL */}
-        {selectedCategory === "news.filters.all" && featuredNews.length > 0 && (
+        {featuredNews.length > 0 && (
           <div className="featured-section">
             <h2>{t('news.featuredNews')}</h2>
 
@@ -127,8 +166,16 @@ const News = () => {
                     </div>
 
                     <div className="article-actions">
-                      <button className="btn btn-primary">{t('news.readMore')}</button>
-                      <button className="btn btn-secondary"><Share2 size={16}/></button>
+                      <button className="btn btn-primary" onClick={() => openReader(article)}>
+                        {t('news.readMore')}
+                      </button>
+                      <button
+                        className="btn btn-secondary"
+                        onClick={() => shareArticle(article)}
+                        title={t('news.share')}
+                      >
+                        {sharedId === article.id ? <Check size={16}/> : <Share2 size={16}/>}
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -142,7 +189,7 @@ const News = () => {
           <h2>
             {selectedCategory === "news.filters.all"
               ? t("news.latestNews")
-              : t(selectedCategory)
+              : categoryLabel(selectedCategory)
             }
           </h2>
 
@@ -170,7 +217,16 @@ const News = () => {
                   </div>
 
                   <div className="card-actions">
-                    <button className="btn btn-outline">{t('news.readMore')}</button>
+                    <button className="btn btn-outline" onClick={() => openReader(article)}>
+                      {t('news.readMore')}
+                    </button>
+                    <button
+                      className="btn btn-outline"
+                      onClick={() => shareArticle(article)}
+                      title={t('news.share')}
+                    >
+                      {sharedId === article.id ? <Check size={14}/> : <Share2 size={14}/>}
+                    </button>
                   </div>
                 </div>
 
@@ -188,6 +244,41 @@ const News = () => {
 
         </div>
       </div>
+
+      {openArticle && (
+        <div className="article-reader" onClick={() => setOpenArticle(null)}>
+          <div
+            className="article-reader-panel"
+            role="dialog"
+            aria-modal="true"
+            aria-label={openArticle.title}
+            onClick={(event) => event.stopPropagation()}
+          >
+            <button
+              className="article-reader-close"
+              onClick={() => setOpenArticle(null)}
+              aria-label={t('news.close')}
+            >
+              <X size={20}/>
+            </button>
+
+            <div className="article-reader-category">{openArticle.category}</div>
+            <h2>{openArticle.title}</h2>
+
+            <div className="article-reader-meta">
+              <span><User size={14}/> {openArticle.author}</span>
+              <span><Calendar size={14}/> {formatDate(openArticle.date)}</span>
+            </div>
+
+            <div className="article-reader-body">
+              {String(openArticle.content || openArticle.excerpt || '')
+                .split(/\n+/)
+                .filter(Boolean)
+                .map((paragraph, index) => <p key={index}>{paragraph}</p>)}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
