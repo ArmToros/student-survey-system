@@ -354,16 +354,6 @@ namespace backend.Controllers
                 IsQuestion = chat.CreatedBy == callerId
             });
 
-            // A reply makes the conversation relevant again for whoever had hidden it.
-            if (chat.CreatedBy == callerId)
-            {
-                chat.HiddenByAdmin = false;
-            }
-            else
-            {
-                chat.HiddenByAuthor = false;
-            }
-
             await _context.SaveChangesAsync();
 
             return Ok(new { id = chat.Id, message = "Message sent" });
@@ -378,7 +368,7 @@ namespace backend.Controllers
                 return NotFound(new { message = "Conversation not found" });
             }
 
-            if (!IsParticipant(chat))
+            if (!IsOwningAdmin(chat))
             {
                 return Forbid();
             }
@@ -399,7 +389,7 @@ namespace backend.Controllers
                 return NotFound(new { message = "Conversation not found" });
             }
 
-            if (!IsParticipant(chat))
+            if (!IsOwningAdmin(chat))
             {
                 return Forbid();
             }
@@ -412,8 +402,9 @@ namespace backend.Controllers
         }
 
         /// <summary>
-        /// Removes the conversation from the caller's own list. The other side
-        /// keeps theirs; nothing is deleted.
+        /// Takes the conversation off both lists. Only the assigned admin may do
+        /// this, and the rows are kept: the flags hide it rather than delete it,
+        /// so the exchange is still on record.
         /// </summary>
         [HttpDelete("chats/{id:int}")]
         public async Task<ActionResult> HideChat(int id)
@@ -424,30 +415,29 @@ namespace backend.Controllers
                 return NotFound(new { message = "Conversation not found" });
             }
 
-            if (!IsParticipant(chat))
+            if (!IsOwningAdmin(chat))
             {
                 return Forbid();
             }
 
-            var callerId = CallerId!.Value;
-
-            if (chat.CreatedBy == callerId)
-            {
-                chat.HiddenByAuthor = true;
-            }
-
-            if (chat.AssignedAdmin == callerId)
-            {
-                chat.HiddenByAdmin = true;
-            }
+            chat.HiddenByAuthor = true;
+            chat.HiddenByAdmin = true;
 
             await _context.SaveChangesAsync();
 
-            return Ok(new { id = chat.Id, message = "Removed from your list" });
+            return Ok(new { id = chat.Id, message = "Conversation removed" });
         }
 
         private bool IsParticipant(Chat chat) =>
             CallerId != null && (chat.CreatedBy == CallerId || chat.AssignedAdmin == CallerId);
+
+        /// <summary>
+        /// Closing, reopening and removing a conversation belong to the admin it
+        /// was assigned to. The person who asked can read and reply, but the
+        /// lifecycle is not theirs to decide.
+        /// </summary>
+        private bool IsOwningAdmin(Chat chat) =>
+            CallerId != null && chat.AssignedAdmin == CallerId;
 
         /// <summary>
         /// Hands the question to the admin carrying the fewest open conversations,

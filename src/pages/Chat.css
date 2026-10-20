@@ -824,3 +824,83 @@
   opacity: 0.7;
   margin: 12px 16px 0;
 }
+
+/* Initial-letter avatars --------------------------------------------------- */
+/* The old design used photographs. Support conversations are with real
+   colleagues and students, and there are no pictures for them, so the circle
+   carries their initials instead. */
+.avatar-initials {
+  width: 100%;
+  height: 100%;
+  min-width: 40px;
+  min-height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 600;
+  color: #1d4ed8;
+  background: rgba(37, 99, 235, 0.14);
+}
+
+.avatar-initials.question {
+  color: #475569;
+  background: rgba(100, 116, 139, 0.16);
+}
+
+.avatar-initials.ask {
+  color: #fff;
+  background: #2563eb;
+  font-size: 20px;
+  font-weight: 500;
+}
+
+.chat-item.ask-row .chat-name {
+  color: #2563eb;
+  font-weight: 600;
+}
+
+.chat-item .chat-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.chat-badge {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: rgba(100, 116, 139, 0.18);
+  color: inherit;
+  flex-shrink: 0;
+}
+
+/* Keep the list a list ----------------------------------------------------- */
+/* Preset answers and question titles are full sentences, far longer than the
+   short names the original design carried. Without truncation they force the
+   column open and squeeze the conversation panel. */
+.chat-title-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.chat-name {
+  min-width: 0;
+}
+
+@media (min-width: 1025px) {
+  .chat-main-content {
+    flex: 0 0 360px;
+    max-width: 360px;
+  }
+
+  .chat-main {
+    flex: 1;
+    min-width: 0;
+  }
+}

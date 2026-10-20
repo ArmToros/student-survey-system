@@ -1,20 +1,23 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Send, MessageCircle, HelpCircle, Plus, X, CheckCircle, Trash2, ArrowLeft } from 'lucide-react';
+import { Send, MessageCircle, Search, Smile, CheckCircle, RotateCcw, Trash2 } from 'lucide-react';
 import './Chat.css';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
 import { apiFetch } from '../services/api';
 
+// A small fixed palette: enough to be useful without pulling in an emoji library.
+const EMOJIS = ['😀', '🙂', '👍', '🙏', '📚', '✅', '❓', '🎉', '😢', '❤️'];
+
 /**
- * Support.
+ * Help and support.
  *
- * The left column holds the questions admins have written answers for, plus the
- * conversations you are part of. Picking a question shows its answer straight
- * away and starts nothing. "Other" opens a box for anything not on the list:
- * that question is assigned to an admin and becomes a conversation.
+ * The left column is the old messenger list, now holding two kinds of row: the
+ * questions admins have written answers for, and the conversations you are part
+ * of. Picking a question shows its answer and starts nothing. "Ask something
+ * else" sends your question to an admin and opens a conversation.
  *
- * Either side can close a conversation, and either side can then remove it from
- * their own list. Removing is per-person - the other side keeps theirs.
+ * Closing, reopening and removing a conversation belong to the admin it was
+ * assigned to. Everyone else can read and reply.
  */
 const Chat = () => {
   const { t } = useLanguage();
@@ -25,14 +28,17 @@ const Chat = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // What the right-hand panel is showing: nothing, a preset answer, the
-  // "ask something else" form, or a conversation.
+  // What the right-hand panel shows: nothing, a preset answer, the ask form, or
+  // a conversation.
   const [view, setView] = useState({ kind: 'none' });
   const [thread, setThread] = useState(null);
 
   const [draft, setDraft] = useState('');
   const [newQuestion, setNewQuestion] = useState('');
   const [busy, setBusy] = useState(false);
+  const [showSearch, setShowSearch] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [showEmoji, setShowEmoji] = useState(false);
 
   const endOfMessagesRef = useRef(null);
 
@@ -163,7 +169,7 @@ const Chat = () => {
     }
   };
 
-  const removeFromMyList = async (chatId) => {
+  const removeConversation = async (chatId) => {
     if (!window.confirm(t('chat.removeConfirm'))) {
       return;
     }
@@ -197,6 +203,26 @@ const Chat = () => {
     });
   };
 
+  const initials = (name) => (name || '?')
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map(part => part[0].toUpperCase())
+    .join('');
+
+  const term = searchTerm.trim().toLowerCase();
+  const matches = (text) => !term || (text || '').toLowerCase().includes(term);
+
+  const visiblePresets = presets.filter(preset => matches(preset.question) || matches(preset.answer));
+  const visibleChats = chats.filter(chat => matches(chat.title) || matches(chat.lastMessage));
+
+  const activePreset = view.kind === 'preset'
+    ? presets.find(item => item.id === view.id)
+    : null;
+
+  // Only the admin a conversation was assigned to may close or remove it.
+  const canManageThread = thread && user?.role === 'admin' && !thread.mine;
+
   if (loading) {
     return (
       <div className="chat">
@@ -210,70 +236,112 @@ const Chat = () => {
     );
   }
 
-  const activePreset = view.kind === 'preset'
-    ? presets.find(item => item.id === view.id)
-    : null;
-
   return (
     <div className="chat">
       <div className="chat-container">
         <div className="chat-main-content">
           <div className="main-content-header">
             <h2>{t('chat.help')}</h2>
+            <div className="header-actions">
+              <button
+                className="action-btn"
+                onClick={() => {
+                  setShowSearch(open => !open);
+                  setSearchTerm('');
+                }}
+                title={t('chat.search')}
+              >
+                <Search size={20} />
+              </button>
+            </div>
           </div>
+
+          {showSearch && (
+            <div className="chat-search">
+              <input
+                type="text"
+                className="chat-search-input"
+                placeholder={t('chat.search')}
+                value={searchTerm}
+                onChange={(event) => setSearchTerm(event.target.value)}
+                autoFocus
+              />
+            </div>
+          )}
 
           <div className="chat-list-column">
             <p className="chat-section-label">{t('chat.commonQuestions')}</p>
 
-            {presets.length === 0 && (
+            {visiblePresets.length === 0 && (
               <div className="chat-empty-hint">{t('chat.noQuestions')}</div>
             )}
 
-            {presets.map(preset => (
-              <button
-                key={preset.id}
-                className={`preset-item ${view.kind === 'preset' && view.id === preset.id ? 'active' : ''}`}
+            {visiblePresets.map(preset => (
+              <div
+                key={`preset-${preset.id}`}
+                className={`chat-item ${view.kind === 'preset' && view.id === preset.id ? 'active' : ''}`}
                 onClick={() => setView({ kind: 'preset', id: preset.id })}
               >
-                <HelpCircle size={16} />
-                <span>{preset.question}</span>
-                {!preset.isActive && <em className="preset-retired">{t('chat.retired')}</em>}
-              </button>
+                <div className="chat-avatar">
+                  <div className="avatar-initials question">?</div>
+                </div>
+                <div className="chat-info">
+                  <div className="chat-name">
+                    <span className="chat-title-text">{preset.question}</span>
+                    {!preset.isActive && <span className="chat-badge">{t('chat.retired')}</span>}
+                  </div>
+                  <div className="chat-preview">{preset.answer}</div>
+                </div>
+              </div>
             ))}
 
-            <button
-              className={`preset-item other ${view.kind === 'ask' ? 'active' : ''}`}
+            <div
+              className={`chat-item ask-row ${view.kind === 'ask' ? 'active' : ''}`}
               onClick={() => setView({ kind: 'ask' })}
             >
-              <Plus size={16} />
-              <span>{t('chat.other')}</span>
-            </button>
+              <div className="chat-avatar">
+                <div className="avatar-initials ask">+</div>
+              </div>
+              <div className="chat-info">
+                <div className="chat-name"><span className="chat-title-text">{t('chat.other')}</span></div>
+                <div className="chat-preview">{t('chat.askHint')}</div>
+              </div>
+            </div>
 
             <p className="chat-section-label">{t('chat.yourConversations')}</p>
 
-            {chats.length === 0 && (
+            {visibleChats.length === 0 && (
               <div className="chat-empty-hint">{t('chat.noConversations')}</div>
             )}
 
-            {chats.map(chat => (
-              <button
-                key={chat.id}
-                className={`chat-item ${view.kind === 'chat' && view.id === chat.id ? 'active' : ''}`}
-                onClick={() => openThread(chat.id)}
-              >
-                <div className="chat-item-top">
-                  <span className="chat-item-title">{chat.title}</span>
-                  {chat.isClosed && <span className="chat-chip">{t('chat.closed')}</span>}
+            {visibleChats.map(chat => {
+              const counterpart = chat.mine ? chat.adminName : chat.askedBy;
+              return (
+                <div
+                  key={`chat-${chat.id}`}
+                  className={`chat-item ${view.kind === 'chat' && view.id === chat.id ? 'active' : ''}`}
+                  onClick={() => openThread(chat.id)}
+                >
+                  <div className="chat-avatar">
+                    <div className="avatar-initials">{initials(counterpart)}</div>
+                  </div>
+                  <div className="chat-info">
+                    <div className="chat-name">
+                      <span className="chat-title-text">{chat.title}</span>
+                      {chat.isClosed && <span className="chat-badge">{t('chat.closed')}</span>}
+                    </div>
+                    <div className="chat-preview">{chat.lastMessage}</div>
+                  </div>
+                  <div className="chat-meta">
+                    <div className="chat-time">{formatTime(chat.createdAt)}</div>
+                  </div>
                 </div>
-                <span className="chat-item-sub">
-                  {chat.mine ? chat.adminName : chat.askedBy} - {formatTime(chat.createdAt)}
-                </span>
-              </button>
-            ))}
+              );
+            })}
           </div>
         </div>
 
-        <div className="chat-main">
+        <div className="chat-main desktop-only">
           {error && <p className="chat-error">{error}</p>}
 
           {view.kind === 'none' && (
@@ -321,33 +389,40 @@ const Chat = () => {
           {view.kind === 'chat' && thread && (
             <>
               <div className="chat-header">
-                <button className="back-btn" onClick={() => setView({ kind: 'none' })}>
-                  <ArrowLeft size={20} />
-                </button>
-                <div className="user-info">
-                  <h3>{thread.title}</h3>
-                  <span className="user-status">
-                    {thread.isClosed ? t('chat.closed') : t('chat.open')}
-                  </span>
+                <div className="chat-user">
+                  <div className="chat-avatar">
+                    <div className="avatar-initials">
+                      {initials(thread.messages.find(message => !message.own)?.senderName)}
+                    </div>
+                  </div>
+                  <div className="user-info">
+                    <h3>{thread.title}</h3>
+                    <span className="user-status">
+                      {thread.isClosed ? t('chat.closed') : t('chat.open')}
+                    </span>
+                  </div>
                 </div>
-                <div className="chat-actions">
-                  <button
-                    className="action-btn"
-                    onClick={() => setClosed(thread.id, !thread.isClosed)}
-                    disabled={busy}
-                    title={thread.isClosed ? t('chat.reopen') : t('chat.close')}
-                  >
-                    {thread.isClosed ? <X size={18} /> : <CheckCircle size={18} />}
-                  </button>
-                  <button
-                    className="action-btn"
-                    onClick={() => removeFromMyList(thread.id)}
-                    disabled={busy}
-                    title={t('chat.remove')}
-                  >
-                    <Trash2 size={18} />
-                  </button>
-                </div>
+
+                {canManageThread && (
+                  <div className="chat-actions">
+                    <button
+                      className="action-btn"
+                      onClick={() => setClosed(thread.id, !thread.isClosed)}
+                      disabled={busy}
+                      title={thread.isClosed ? t('chat.reopen') : t('chat.close')}
+                    >
+                      {thread.isClosed ? <RotateCcw size={20} /> : <CheckCircle size={20} />}
+                    </button>
+                    <button
+                      className="action-btn"
+                      onClick={() => removeConversation(thread.id)}
+                      disabled={busy}
+                      title={t('chat.remove')}
+                    >
+                      <Trash2 size={20} />
+                    </button>
+                  </div>
+                )}
               </div>
 
               <div className="messages-container">
@@ -371,6 +446,32 @@ const Chat = () => {
                 <div className="chat-closed-note">{t('chat.closedNote')}</div>
               ) : (
                 <div className="message-input">
+                  <div className="emoji-wrapper">
+                    <button
+                      className="input-btn"
+                      onClick={() => setShowEmoji(open => !open)}
+                      title="Emoji"
+                    >
+                      <Smile size={20} />
+                    </button>
+                    {showEmoji && (
+                      <div className="emoji-picker">
+                        {EMOJIS.map(emoji => (
+                          <button
+                            key={emoji}
+                            type="button"
+                            className="emoji-option"
+                            onClick={() => {
+                              setDraft(current => current + emoji);
+                              setShowEmoji(false);
+                            }}
+                          >
+                            {emoji}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                   <input
                     type="text"
                     placeholder={t('chat.typeMessage')}
@@ -398,10 +499,6 @@ const Chat = () => {
           )}
         </div>
       </div>
-
-      {user?.role === 'admin' && (
-        <p className="chat-admin-hint">{t('chat.adminHint')}</p>
-      )}
     </div>
   );
 };
