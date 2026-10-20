@@ -133,6 +133,10 @@ public partial class SssContext : DbContext
             entity.Property(e => e.CourseName)
                 .HasMaxLength(100)
                 .IsUnicode(false);
+            entity.Property(e => e.LecturerId).HasColumnName("LecturerID");
+            entity.Property(e => e.Schedule).HasMaxLength(200);
+            entity.Property(e => e.Room).HasMaxLength(200);
+            entity.Property(e => e.Focus).HasMaxLength(600);
             entity.Property(e => e.CourseNumber)
                 .HasMaxLength(10)
                 .IsUnicode(false);

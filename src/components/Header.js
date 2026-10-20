@@ -13,8 +13,7 @@ import {
   ShieldCheck,
   GraduationCap,
   Menu,
-  X
-} from 'lucide-react';
+  X, BookOpen } from 'lucide-react';
 import './Header.css';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -124,6 +123,14 @@ const Header = () => {
               >
                 <Home size={20} />
                 <span className="nav-link-text">{t('dashboard.title')}</span>
+              </Link>
+              <Link
+                to="/courses"
+                className={`nav-link ${isActive('/courses') ? 'active' : ''}`}
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                <BookOpen size={20} />
+                <span className="nav-link-text">{t('courses.title')}</span>
               </Link>
               <Link 
                 to="/news" 

@@ -173,6 +173,19 @@ dashboard: {
       retry: 'Try again'
     },
 
+courses: {
+  title: 'Courses',
+  subtitle: 'Extra classes run by lecturers. Join the ones you want to attend.',
+  loading: 'Loading courses...',
+  none: 'No courses are available yet',
+  students: 'students',
+  join: 'Join course',
+  leave: 'Leave course',
+  joined: 'Joined',
+  loadFailed: 'Could not load the courses.',
+  joinFailed: 'Could not join this course.',
+  leaveFailed: 'Could not leave this course.'
+},
     news: {
       title: 'University News',
       subtitle: 'Stay updated with the latest news and announcements',
@@ -492,6 +505,12 @@ student:"Student"
       view:'View statistics',
       viewCourses:'View Courses',
       addCourse:'Add New Course',
+      loading: 'Loading...',
+      noCourses: 'You have not created any courses yet.',
+      students: 'students',
+      loadFailed: 'Could not load your courses.',
+      saveFailed: 'Could not save the course.',
+      deleteFailed: 'Could not delete the course.',
       reschedule:'Reschedule',
       delete:'Delete',
       save:'Save',
@@ -791,6 +810,19 @@ dashboard: {
       retry: 'Повторить'
     },
 
+courses: {
+  title: 'Курсы',
+  subtitle: 'Дополнительные занятия от преподавателей. Запишитесь на те, которые хотите посещать.',
+  loading: 'Загрузка курсов...',
+  none: 'Пока нет доступных курсов',
+  students: 'студентов',
+  join: 'Записаться',
+  leave: 'Отписаться',
+  joined: 'Вы записаны',
+  loadFailed: 'Не удалось загрузить курсы.',
+  joinFailed: 'Не удалось записаться на курс.',
+  leaveFailed: 'Не удалось отписаться от курса.'
+},
     news: {
       title: 'Новости университета',
       subtitle: 'Будьте в курсе последних новостей и объявлений',
@@ -1111,6 +1143,12 @@ innovation: 'Лаборатория инноваций',
 view: 'Просмотреть статистику',
 viewCourses: 'Просмотреть курсы',
 addCourse: 'Добавить новый курс',
+      loading: 'Загрузка...',
+      noCourses: 'Вы еще не создали ни одного курса.',
+      students: 'студентов',
+      loadFailed: 'Не удалось загрузить курсы.',
+      saveFailed: 'Не удалось сохранить курс.',
+      deleteFailed: 'Не удалось удалить курс.',
 reschedule: 'Переназначить',
 delete: 'Удалить',
 save: 'Сохранить',
@@ -1417,6 +1455,19 @@ dashboard: {
       retry: 'Փորձել կրկին'
     },
 
+courses: {
+  title: 'Դասընթացներ',
+  subtitle: 'Դասախոսների լրացուցիչ պարապմունքները։ Միացեք նրանց, որոնց ցանկանում եք մասնակցել։',
+  loading: 'Դասընթացները բեռնվում են...',
+  none: 'Հասանելի դասընթացներ դեռ չկան',
+  students: 'ուսանող',
+  join: 'Միանալ',
+  leave: 'Լքել',
+  joined: 'Միացած եք',
+  loadFailed: 'Չհաջողվեց բեռնել դասընթացները։',
+  joinFailed: 'Չհաջողվեց միանալ դասընթացին։',
+  leaveFailed: 'Չհաջողվեց լքել դասընթացը։'
+},
     news: {
       title: 'Նորություններ',
       subtitle: 'Մնացեք տեղեկացված վերջին նորությունների և հայտարարությունների մասին',
@@ -1738,6 +1789,12 @@ innovation: 'Նորարարությունների լաբորատորիա',
 view: 'Դիտել վիճակագրությունը',
 viewCourses: 'Դիտել դասընթացները',
 addCourse: 'Ավելացնել նոր դասընթաց',
+      loading: 'Բեռնվում է...',
+      noCourses: 'Դուք դեռ դասընթաց չեք ստեղծել։',
+      students: 'ուսանող',
+      loadFailed: 'Չհաջողվեց բեռնել դասընթացները։',
+      saveFailed: 'Չհաջողվեց պահպանել դասընթացը։',
+      deleteFailed: 'Չհաջողվեց ջնջել դասընթացը։',
 reschedule: 'Վերաժամանակացույցել',
 delete: 'Ջնջել',
 save: 'Պահպանել',

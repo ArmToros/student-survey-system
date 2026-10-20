@@ -28,6 +28,10 @@
 --   UserAccount.JoinDate    "Join Date" on the account page had no source
 --   UserAccount.PhotoUrl    somewhere to record an avatar once uploads exist
 --   SurveySession.SubmittedAt  responses carried no timestamp at all
+--   Course.LecturerID       nothing recorded who runs a course, so a lecturer
+--                           could not have courses of their own
+--   Course.Schedule/Room/Focus  the class details the lecturer page asks for
+--   Course.CreatedAt        so new classes can be listed newest first
 :on error exit
 
 USE SSS;
@@ -137,12 +141,60 @@ END
 ELSE PRINT '  SubmittedAt already present';
 GO
 
+PRINT 'dbo.Course';
+GO
+
+-- Courses here are the extra classes a lecturer runs and students opt into, so
+-- a course needs an owner. The backup's ten courses have no lecturer and stay
+-- NULL: they are institutional, not run by one person.
+IF COL_LENGTH('dbo.Course', 'LecturerID') IS NULL
+BEGIN
+    PRINT '  adding LecturerID';
+    ALTER TABLE dbo.Course ADD LecturerID int NULL;
+END
+ELSE PRINT '  LecturerID already present';
+GO
+
+-- The lecturer page asks for a time, a place and a focus for each class, none
+-- of which the original three columns could hold.
+IF COL_LENGTH('dbo.Course', 'Schedule') IS NULL
+BEGIN
+    PRINT '  adding Schedule';
+    ALTER TABLE dbo.Course ADD Schedule nvarchar(100) NULL;
+END
+ELSE PRINT '  Schedule already present';
+GO
+
+IF COL_LENGTH('dbo.Course', 'Room') IS NULL
+BEGIN
+    PRINT '  adding Room';
+    ALTER TABLE dbo.Course ADD Room nvarchar(200) NULL;
+END
+ELSE PRINT '  Room already present';
+GO
+
+IF COL_LENGTH('dbo.Course', 'Focus') IS NULL
+BEGIN
+    PRINT '  adding Focus';
+    ALTER TABLE dbo.Course ADD Focus nvarchar(300) NULL;
+END
+ELSE PRINT '  Focus already present';
+GO
+
+IF COL_LENGTH('dbo.Course', 'CreatedAt') IS NULL
+BEGIN
+    PRINT '  adding CreatedAt';
+    ALTER TABLE dbo.Course ADD CreatedAt datetime NULL;
+END
+ELSE PRINT '  CreatedAt already present';
+GO
+
 PRINT '';
 PRINT 'Columns now present:';
 SELECT OBJECT_NAME(c.object_id) AS TableName, c.name AS ColumnName, t.name AS DataType, c.is_nullable AS IsNullable
 FROM sys.columns c
 JOIN sys.types t ON t.user_type_id = c.user_type_id
-WHERE c.object_id IN (OBJECT_ID('dbo.Question'), OBJECT_ID('dbo.Survey'), OBJECT_ID('dbo.SurveySession'))
+WHERE c.object_id IN (OBJECT_ID('dbo.Question'), OBJECT_ID('dbo.Survey'), OBJECT_ID('dbo.SurveySession'), OBJECT_ID('dbo.Course'))
    OR (c.object_id = OBJECT_ID('dbo.UserAccount') AND c.name IN ('JoinDate', 'PhotoUrl'))
 ORDER BY TableName, c.column_id;
 GO

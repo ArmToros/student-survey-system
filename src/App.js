@@ -9,6 +9,7 @@ import SurveyForm from './pages/SurveyForm';
 import CreateSurvey from './pages/CreateSurvey';
 import SurveyResults from './pages/SurveyResults';
 import News from './pages/News';
+import Courses from './pages/Courses';
 import Chat from './pages/Chat';
 import Account from './pages/Account';
 import Settings from './pages/Settings';
@@ -69,6 +70,14 @@ function AppContent() {
             element={
               <ProtectedRoute allowedRoles={['admin', 'lecturer']}>
                 <SurveyResults />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/courses"
+            element={
+              <ProtectedRoute>
+                <Courses />
               </ProtectedRoute>
             }
           />

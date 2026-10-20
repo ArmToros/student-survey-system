@@ -1,22 +1,60 @@
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { GraduationCap, BookOpen, BarChart3, MessageCircle } from 'lucide-react';
 import './Lecturer.css';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
+import { apiFetch } from '../services/api';
 
 const Lecturer = () => {
   const { t } = useLanguage();
   const { user } = useAuth();
 
   const [activeTool, setActiveTool] = useState(null);
-  const [courses, setCourses] = useState([
-    { id: 1, title: t('lecturerPage.stats.algorithms'), time: '09:00 •' + t('lecturerPage.stats.room') + 'B214', focus: t('lecturerPage.schedule.algorithms') },
-    { id: 2, title: t('lecturerPage.stats.capstone'), time: '13:00 •' + t('lecturerPage.stats.innovation'), focus: t('lecturerPage.schedule.capstone') }
-  ]);
+
+  // Courses are the extra classes this lecturer runs. They live in dbo.Course
+  // and are loaded from the API, so adding or deleting one survives a reload -
+  // this list used to be two hardcoded entries held in React state.
+  const [courses, setCourses] = useState([]);
+  const [loadingCourses, setLoadingCourses] = useState(true);
+  const [courseError, setCourseError] = useState(null);
+  const [saving, setSaving] = useState(false);
 
   const [rescheduleId, setRescheduleId] = useState(null);
   const [rescheduleData, setRescheduleData] = useState({ title: '', time: '', focus: '' });
   const [newCourse, setNewCourse] = useState({ title: '', time: '', focus: '' });
+
+  // The API speaks name/schedule/room/focus; this page has always used
+  // title/time/focus, so the two shapes are mapped here rather than renaming
+  // everything in the markup.
+  const toPageCourse = (course) => ({
+    id: course.id,
+    title: course.name,
+    time: [course.schedule, course.room].filter(Boolean).join(' - '),
+    focus: course.focus || '',
+    courseNumber: course.courseNumber,
+    students: course.students
+  });
+
+  const loadCourses = useCallback(async () => {
+    try {
+      const response = await apiFetch('/api/courses?mine=true');
+      if (!response.ok) {
+        throw new Error('COURSES_FAILED');
+      }
+      const data = await response.json();
+      setCourses(data.map(toPageCourse));
+      setCourseError(null);
+    } catch (error) {
+      console.warn('Unable to load courses', error);
+      setCourseError(t('lecturerPage.stats.loadFailed'));
+    } finally {
+      setLoadingCourses(false);
+    }
+  }, [t]);
+
+  useEffect(() => {
+    loadCourses();
+  }, [loadCourses]);
 
   const analytics = user?.analytics || {};
 
@@ -37,23 +75,80 @@ const Lecturer = () => {
   ];
 
   // --- Course Handlers ---
-  const handleDelete = (id) => setCourses(courses.filter(c => c.id !== id));
+  const handleDelete = async (id) => {
+    setSaving(true);
+    try {
+      const response = await apiFetch(`/api/courses/${id}`, { method: 'DELETE' });
+      if (!response.ok) {
+        throw new Error('DELETE_FAILED');
+      }
+      await loadCourses();
+    } catch (error) {
+      console.error(error);
+      setCourseError(t('lecturerPage.stats.deleteFailed'));
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const handleReschedule = (course) => {
     setRescheduleId(course.id);
-    setRescheduleData({ ...course });
+    setRescheduleData({ title: course.title, time: course.time, focus: course.focus });
   };
 
-  const handleSaveReschedule = () => {
-    setCourses(courses.map(c => (c.id === rescheduleId ? rescheduleData : c)));
-    setRescheduleId(null);
-    setRescheduleData({ title: '', time: '', focus: '' });
+  const handleSaveReschedule = async () => {
+    setSaving(true);
+    try {
+      const response = await apiFetch(`/api/courses/${rescheduleId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: rescheduleData.title,
+          schedule: rescheduleData.time,
+          focus: rescheduleData.focus
+        })
+      });
+      if (!response.ok) {
+        throw new Error('UPDATE_FAILED');
+      }
+      setRescheduleId(null);
+      setRescheduleData({ title: '', time: '', focus: '' });
+      await loadCourses();
+    } catch (error) {
+      console.error(error);
+      setCourseError(t('lecturerPage.stats.saveFailed'));
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const handleAddCourse = () => {
-    const newId = courses.length > 0 ? Math.max(...courses.map(c => c.id)) + 1 : 1;
-    setCourses([...courses, { id: newId, ...newCourse }]);
-    setNewCourse({ title: '', time: '', focus: '' });
+  const handleAddCourse = async () => {
+    if (!newCourse.title.trim()) {
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const response = await apiFetch('/api/courses', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: newCourse.title,
+          schedule: newCourse.time,
+          focus: newCourse.focus
+        })
+      });
+      if (!response.ok) {
+        throw new Error('CREATE_FAILED');
+      }
+      setNewCourse({ title: '', time: '', focus: '' });
+      await loadCourses();
+    } catch (error) {
+      console.error(error);
+      setCourseError(t('lecturerPage.stats.saveFailed'));
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -129,10 +224,18 @@ const Lecturer = () => {
                   value={newCourse.focus}
                   onChange={(e) => setNewCourse({ ...newCourse, focus: e.target.value })}
                 />
-                <button onClick={handleAddCourse}>{t('lecturerPage.stats.addCourse')}</button>
+                <button onClick={handleAddCourse} disabled={saving || !newCourse.title.trim()}>
+                  {t('lecturerPage.stats.addCourse')}
+                </button>
               </div>
 
               {/* Courses List */}
+              {courseError && <p className="course-error">{courseError}</p>}
+              {loadingCourses && <p>{t('lecturerPage.stats.loading')}</p>}
+              {!loadingCourses && courses.length === 0 && (
+                <p className="course-empty">{t('lecturerPage.stats.noCourses')}</p>
+              )}
+
               <ul className="sessions-list">
                 {courses.map((course) => (
                   <li key={course.id} className="session-item">
@@ -161,6 +264,9 @@ const Lecturer = () => {
                         <h3>{course.title}</h3>
                         <p>{course.time}</p>
                         <p>{course.focus}</p>
+                        <p className="course-students">
+                          {course.courseNumber} - {course.students} {t('lecturerPage.stats.students')}
+                        </p>
                         <button onClick={() => handleReschedule(course)}>{t('lecturerPage.stats.reschedule')}</button>
                         <button onClick={() => handleDelete(course.id)}>{t('lecturerPage.stats.delete')}</button>
                       </div>
