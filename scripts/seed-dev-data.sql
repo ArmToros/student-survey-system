@@ -255,6 +255,10 @@ PRINT 'Including schema-authoring.sql...';
 GO
 :r $(SssScriptsDir)/schema-authoring.sql
 
+PRINT 'Including schema-support-chat.sql...';
+GO
+:r $(SssScriptsDir)/schema-support-chat.sql
+
 USE SSS;
 GO
 

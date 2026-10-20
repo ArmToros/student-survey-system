@@ -25,6 +25,14 @@ public partial class Chat
 
     public DateTime? ClosedAt { get; set; }
 
+    /// <summary>
+    /// Each side can take a finished conversation off their own list without
+    /// destroying it for the other, so these are two flags rather than a delete.
+    /// </summary>
+    public bool HiddenByAuthor { get; set; }
+
+    public bool HiddenByAdmin { get; set; }
+
     public virtual UserAccount AssignedAdminNavigation { get; set; } = null!;
 
     public virtual UserAccount CreatedByNavigation { get; set; } = null!;

@@ -39,6 +39,8 @@ public partial class SssContext : DbContext
 
     public virtual DbSet<PasswordResetToken> PasswordResetTokens { get; set; }
 
+    public virtual DbSet<PresetQuestion> PresetQuestions { get; set; }
+
     public virtual DbSet<Question> Questions { get; set; }
 
     public virtual DbSet<StudentDatum> StudentData { get; set; }
@@ -231,6 +233,17 @@ public partial class SssContext : DbContext
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_PasswordResetToken_UserAccount");
+        });
+
+        modelBuilder.Entity<PresetQuestion>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK_PresetQuestion");
+
+            entity.ToTable("PresetQuestion");
+
+            entity.Property(e => e.Id).HasColumnName("ID");
+            entity.Property(e => e.Question).HasMaxLength(400);
+            entity.Property(e => e.CreatedBy).HasColumnName("CreatedBy");
         });
 
         modelBuilder.Entity<Question>(entity =>

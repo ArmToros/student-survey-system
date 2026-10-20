@@ -63,6 +63,7 @@ Write-Host 'Applying additive schema and data scripts...'
 $followUpScripts = @(
     'schema-password-reset-token.sql',  # the reset token table
     'schema-authoring.sql',             # question type/options, survey category and status
+    'schema-support-chat.sql',          # preset questions and per-side hiding
     'data-news-categories.sql'          # the four news categories the UI offers
 )
 
