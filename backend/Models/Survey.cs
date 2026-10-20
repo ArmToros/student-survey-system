@@ -30,4 +30,7 @@ public partial class Survey
     public virtual ICollection<Question> Questions { get; set; } = new List<Question>();
 
     public virtual ICollection<SurveySession> SurveySessions { get; set; } = new List<SurveySession>();
+
+    /// <summary>Roles this survey is aimed at. Empty means everyone.</summary>
+    public virtual ICollection<SurveyTargetRole> TargetRoles { get; set; } = new List<SurveyTargetRole>();
 }

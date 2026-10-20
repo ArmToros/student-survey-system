@@ -41,11 +41,30 @@ namespace backend.Controllers
         private int? CallerId =>
             int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var id) ? id : null;
 
+        /// <summary>The caller's role as stored: Admin, Lecturer or Student.</summary>
+        private string CallerRole
+        {
+            get
+            {
+                var role = User.FindFirstValue(ClaimTypes.Role);
+                return KnownRoles.FirstOrDefault(known =>
+                    string.Equals(known, role, StringComparison.OrdinalIgnoreCase)) ?? "Student";
+            }
+        }
+
+        private static readonly string[] KnownRoles = { "Admin", "Lecturer", "Student" };
+
         public class CreateSurveyRequest
         {
             public string Title { get; set; } = "";
             public string? Description { get; set; }
             public string? Category { get; set; }
+
+            /// <summary>
+            /// Which roles the survey is for. Empty or missing means everyone,
+            /// which is how the surveys already in the database behave.
+            /// </summary>
+            public List<string>? Audience { get; set; }
             public List<SurveyQuestionDto> Questions { get; set; } = new();
             public int? CreatedBy { get; set; }
             public int? AssignedAdmin { get; set; }
@@ -73,7 +92,13 @@ namespace backend.Controllers
         [HttpGet]
         public async Task<ActionResult> GetAll()
         {
+            var role = CallerRole;
+
             var surveys = await _context.Surveys
+                // No audience rows means the survey is for everyone, which keeps
+                // the surveys restored from the backup visible.
+                .Where(survey => !survey.TargetRoles.Any() ||
+                                 survey.TargetRoles.Any(target => target.Role == role))
                 .OrderByDescending(survey => survey.SurveyId)
                 .Select(survey => new
                 {
@@ -84,7 +109,8 @@ namespace backend.Controllers
                     category = survey.Category,
                     status = survey.IsClosed ? "completed" : "active",
                     createdDate = survey.CreatedAt,
-                    closedDate = survey.ClosedAt
+                    closedDate = survey.ClosedAt,
+                    audience = survey.TargetRoles.Select(target => target.Role).ToList()
                 })
                 .ToListAsync();
 
@@ -96,6 +122,7 @@ namespace backend.Controllers
         {
             var survey = await _context.Surveys
                 .Include(item => item.Questions)
+                .Include(item => item.TargetRoles)
                 .FirstOrDefaultAsync(item => item.SurveyId == id);
 
             if (survey == null)
@@ -114,6 +141,7 @@ namespace backend.Controllers
                 status = survey.IsClosed ? "completed" : "active",
                 createdDate = survey.CreatedAt,
                 closedDate = survey.ClosedAt,
+                audience = survey.TargetRoles.Select(target => target.Role).ToList(),
                 questions
             });
         }
@@ -270,11 +298,27 @@ namespace backend.Controllers
 
             await _context.SaveChangesAsync();
 
+            foreach (var role in (request.Audience ?? new List<string>())
+                     .Select(role => KnownRoles.FirstOrDefault(known =>
+                         string.Equals(known, role?.Trim(), StringComparison.OrdinalIgnoreCase)))
+                     .Where(role => role != null)
+                     .Distinct())
+            {
+                _context.SurveyTargetRoles.Add(new SurveyTargetRole
+                {
+                    SurveyId = survey.SurveyId,
+                    Role = role!
+                });
+            }
+
+            await _context.SaveChangesAsync();
+
             return CreatedAtAction(nameof(GetById), new { id = survey.SurveyId }, new
             {
                 id = survey.SurveyId,
                 title = survey.Topic,
                 category = survey.Category,
+                audience = request.Audience ?? new List<string>(),
                 questionCount = providedQuestions.Count
             });
         }
@@ -339,10 +383,26 @@ namespace backend.Controllers
         [HttpPost("{id:int}/responses")]
         public async Task<ActionResult> SubmitResponse(int id, [FromBody] SubmitSurveyRequest request)
         {
-            var surveyExists = await _context.Surveys.AnyAsync(survey => survey.SurveyId == id);
-            if (!surveyExists)
+            var survey = await _context.Surveys
+                .Include(item => item.TargetRoles)
+                .FirstOrDefaultAsync(item => item.SurveyId == id);
+
+            if (survey == null)
             {
                 return NotFound(new { message = "Survey not found" });
+            }
+
+            // Filtering the list is not enough on its own: without this check
+            // somebody outside the audience could answer by going to the URL.
+            var role = CallerRole;
+            if (survey.TargetRoles.Count > 0 && survey.TargetRoles.All(target => target.Role != role))
+            {
+                return StatusCode(403, new { message = "This survey is not open to your role." });
+            }
+
+            if (survey.IsClosed)
+            {
+                return Conflict(new { message = "This survey is closed." });
             }
 
             var userId = CallerId ?? await GetFallbackUserIdAsync("student");

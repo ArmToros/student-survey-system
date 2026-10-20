@@ -308,6 +308,47 @@ namespace backend.Controllers
             return Ok(new { id, message = "Account deleted" });
         }
 
+        /// <summary>
+        /// The figures shown on the account page. Every one is counted from the
+        /// data: the panel used to show the same invented numbers to everybody.
+        /// </summary>
+        [HttpGet("{id:int}/statistics")]
+        public async Task<ActionResult> GetStatistics(int id)
+        {
+            if (!CanAccess(id))
+            {
+                return Forbid();
+            }
+
+            var user = await _context.UserAccounts.FirstOrDefaultAsync(item => item.Id == id);
+            if (user == null)
+            {
+                return NotFound(new { message = "User not found" });
+            }
+
+            var surveysCompleted = await _context.SurveySessions.CountAsync(session => session.UserId == id);
+            var messagesSent = await _context.ChatMessages.CountAsync(message => message.SentBy == id);
+
+            // Null until an admin sets a join date, so this is reported as null
+            // rather than as a misleading zero.
+            int? daysActive = user.JoinDate == null
+                ? null
+                : Math.Max(0, (int)(DateTime.UtcNow.Date - user.JoinDate.Value.Date).TotalDays);
+
+            var coursesJoined = await _context.StudentData
+                .Where(student => student.Id == id)
+                .SelectMany(student => student.Courses)
+                .CountAsync();
+
+            return Ok(new
+            {
+                surveysCompleted,
+                messagesSent,
+                daysActive,
+                coursesJoined
+            });
+        }
+
         private Task<UserAccount?> LoadUserAsync(int id) =>
             _context.UserAccounts
                 .Include(item => item.StudentDatum)

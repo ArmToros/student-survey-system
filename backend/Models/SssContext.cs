@@ -51,6 +51,8 @@ public partial class SssContext : DbContext
 
     public virtual DbSet<SurveyAnswer> SurveyAnswers { get; set; }
 
+    public virtual DbSet<SurveyTargetRole> SurveyTargetRoles { get; set; }
+
     public virtual DbSet<SurveySession> SurveySessions { get; set; }
 
     public virtual DbSet<UserAccount> UserAccounts { get; set; }
@@ -361,6 +363,20 @@ public partial class SssContext : DbContext
                 .HasForeignKey(d => d.SessionId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_SurveyAnswer_SurveySession");
+        });
+
+        modelBuilder.Entity<SurveyTargetRole>(entity =>
+        {
+            entity.HasKey(e => new { e.SurveyId, e.Role }).HasName("PK_SurveyTargetRole");
+
+            entity.ToTable("SurveyTargetRole");
+
+            entity.Property(e => e.SurveyId).HasColumnName("SurveyID");
+            entity.Property(e => e.Role).HasMaxLength(20);
+
+            entity.HasOne(d => d.Survey).WithMany(p => p.TargetRoles)
+                .HasForeignKey(d => d.SurveyId)
+                .HasConstraintName("FK_SurveyTargetRole_Survey");
         });
 
         modelBuilder.Entity<SurveySession>(entity =>

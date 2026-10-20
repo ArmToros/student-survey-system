@@ -263,6 +263,10 @@ PRINT 'Including schema-student-profile.sql...';
 GO
 :r $(SssScriptsDir)/schema-student-profile.sql
 
+PRINT 'Including schema-survey-audience.sql...';
+GO
+:r $(SssScriptsDir)/schema-survey-audience.sql
+
 USE SSS;
 GO
 

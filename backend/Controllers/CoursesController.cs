@@ -116,6 +116,36 @@ namespace backend.Controllers
             }));
         }
 
+        /// <summary>
+        /// What a lecturer's console can honestly say: how many classes they run
+        /// and how many students are enrolled across them. The panel used to
+        /// report invented survey counts and an average score, neither of which
+        /// anything in the database could support - nothing is scored.
+        /// </summary>
+        [HttpGet("statistics")]
+        [Authorize(Policy = "Staff")]
+        public async Task<ActionResult> GetStatistics()
+        {
+            var callerId = CallerId;
+            if (callerId == null)
+            {
+                return Ok(new { courses = 0, students = 0 });
+            }
+
+            var courses = await _context.Courses
+                .Where(course => course.LecturerId == callerId.Value)
+                .Select(course => new { course.Id, Students = course.Students.Count })
+                .ToListAsync();
+
+            return Ok(new
+            {
+                courses = courses.Count,
+                // Summed across courses, so a student in two of them counts twice:
+                // this is places filled, not distinct people.
+                students = courses.Sum(course => course.Students)
+            });
+        }
+
         [HttpPost]
         [Authorize(Policy = "Staff")]
         public async Task<ActionResult> Create([FromBody] CourseRequest request)
