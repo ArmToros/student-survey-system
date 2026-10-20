@@ -904,3 +904,56 @@
     min-width: 0;
   }
 }
+
+/* The bot conversation ----------------------------------------------------- */
+.avatar-initials.bot {
+  color: #fff;
+  background: #2563eb;
+}
+
+.bot-options {
+  border-top: 1px solid var(--border-color, rgba(148, 163, 184, 0.3));
+  padding: 16px;
+  max-height: 45%;
+  overflow-y: auto;
+}
+
+.bot-options-label {
+  margin: 0 0 10px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  opacity: 0.55;
+}
+
+.bot-option-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.bot-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  text-align: left;
+  padding: 10px 14px;
+  border: 1px solid rgba(37, 99, 235, 0.35);
+  border-radius: 999px;
+  background: transparent;
+  color: #2563eb;
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.bot-option:hover {
+  background: rgba(37, 99, 235, 0.1);
+}
+
+.bot-option.other {
+  border-style: dashed;
+  font-weight: 600;
+}

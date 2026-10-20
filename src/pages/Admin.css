@@ -1188,3 +1188,34 @@
     flex-direction: column;
   }
 }
+
+/* Bot name ----------------------------------------------------------------- */
+.bot-name-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 6px;
+}
+
+.bot-name-row label {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.bot-name-row .form-input {
+  flex: 1;
+  min-width: 180px;
+  max-width: 320px;
+}
+
+.bot-name-saved {
+  font-size: 14px;
+  color: #16a34a;
+}
+
+.bot-name-hint {
+  font-size: 13px;
+  opacity: 0.7;
+  margin: 0 0 24px;
+}

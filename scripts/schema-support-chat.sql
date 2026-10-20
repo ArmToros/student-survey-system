@@ -3,7 +3,9 @@
 --
 -- How the feature works, so the columns make sense:
 --   * Admins maintain a list of common questions with ready-made answers.
---     Picking one shows its answer straight away and starts no conversation.
+--     These are shown inside one conversation with the support bot, whose name
+--     admins can change too - it lives in dbo.AppSetting under SupportBotName.
+--     Picking a question shows its answer straight away and starts nothing.
 --   * Anything not on that list goes through "Other": the question is assigned
 --     to an admin, which opens a dbo.Chat and writes the first dbo.ChatMessage
 --     with IsQuestion set. From there it is an ordinary back-and-forth.
@@ -54,6 +56,41 @@ END
 ELSE
 BEGIN
     PRINT 'dbo.PresetQuestion already exists.';
+END
+GO
+
+IF OBJECT_ID('dbo.AppSetting', 'U') IS NULL
+BEGIN
+    PRINT 'Creating dbo.AppSetting...';
+
+    -- A small key/value store for things an admin can change that are not worth
+    -- a column of their own. First use: what the support bot is called.
+    CREATE TABLE dbo.AppSetting
+    (
+        SettingKey nvarchar(100) NOT NULL
+            CONSTRAINT PK_AppSetting PRIMARY KEY,
+        Value      nvarchar(400) NULL,
+        UpdatedBy  int NULL
+            CONSTRAINT FK_AppSetting_UserAccount
+            REFERENCES dbo.UserAccount (ID),
+        UpdatedAt  datetime NULL
+    );
+END
+ELSE
+BEGIN
+    PRINT 'dbo.AppSetting already exists.';
+END
+GO
+
+IF NOT EXISTS (SELECT 1 FROM dbo.AppSetting WHERE SettingKey = N'SupportBotName')
+BEGIN
+    PRINT 'Setting the default support bot name...';
+    INSERT INTO dbo.AppSetting (SettingKey, Value, UpdatedAt)
+    VALUES (N'SupportBotName', N'Bot AI', GETDATE());
+END
+ELSE
+BEGIN
+    PRINT 'The support bot name is already set; leaving it alone.';
 END
 GO
 

@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Send, MessageCircle, Search, Smile, CheckCircle, RotateCcw, Trash2 } from 'lucide-react';
+import { Send, MessageCircle, Search, Smile, CheckCircle, RotateCcw, Trash2, Bot } from 'lucide-react';
 import './Chat.css';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -24,6 +24,10 @@ const Chat = () => {
   const { user } = useAuth();
 
   const [presets, setPresets] = useState([]);
+  const [botName, setBotName] = useState('Bot AI');
+  // The bot conversation is not stored: it is a transcript of what this visitor
+  // has asked it during this visit, rebuilt from the preset list each time.
+  const [botTranscript, setBotTranscript] = useState([]);
   const [chats, setChats] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -55,6 +59,22 @@ const Chat = () => {
     }
   }, [t]);
 
+  const loadBotName = useCallback(async () => {
+    try {
+      const response = await apiFetch('/api/support/bot');
+      if (!response.ok) {
+        throw new Error('BOT_FAILED');
+      }
+      const data = await response.json();
+      if (data?.name) {
+        setBotName(data.name);
+      }
+    } catch (loadError) {
+      // The default name is good enough; this is not worth an error banner.
+      console.warn('Unable to load the bot name', loadError);
+    }
+  }, []);
+
   const loadChats = useCallback(async () => {
     try {
       const response = await apiFetch('/api/support/chats');
@@ -69,12 +89,12 @@ const Chat = () => {
   }, [t]);
 
   useEffect(() => {
-    Promise.all([loadPresets(), loadChats()]).finally(() => setLoading(false));
-  }, [loadPresets, loadChats]);
+    Promise.all([loadPresets(), loadChats(), loadBotName()]).finally(() => setLoading(false));
+  }, [loadPresets, loadChats, loadBotName]);
 
   useEffect(() => {
     endOfMessagesRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [thread]);
+  }, [thread, botTranscript]);
 
   const openThread = async (chatId) => {
     setView({ kind: 'chat', id: chatId });
@@ -191,6 +211,16 @@ const Chat = () => {
     }
   };
 
+  // Picking a question writes both sides of the exchange into the transcript,
+  // so the bot reads as a conversation rather than a list of links.
+  const askBot = (preset) => {
+    setBotTranscript(current => [
+      ...current,
+      { id: `q-${preset.id}-${current.length}`, own: true, text: preset.question, at: new Date() },
+      { id: `a-${preset.id}-${current.length}`, own: false, text: preset.answer, at: new Date() }
+    ]);
+  };
+
   const formatTime = (value) => {
     if (!value) {
       return '';
@@ -215,10 +245,6 @@ const Chat = () => {
 
   const visiblePresets = presets.filter(preset => matches(preset.question) || matches(preset.answer));
   const visibleChats = chats.filter(chat => matches(chat.title) || matches(chat.lastMessage));
-
-  const activePreset = view.kind === 'preset'
-    ? presets.find(item => item.id === view.id)
-    : null;
 
   // Only the admin a conversation was assigned to may close or remove it.
   const canManageThread = thread && user?.role === 'admin' && !thread.mine;
@@ -270,41 +296,18 @@ const Chat = () => {
           )}
 
           <div className="chat-list-column">
-            <p className="chat-section-label">{t('chat.commonQuestions')}</p>
-
-            {visiblePresets.length === 0 && (
-              <div className="chat-empty-hint">{t('chat.noQuestions')}</div>
-            )}
-
-            {visiblePresets.map(preset => (
-              <div
-                key={`preset-${preset.id}`}
-                className={`chat-item ${view.kind === 'preset' && view.id === preset.id ? 'active' : ''}`}
-                onClick={() => setView({ kind: 'preset', id: preset.id })}
-              >
-                <div className="chat-avatar">
-                  <div className="avatar-initials question">?</div>
-                </div>
-                <div className="chat-info">
-                  <div className="chat-name">
-                    <span className="chat-title-text">{preset.question}</span>
-                    {!preset.isActive && <span className="chat-badge">{t('chat.retired')}</span>}
-                  </div>
-                  <div className="chat-preview">{preset.answer}</div>
-                </div>
-              </div>
-            ))}
-
             <div
-              className={`chat-item ask-row ${view.kind === 'ask' ? 'active' : ''}`}
-              onClick={() => setView({ kind: 'ask' })}
+              className={`chat-item ${view.kind === 'bot' ? 'active' : ''}`}
+              onClick={() => setView({ kind: 'bot' })}
             >
               <div className="chat-avatar">
-                <div className="avatar-initials ask">+</div>
+                <div className="avatar-initials bot"><Bot size={20} /></div>
               </div>
               <div className="chat-info">
-                <div className="chat-name"><span className="chat-title-text">{t('chat.other')}</span></div>
-                <div className="chat-preview">{t('chat.askHint')}</div>
+                <div className="chat-name">
+                  <span className="chat-title-text">{botName}</span>
+                </div>
+                <div className="chat-preview">{t('chat.botPreview')}</div>
               </div>
             </div>
 
@@ -352,17 +355,70 @@ const Chat = () => {
             </div>
           )}
 
-          {activePreset && (
-            <div className="preset-answer">
-              <h3>{activePreset.question}</h3>
-              <p>{activePreset.answer}</p>
-              <div className="preset-answer-footer">
-                <span>{t('chat.notWhatYouNeeded')}</span>
-                <button className="btn btn-primary" onClick={() => setView({ kind: 'ask' })}>
-                  {t('chat.other')}
-                </button>
+          {view.kind === 'bot' && (
+            <>
+              <div className="chat-header">
+                <div className="chat-user">
+                  <div className="chat-avatar">
+                    <div className="avatar-initials bot"><Bot size={20} /></div>
+                  </div>
+                  <div className="user-info">
+                    <h3>{botName}</h3>
+                    <span className="user-status">{t('chat.botStatus')}</span>
+                  </div>
+                </div>
               </div>
-            </div>
+
+              <div className="messages-container">
+                <div className="messages">
+                  <div className="message other">
+                    <div className="message-content">
+                      <div className="message-text">{t('chat.botGreeting')}</div>
+                    </div>
+                  </div>
+
+                  {botTranscript.map(entry => (
+                    <div key={entry.id} className={`message ${entry.own ? 'own' : 'other'}`}>
+                      <div className="message-content">
+                        <div className="message-text">{entry.text}</div>
+                      </div>
+                    </div>
+                  ))}
+
+                  <div ref={endOfMessagesRef} />
+                </div>
+              </div>
+
+              <div className="bot-options">
+                <p className="bot-options-label">{t('chat.botPick')}</p>
+
+                {visiblePresets.length === 0 && (
+                  <p className="chat-empty-hint">{t('chat.noQuestions')}</p>
+                )}
+
+                <div className="bot-option-list">
+                  {visiblePresets.map(preset => (
+                    <button
+                      key={preset.id}
+                      className="bot-option"
+                      onClick={() => askBot(preset)}
+                    >
+                      {preset.question}
+                      {!preset.isActive && (
+                        <span className="chat-badge">{t('chat.retired')}</span>
+                      )}
+                    </button>
+                  ))}
+
+                  <button
+                    className="bot-option other"
+                    onClick={() => setView({ kind: 'ask' })}
+                  >
+                    {t('chat.other')}
+                  </button>
+                </div>
+              </div>
+            </>
           )}
 
           {view.kind === 'ask' && (

@@ -29,6 +29,8 @@ const Admin = () => {
   const [editingPreset, setEditingPreset] = useState(null);
   const [presetBusy, setPresetBusy] = useState(false);
   const [presetError, setPresetError] = useState(null);
+  const [botName, setBotName] = useState('');
+  const [botSaved, setBotSaved] = useState(false);
   const [adminStats, setAdminStats] = useState(null);
 
   useEffect(() => {
@@ -137,6 +139,44 @@ const Admin = () => {
     }
   ];
 
+  const loadBotName = async () => {
+    try {
+      const response = await apiFetch('/api/support/bot');
+      if (!response.ok) {
+        throw new Error('BOT_FAILED');
+      }
+      const data = await response.json();
+      setBotName(data?.name || '');
+    } catch (error) {
+      console.warn('Unable to load the bot name', error);
+    }
+  };
+
+  const saveBotName = async () => {
+    if (!botName.trim()) {
+      return;
+    }
+
+    setPresetBusy(true);
+    try {
+      const response = await apiFetch('/api/support/bot', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: botName })
+      });
+      if (!response.ok) {
+        throw new Error('BOT_SAVE_FAILED');
+      }
+      setBotSaved(true);
+      setTimeout(() => setBotSaved(false), 2500);
+    } catch (error) {
+      console.error(error);
+      setPresetError(t('adminPage.quickActions.support.saveFailed'));
+    } finally {
+      setPresetBusy(false);
+    }
+  };
+
   const loadPresets = async () => {
     try {
       const response = await apiFetch('/api/support/questions');
@@ -154,6 +194,7 @@ const Admin = () => {
   useEffect(() => {
     if (activeSection === 'support') {
       loadPresets();
+      loadBotName();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeSection]);
@@ -390,6 +431,26 @@ const Admin = () => {
               <p>{t('adminPage.quickActions.support.desc')}</p>
 
               {presetError && <p className="preset-error">{presetError}</p>}
+
+              <div className="bot-name-row">
+                <label htmlFor="bot-name">{t('adminPage.quickActions.support.botName')}</label>
+                <input
+                  id="bot-name"
+                  type="text"
+                  className="form-input"
+                  value={botName}
+                  onChange={(event) => setBotName(event.target.value)}
+                />
+                <button
+                  className="submit-button"
+                  onClick={saveBotName}
+                  disabled={presetBusy || !botName.trim()}
+                >
+                  {t('adminPage.quickActions.support.saveChanges')}
+                </button>
+                {botSaved && <span className="bot-name-saved">{t('settings.saveSuccess')}</span>}
+              </div>
+              <p className="bot-name-hint">{t('adminPage.quickActions.support.botNameHint')}</p>
 
               <div className="preset-form">
                 <input

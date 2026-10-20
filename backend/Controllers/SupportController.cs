@@ -39,6 +39,11 @@ namespace backend.Controllers
 
         private bool CallerIsAdmin => User.IsInRole("admin");
 
+        public class BotNameRequest
+        {
+            public string Name { get; set; } = "";
+        }
+
         public class PresetQuestionRequest
         {
             public string Question { get; set; } = "";
@@ -56,6 +61,54 @@ namespace backend.Controllers
         public class MessageRequest
         {
             public string Message { get; set; } = "";
+        }
+
+        // -------------------------------------------------------------------- bot
+
+        private const string BotNameKey = "SupportBotName";
+        private const string DefaultBotName = "Bot AI";
+
+        /// <summary>
+        /// What the support bot is called. The preset questions are shown inside
+        /// a conversation with it, so the name appears all over the chat page.
+        /// </summary>
+        [HttpGet("bot")]
+        public async Task<ActionResult> GetBot()
+        {
+            var setting = await _context.AppSettings
+                .FirstOrDefaultAsync(item => item.SettingKey == BotNameKey);
+
+            return Ok(new
+            {
+                name = string.IsNullOrWhiteSpace(setting?.Value) ? DefaultBotName : setting!.Value
+            });
+        }
+
+        [HttpPut("bot")]
+        [Authorize(Policy = "AdminOnly")]
+        public async Task<ActionResult> UpdateBot([FromBody] BotNameRequest request)
+        {
+            if (request == null || string.IsNullOrWhiteSpace(request.Name))
+            {
+                return BadRequest(new { message = "A name is required" });
+            }
+
+            var setting = await _context.AppSettings
+                .FirstOrDefaultAsync(item => item.SettingKey == BotNameKey);
+
+            if (setting == null)
+            {
+                setting = new AppSetting { SettingKey = BotNameKey };
+                _context.AppSettings.Add(setting);
+            }
+
+            setting.Value = Truncate(request.Name.Trim(), 400);
+            setting.UpdatedBy = CallerId;
+            setting.UpdatedAt = DateTime.UtcNow;
+
+            await _context.SaveChangesAsync();
+
+            return Ok(new { name = setting.Value });
         }
 
         // ---------------------------------------------------------------- presets
