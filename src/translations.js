@@ -167,6 +167,10 @@ dashboard: {
     },
 
     surveysPage: {
+      delete: 'Delete survey',
+      deleteConfirm: 'Delete this survey? This cannot be undone.',
+      deleteConfirmWithResponses: 'Delete this survey and the {count} responses people gave it? This cannot be undone.',
+      deleteFailed: 'Could not delete that survey.',
       title: 'All Surveys',
       subtitle: 'Every survey in the system, newest first',
       loading: 'Loading surveys...',
@@ -858,6 +862,10 @@ dashboard: {
     },
 
     surveysPage: {
+      delete: 'Удалить опрос',
+      deleteConfirm: 'Удалить этот опрос? Это действие необратимо.',
+      deleteConfirmWithResponses: 'Удалить этот опрос и {count} полученных ответов? Это действие необратимо.',
+      deleteFailed: 'Не удалось удалить опрос.',
       title: 'Все опросы',
       subtitle: 'Все опросы системы, начиная с новых',
       loading: 'Загрузка опросов...',
@@ -1557,6 +1565,10 @@ dashboard: {
     },
 
     surveysPage: {
+      delete: 'Ջնջել հարցումը',
+      deleteConfirm: 'Ջնջե՞լ այս հարցումը։ Այս գործողությունը անշրջելի է։',
+      deleteConfirmWithResponses: 'Ջնջե՞լ այս հարցումը և դրան տրված {count} պատասխանը։ Այս գործողությունը անշրջելի է։',
+      deleteFailed: 'Չհաջողվեց ջնջել հարցումը։',
       title: 'Բոլոր հարցումները',
       subtitle: 'Համակարգի բոլոր հարցումները՝ նորերից սկսած',
       loading: 'Հարցումները բեռնվում են...',

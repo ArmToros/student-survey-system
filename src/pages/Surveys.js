@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { Users, HelpCircle, ClipboardList } from 'lucide-react';
+import { Users, HelpCircle, ClipboardList, Trash2 } from 'lucide-react';
 import './Surveys.css';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useAuth } from '../contexts/AuthContext';
 import { apiFetch } from '../services/api';
 
 /**
@@ -13,8 +14,13 @@ const Surveys = () => {
   const { t } = useLanguage();
 
   // The API restricts aggregated results to staff, so students never see the link.
+  const { user } = useAuth();
+
   // Results carry no names, so they are open to anyone signed in.
   const canViewResults = true;
+  const canDelete = user?.role === 'admin';
+  const [deletingId, setDeletingId] = useState(null);
+  const [deleteError, setDeleteError] = useState(null);
 
   const [surveys, setSurveys] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -45,6 +51,31 @@ const Surveys = () => {
     loadSurveys();
   }, [loadSurveys]);
 
+  const deleteSurvey = async (survey) => {
+    const warning = survey.responses > 0
+      ? t('surveysPage.deleteConfirmWithResponses').replace('{count}', survey.responses)
+      : t('surveysPage.deleteConfirm');
+
+    if (!window.confirm(`${survey.title}\n\n${warning}`)) {
+      return;
+    }
+
+    setDeletingId(survey.id);
+    setDeleteError(null);
+    try {
+      const response = await apiFetch(`/api/surveys/${survey.id}`, { method: 'DELETE' });
+      if (!response.ok) {
+        throw new Error('DELETE_FAILED');
+      }
+      await loadSurveys();
+    } catch (failure) {
+      console.error(failure);
+      setDeleteError(t('surveysPage.deleteFailed'));
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
   if (loading) {
     return (
       <div className="surveys-page">
@@ -65,6 +96,8 @@ const Surveys = () => {
           <h1>{t('surveysPage.title')}</h1>
           <p>{t('surveysPage.subtitle')}</p>
         </div>
+
+        {deleteError && <p className="surveys-error">{deleteError}</p>}
 
         {failed && (
           <div className="surveys-state">
@@ -117,6 +150,16 @@ const Surveys = () => {
                     <Link to={`/results/${survey.id}`} className="btn btn-secondary">
                       {t('dashboard.viewResults')}
                     </Link>
+                  )}
+                  {canDelete && (
+                    <button
+                      className="btn btn-danger"
+                      onClick={() => deleteSurvey(survey)}
+                      disabled={deletingId === survey.id}
+                      title={t('surveysPage.delete')}
+                    >
+                      <Trash2 size={16} />
+                    </button>
                   )}
                 </div>
               </div>

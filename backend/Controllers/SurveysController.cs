@@ -279,6 +279,63 @@ namespace backend.Controllers
             });
         }
 
+        /// <summary>
+        /// Deletes a survey and everything recorded against it.
+        ///
+        /// SurveyAnswer points at both SurveySession and Question, and both of
+        /// those point at Survey, so the rows have to go in that order or the
+        /// foreign keys refuse. Deleting a survey therefore destroys the
+        /// responses people gave it, which is why it is an admin action and why
+        /// the count is reported back.
+        /// </summary>
+        [HttpDelete("{id:int}")]
+        [Authorize(Policy = "AdminOnly")]
+        public async Task<ActionResult> Delete(int id)
+        {
+            var survey = await _context.Surveys.FirstOrDefaultAsync(item => item.SurveyId == id);
+            if (survey == null)
+            {
+                return NotFound(new { message = "Survey not found" });
+            }
+
+            var sessionIds = await _context.SurveySessions
+                .Where(session => session.SurveyId == id)
+                .Select(session => session.Id)
+                .ToListAsync();
+
+            var questionIds = await _context.Questions
+                .Where(question => question.SurveyId == id)
+                .Select(question => question.QuestionId)
+                .ToListAsync();
+
+            var answers = await _context.SurveyAnswers
+                .Where(answer => sessionIds.Contains(answer.SessionId) || questionIds.Contains(answer.QuestionId))
+                .ToListAsync();
+
+            var sessions = await _context.SurveySessions
+                .Where(session => session.SurveyId == id)
+                .ToListAsync();
+
+            var questions = await _context.Questions
+                .Where(question => question.SurveyId == id)
+                .ToListAsync();
+
+            _context.SurveyAnswers.RemoveRange(answers);
+            _context.SurveySessions.RemoveRange(sessions);
+            _context.Questions.RemoveRange(questions);
+            _context.Surveys.Remove(survey);
+
+            await _context.SaveChangesAsync();
+
+            return Ok(new
+            {
+                id,
+                message = "Survey deleted",
+                deletedResponses = sessions.Count,
+                deletedAnswers = answers.Count
+            });
+        }
+
         [HttpPost("{id:int}/responses")]
         public async Task<ActionResult> SubmitResponse(int id, [FromBody] SubmitSurveyRequest request)
         {

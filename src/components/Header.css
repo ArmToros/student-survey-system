@@ -53,15 +53,14 @@
   color: var(--accent-color);
   font-size: 20px;
   font-weight: 700;
-  flex: 1;
-  min-width: 0;
+  /* Never shrink: the nav labels collapse to icons instead, so the name of the
+     program stays readable at every width. */
+  flex: 0 0 auto;
   transition: color 0.3s ease;
 }
 
 .logo span {
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .logo-image {
@@ -326,7 +325,7 @@
 /* Tablet and Mobile Responsive Styles */
 @media (max-width: 1024px) {
   .logo span {
-    display: none;
+    font-size: 17px;
   }
   
   .logo-image {
@@ -362,7 +361,7 @@
   }
   
   .logo span {
-    display: none;
+    font-size: 15px;
   }
   
   .logo-image {
@@ -504,14 +503,18 @@
   
   .logo {
     font-size: 16px;
+    gap: 8px;
   }
   
   .logo-image {
     height: 28px;
   }
   
+  /* Too narrow for one line, so it wraps rather than disappearing. */
   .logo span {
-    display: none;
+    font-size: 13px;
+    line-height: 1.15;
+    white-space: normal;
   }
   
   .header-right {
