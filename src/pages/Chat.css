@@ -675,3 +675,152 @@
 .emoji-option:hover {
   background: rgba(148, 163, 184, 0.2);
 }
+
+/* Support layout ---------------------------------------------------------- */
+.chat-section-label {
+  margin: 16px 16px 8px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  opacity: 0.55;
+}
+
+.preset-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 16px;
+  border: none;
+  background: transparent;
+  text-align: left;
+  font-size: 14px;
+  line-height: 1.4;
+  color: inherit;
+  cursor: pointer;
+}
+
+.preset-item:hover,
+.preset-item.active {
+  background: rgba(37, 99, 235, 0.08);
+}
+
+.preset-item.active {
+  border-left: 3px solid #2563eb;
+}
+
+.preset-item.other {
+  font-weight: 600;
+  color: #2563eb;
+}
+
+.preset-retired {
+  font-size: 11px;
+  opacity: 0.6;
+  font-style: normal;
+}
+
+.chat-item-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+}
+
+.chat-item-title {
+  font-weight: 600;
+  font-size: 14px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chat-item-sub {
+  font-size: 12px;
+  opacity: 0.65;
+}
+
+.chat-chip {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: rgba(100, 116, 139, 0.18);
+  flex-shrink: 0;
+}
+
+.preset-answer,
+.ask-form {
+  padding: 32px;
+  max-width: 680px;
+}
+
+.preset-answer h3,
+.ask-form h3 {
+  margin: 0 0 12px;
+}
+
+.preset-answer p,
+.ask-form p {
+  line-height: 1.7;
+  margin: 0 0 20px;
+}
+
+.preset-answer-footer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  border-top: 1px solid rgba(148, 163, 184, 0.3);
+  padding-top: 20px;
+  font-size: 14px;
+  opacity: 0.85;
+}
+
+.ask-input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.45);
+  border-radius: 10px;
+  font: inherit;
+  background: transparent;
+  color: inherit;
+  margin-bottom: 16px;
+  resize: vertical;
+}
+
+.ask-input:focus {
+  outline: none;
+  border-color: #2563eb;
+}
+
+.message-sender {
+  font-size: 12px;
+  font-weight: 600;
+  opacity: 0.7;
+  margin-bottom: 4px;
+}
+
+.chat-closed-note {
+  padding: 16px;
+  text-align: center;
+  font-size: 14px;
+  opacity: 0.7;
+  border-top: 1px solid rgba(148, 163, 184, 0.3);
+}
+
+.chat-error {
+  margin: 16px 32px 0;
+  color: #dc2626;
+  font-size: 14px;
+}
+
+.chat-admin-hint {
+  text-align: center;
+  font-size: 13px;
+  opacity: 0.7;
+  margin: 12px 16px 0;
+}

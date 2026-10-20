@@ -6,7 +6,10 @@ import {
   BellRing,
   Settings2,
   AlertTriangle,
-  Info
+  Info,
+  HelpCircle,
+  Pencil,
+  Trash2
 
 } from 'lucide-react';
 import './Admin.css';
@@ -18,6 +21,14 @@ const Admin = () => {
   const { t } = useLanguage();
   const { user } = useAuth();
   const [activeSection, setActiveSection] = useState(null);
+
+  // The preset questions shown on the support page, with their ready-made
+  // answers. Admins own this list; everyone else only reads it.
+  const [presets, setPresets] = useState([]);
+  const [presetForm, setPresetForm] = useState({ question: '', answer: '' });
+  const [editingPreset, setEditingPreset] = useState(null);
+  const [presetBusy, setPresetBusy] = useState(false);
+  const [presetError, setPresetError] = useState(null);
   const [adminStats, setAdminStats] = useState(null);
 
   useEffect(() => {
@@ -78,6 +89,12 @@ const Admin = () => {
       icon: Settings2
     },
     {
+      id: 'support',
+      title: t('adminPage.quickActions.support.title'),
+      description: t('adminPage.quickActions.support.description'),
+      icon: HelpCircle
+    },
+    {
       id: 'pending',
       title: t('adminPage.quickActions.pending.title'),
       description: t('adminPage.quickActions.pending.description'),
@@ -119,6 +136,98 @@ const Admin = () => {
       color: '#10b981'
     }
   ];
+
+  const loadPresets = async () => {
+    try {
+      const response = await apiFetch('/api/support/questions');
+      if (!response.ok) {
+        throw new Error('PRESETS_FAILED');
+      }
+      setPresets(await response.json());
+      setPresetError(null);
+    } catch (error) {
+      console.warn('Unable to load preset questions', error);
+      setPresetError(t('adminPage.quickActions.support.loadFailed'));
+    }
+  };
+
+  useEffect(() => {
+    if (activeSection === 'support') {
+      loadPresets();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeSection]);
+
+  const savePreset = async () => {
+    if (!presetForm.question.trim() || !presetForm.answer.trim()) {
+      return;
+    }
+
+    setPresetBusy(true);
+    try {
+      const response = await apiFetch(
+        editingPreset ? `/api/support/questions/${editingPreset}` : '/api/support/questions',
+        {
+          method: editingPreset ? 'PUT' : 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(presetForm)
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error('SAVE_FAILED');
+      }
+
+      setPresetForm({ question: '', answer: '' });
+      setEditingPreset(null);
+      await loadPresets();
+    } catch (error) {
+      console.error(error);
+      setPresetError(t('adminPage.quickActions.support.saveFailed'));
+    } finally {
+      setPresetBusy(false);
+    }
+  };
+
+  const togglePresetActive = async (preset) => {
+    setPresetBusy(true);
+    try {
+      const response = await apiFetch(`/api/support/questions/${preset.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isActive: !preset.isActive })
+      });
+      if (!response.ok) {
+        throw new Error('TOGGLE_FAILED');
+      }
+      await loadPresets();
+    } catch (error) {
+      console.error(error);
+      setPresetError(t('adminPage.quickActions.support.saveFailed'));
+    } finally {
+      setPresetBusy(false);
+    }
+  };
+
+  const deletePreset = async (preset) => {
+    if (!window.confirm(t('adminPage.quickActions.support.deleteConfirm'))) {
+      return;
+    }
+
+    setPresetBusy(true);
+    try {
+      const response = await apiFetch(`/api/support/questions/${preset.id}`, { method: 'DELETE' });
+      if (!response.ok) {
+        throw new Error('DELETE_FAILED');
+      }
+      await loadPresets();
+    } catch (error) {
+      console.error(error);
+      setPresetError(t('adminPage.quickActions.support.saveFailed'));
+    } finally {
+      setPresetBusy(false);
+    }
+  };
 
   const UnavailableNotice = ({ children }) => (
     <p className="feature-unavailable">
@@ -272,6 +381,91 @@ const Admin = () => {
                   </div>
                 ))}
               </div>
+            </div>
+          )}
+
+          {activeSection === 'support' && (
+            <div className="content-section">
+              <h2>{t('adminPage.quickActions.support.heading')}</h2>
+              <p>{t('adminPage.quickActions.support.desc')}</p>
+
+              {presetError && <p className="preset-error">{presetError}</p>}
+
+              <div className="preset-form">
+                <input
+                  type="text"
+                  className="form-input"
+                  placeholder={t('adminPage.quickActions.support.questionPlaceholder')}
+                  value={presetForm.question}
+                  onChange={(event) => setPresetForm({ ...presetForm, question: event.target.value })}
+                />
+                <textarea
+                  rows="4"
+                  className="form-input"
+                  placeholder={t('adminPage.quickActions.support.answerPlaceholder')}
+                  value={presetForm.answer}
+                  onChange={(event) => setPresetForm({ ...presetForm, answer: event.target.value })}
+                />
+                <div className="preset-form-actions">
+                  <button
+                    className="submit-button"
+                    onClick={savePreset}
+                    disabled={presetBusy || !presetForm.question.trim() || !presetForm.answer.trim()}
+                  >
+                    {editingPreset
+                      ? t('adminPage.quickActions.support.saveChanges')
+                      : t('adminPage.quickActions.support.addQuestion')}
+                  </button>
+                  {editingPreset && (
+                    <button
+                      className="submit-button secondary"
+                      onClick={() => {
+                        setEditingPreset(null);
+                        setPresetForm({ question: '', answer: '' });
+                      }}
+                    >
+                      {t('adminPage.quickActions.support.cancel')}
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              <ul className="preset-list">
+                {presets.map(preset => (
+                  <li key={preset.id} className={`preset-row ${preset.isActive ? '' : 'retired'}`}>
+                    <div className="preset-row-text">
+                      <strong>{preset.question}</strong>
+                      <span>{preset.answer}</span>
+                    </div>
+                    <div className="preset-row-actions">
+                      <button
+                        onClick={() => {
+                          setEditingPreset(preset.id);
+                          setPresetForm({ question: preset.question, answer: preset.answer });
+                        }}
+                        title={t('adminPage.quickActions.support.edit')}
+                      >
+                        <Pencil size={16} />
+                      </button>
+                      <button
+                        onClick={() => togglePresetActive(preset)}
+                        disabled={presetBusy}
+                      >
+                        {preset.isActive
+                          ? t('adminPage.quickActions.support.retire')
+                          : t('adminPage.quickActions.support.restore')}
+                      </button>
+                      <button
+                        onClick={() => deletePreset(preset)}
+                        disabled={presetBusy}
+                        title={t('adminPage.quickActions.support.delete')}
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
             </div>
           )}
 
