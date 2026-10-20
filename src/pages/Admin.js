@@ -8,6 +8,7 @@ import {
   AlertTriangle,
   Info,
   HelpCircle,
+  UserCog,
   Pencil,
   Trash2
 
@@ -31,6 +32,17 @@ const Admin = () => {
   const [presetError, setPresetError] = useState(null);
   const [botName, setBotName] = useState('');
   const [botSaved, setBotSaved] = useState(false);
+
+  // Accounts. Only admins reach this, and only here can a profile be changed.
+  const BLANK_USER = {
+    firstName: '', lastName: '', email: '', phone: '', address: '',
+    role: 'Student', major: '', degree: 'Bachelor', startYear: '', department: '', password: ''
+  };
+  const [users, setUsers] = useState([]);
+  const [userForm, setUserForm] = useState(BLANK_USER);
+  const [editingUser, setEditingUser] = useState(null);
+  const [userBusy, setUserBusy] = useState(false);
+  const [userError, setUserError] = useState(null);
   const [adminStats, setAdminStats] = useState(null);
 
   useEffect(() => {
@@ -91,6 +103,12 @@ const Admin = () => {
       icon: Settings2
     },
     {
+      id: 'users',
+      title: t('adminPage.quickActions.users.title'),
+      description: t('adminPage.quickActions.users.description'),
+      icon: UserCog
+    },
+    {
       id: 'support',
       title: t('adminPage.quickActions.support.title'),
       description: t('adminPage.quickActions.support.description'),
@@ -138,6 +156,98 @@ const Admin = () => {
       color: '#10b981'
     }
   ];
+
+  const loadUsers = async () => {
+    try {
+      const response = await apiFetch('/api/users');
+      if (!response.ok) {
+        throw new Error('USERS_FAILED');
+      }
+      setUsers(await response.json());
+      setUserError(null);
+    } catch (error) {
+      console.warn('Unable to load accounts', error);
+      setUserError(t('adminPage.quickActions.users.loadFailed'));
+    }
+  };
+
+  const saveUser = async () => {
+    setUserBusy(true);
+    setUserError(null);
+    try {
+      const payload = { ...userForm };
+      payload.startYear = payload.startYear === '' ? null : Number(payload.startYear);
+      if (editingUser) {
+        delete payload.password;
+      }
+
+      const response = await apiFetch(
+        editingUser ? `/api/users/${editingUser}` : '/api/users',
+        {
+          method: editingUser ? 'PUT' : 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        }
+      );
+
+      const data = await response.json().catch(() => null);
+      if (!response.ok) {
+        throw new Error(data?.message || 'SAVE_FAILED');
+      }
+
+      setUserForm(BLANK_USER);
+      setEditingUser(null);
+      await loadUsers();
+    } catch (error) {
+      console.error(error);
+      setUserError(error.message === 'SAVE_FAILED'
+        ? t('adminPage.quickActions.users.saveFailed')
+        : error.message);
+    } finally {
+      setUserBusy(false);
+    }
+  };
+
+  const editUser = (account) => {
+    setEditingUser(account.dbId);
+    setUserForm({
+      firstName: account.firstName || '',
+      lastName: account.lastName || '',
+      email: account.email || '',
+      phone: account.phone || '',
+      address: account.address || '',
+      role: account.role ? account.role.charAt(0).toUpperCase() + account.role.slice(1) : 'Student',
+      major: account.major || '',
+      degree: account.degree || 'Bachelor',
+      startYear: account.startYear || '',
+      department: account.department || '',
+      password: ''
+    });
+  };
+
+  const deleteUser = async (account) => {
+    if (!window.confirm(t('adminPage.quickActions.users.deleteConfirm').replace('{name}', `${account.firstName} ${account.lastName}`))) {
+      return;
+    }
+
+    setUserBusy(true);
+    setUserError(null);
+    try {
+      const response = await apiFetch(`/api/users/${account.dbId}`, { method: 'DELETE' });
+      const data = await response.json().catch(() => null);
+      if (!response.ok) {
+        throw new Error(data?.message || 'DELETE_FAILED');
+      }
+      await loadUsers();
+    } catch (error) {
+      console.error(error);
+      setUserError(error.message === 'DELETE_FAILED'
+        ? t('adminPage.quickActions.users.saveFailed')
+        : error.message);
+    } finally {
+      setUserBusy(false);
+    }
+  };
 
   const loadBotName = async () => {
     try {
@@ -195,6 +305,10 @@ const Admin = () => {
     if (activeSection === 'support') {
       loadPresets();
       loadBotName();
+    }
+
+    if (activeSection === 'users') {
+      loadUsers();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeSection]);
@@ -422,6 +536,110 @@ const Admin = () => {
                   </div>
                 ))}
               </div>
+            </div>
+          )}
+
+          {activeSection === 'users' && (
+            <div className="content-section">
+              <h2>{t('adminPage.quickActions.users.heading')}</h2>
+              <p>{t('adminPage.quickActions.users.desc')}</p>
+
+              {userError && <p className="preset-error">{userError}</p>}
+
+              <div className="user-form">
+                <input className="form-input" placeholder={t('adminPage.quickActions.users.firstName')}
+                  value={userForm.firstName}
+                  onChange={(e) => setUserForm({ ...userForm, firstName: e.target.value })} />
+                <input className="form-input" placeholder={t('adminPage.quickActions.users.lastName')}
+                  value={userForm.lastName}
+                  onChange={(e) => setUserForm({ ...userForm, lastName: e.target.value })} />
+                <input className="form-input" type="email" placeholder={t('adminPage.quickActions.users.email')}
+                  value={userForm.email}
+                  onChange={(e) => setUserForm({ ...userForm, email: e.target.value })} />
+                <input className="form-input" placeholder={t('adminPage.quickActions.users.phone')}
+                  value={userForm.phone}
+                  onChange={(e) => setUserForm({ ...userForm, phone: e.target.value })} />
+
+                <select className="form-input" value={userForm.role}
+                  onChange={(e) => setUserForm({ ...userForm, role: e.target.value })}>
+                  <option value="Student">{t('header.roleLabels.student')}</option>
+                  <option value="Lecturer">{t('header.roleLabels.lecturer')}</option>
+                  <option value="Admin">{t('header.roleLabels.admin')}</option>
+                </select>
+
+                {userForm.role === 'Student' && (
+                  <>
+                    <input className="form-input" placeholder={t('adminPage.quickActions.users.major')}
+                      value={userForm.major}
+                      onChange={(e) => setUserForm({ ...userForm, major: e.target.value })} />
+                    <select className="form-input" value={userForm.degree}
+                      onChange={(e) => setUserForm({ ...userForm, degree: e.target.value })}>
+                      <option value="Bachelor">Bachelor</option>
+                      <option value="Master">Master</option>
+                      <option value="PhD">PhD</option>
+                    </select>
+                    <input className="form-input" type="number" min="1900" max="2100"
+                      placeholder={t('adminPage.quickActions.users.startYear')}
+                      value={userForm.startYear}
+                      onChange={(e) => setUserForm({ ...userForm, startYear: e.target.value })} />
+                  </>
+                )}
+
+                {userForm.role === 'Lecturer' && (
+                  <input className="form-input" placeholder={t('adminPage.quickActions.users.department')}
+                    value={userForm.department}
+                    onChange={(e) => setUserForm({ ...userForm, department: e.target.value })} />
+                )}
+
+                {!editingUser && (
+                  <input className="form-input" type="password"
+                    placeholder={t('adminPage.quickActions.users.password')}
+                    value={userForm.password}
+                    onChange={(e) => setUserForm({ ...userForm, password: e.target.value })} />
+                )}
+              </div>
+
+              <p className="bot-name-hint">{t('adminPage.quickActions.users.yearHint')}</p>
+
+              <div className="preset-form-actions">
+                <button className="submit-button" onClick={saveUser} disabled={userBusy}>
+                  {editingUser
+                    ? t('adminPage.quickActions.users.saveChanges')
+                    : t('adminPage.quickActions.users.addUser')}
+                </button>
+                {editingUser && (
+                  <button className="submit-button secondary"
+                    onClick={() => { setEditingUser(null); setUserForm(BLANK_USER); }}>
+                    {t('adminPage.quickActions.support.cancel')}
+                  </button>
+                )}
+              </div>
+
+              <ul className="preset-list user-list">
+                {users.map(account => (
+                  <li key={account.dbId} className="preset-row">
+                    <div className="preset-row-text">
+                      <strong>{account.firstName} {account.lastName}</strong>
+                      <span>
+                        {account.email} &middot; {account.roleLabel}
+                        {account.major ? ` · ${account.major}` : ''}
+                        {account.degree ? ` · ${account.degree}` : ''}
+                        {account.academicYear ? ` · ${t('accountPage.year')} ${account.academicYear}` : ''}
+                        {account.department ? ` · ${account.department}` : ''}
+                      </span>
+                    </div>
+                    <div className="preset-row-actions">
+                      <button onClick={() => editUser(account)} title={t('adminPage.quickActions.support.edit')}>
+                        <Pencil size={16} />
+                      </button>
+                      <button onClick={() => deleteUser(account)} disabled={userBusy}
+                        title={t('adminPage.quickActions.users.delete')}>
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
             </div>
           )}
 

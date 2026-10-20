@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { User, Mail, Phone, MapPin, Calendar, Edit3, Save, X, Camera, Trash2 } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { User, Mail, Phone, MapPin, Calendar, Edit3, Save, X, Camera, Trash2, GraduationCap, MessageCircle } from 'lucide-react';
 import './Account.css';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -10,11 +11,43 @@ const Account = () => {
   const {  t } = useLanguage();
   const [isEditing, setIsEditing] = useState(false);
   const { user, updateUser } = useAuth();
+  // An account is administrative data. Admins change it; everyone else reads
+  // their own and asks support for a correction.
+  const isAdmin = user?.role === 'admin';
   const [userData, setUserData] = useState(user);
   const [editData, setEditData] = useState({ ...userData });
   const photoInputRef = useRef(null);
   const [photoBusy, setPhotoBusy] = useState(false);
   const [photoError, setPhotoError] = useState(null);
+  // The signed-in account is cached from the login, so the page re-reads it to
+  // pick up anything an admin has changed since.
+  useEffect(() => {
+    if (!user?.dbId) {
+      return;
+    }
+
+    let cancelled = false;
+
+    const refresh = async () => {
+      try {
+        const response = await apiFetch(`/api/users/${user.dbId}`);
+        if (!response.ok) {
+          throw new Error('ACCOUNT_FAILED');
+        }
+        const data = await response.json();
+        if (!cancelled) {
+          setUserData(data);
+          setEditData({ ...data });
+        }
+      } catch (error) {
+        console.warn('Unable to refresh the account', error);
+      }
+    };
+
+    refresh();
+    return () => { cancelled = true; };
+  }, [user?.dbId]);
+
   // The picture is uploaded on its own, not with the rest of the profile, so
   // choosing one takes effect immediately and does not need the edit mode.
   const uploadPhoto = async (event) => {
@@ -195,7 +228,12 @@ const Account = () => {
                   <p className="profile-role">{userData?.roleLabel}</p>
                 </div>
                 <div className="profile-actions">
-                  {!isEditing ? (
+                  {!isAdmin ? (
+                    <Link to="/chat" className="btn btn-outline">
+                      <MessageCircle size={16} />
+                      {t('accountPage.askSupport')}
+                    </Link>
+                  ) : !isEditing ? (
                     <button onClick={handleEdit} className="btn btn-outline">
                       <Edit3 size={16} />
                       {t('accountPage.editProfile')}
@@ -320,21 +358,11 @@ const Account = () => {
                       <User size={18} />
                       {t('accountPage.academicYear')}
                     </label>
-                    {isEditing ? (
-                      <select
-                        value={editData.year || ''}
-                        onChange={(e) => handleInputChange('year', e.target.value)}
-                        className="detail-input"
-                      >
-                        <option value="Freshman">{t('accountPage.years.freshman')}</option>
-                        <option value="Sophomore">{t('accountPage.years.sophomore')}</option>
-                        <option value="Junior">{t('accountPage.years.junior')}</option>
-                        <option value="Senior">{t('accountPage.years.senior')}</option>
-                        <option value="Graduate">{t('accountPage.years.graduate')}</option>
-                      </select>
-                    ) : (
-                      <span className="detail-value">{userData?.year || '—'}</span>
-                    )}
+                    <span className="detail-value">
+                      {userData?.academicYear
+                        ? `${t('accountPage.year')} ${userData.academicYear}`
+                        : '—'}
+                    </span>
                   </div>
 
                   <div className="detail-item">
@@ -352,6 +380,14 @@ const Account = () => {
                     ) : (
                       <span className="detail-value">{userData?.address || '—'}</span>
                     )}
+                  </div>
+
+                  <div className="detail-item">
+                    <label className="detail-label">
+                      <GraduationCap size={18} />
+                      {t('accountPage.degree')}
+                    </label>
+                    <span className="detail-value">{userData?.degree || '—'}</span>
                   </div>
 
                   <div className="detail-item">

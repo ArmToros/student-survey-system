@@ -1219,3 +1219,21 @@
   opacity: 0.7;
   margin: 0 0 24px;
 }
+
+/* Account management ------------------------------------------------------- */
+.user-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.user-list .preset-row-text span {
+  font-size: 13px;
+}
+
+@media (max-width: 640px) {
+  .user-form {
+    grid-template-columns: 1fr;
+  }
+}

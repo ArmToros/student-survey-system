@@ -87,8 +87,13 @@ namespace backend.Controllers
                 });
             }
 
-            var user = await _context.UserAccounts.FirstOrDefaultAsync(u =>
-                u.Email != null && u.Email.ToLower() == emailNorm);
+            // The student and lecturer rows come along, so the account the app
+            // holds after signing in carries the course details too, not just
+            // the name and email.
+            var user = await _context.UserAccounts
+                .Include(u => u.StudentDatum)
+                .Include(u => u.LecturerDatum)
+                .FirstOrDefaultAsync(u => u.Email != null && u.Email.ToLower() == emailNorm);
 
             // Same response whether the address is unknown or the password is wrong,
             // so this cannot be used to discover which accounts exist.

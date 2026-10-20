@@ -54,6 +54,20 @@ UPDATE dbo.StudentData
  WHERE Degree IS NULL;
 GO
 
+-- The backup records no join date for anyone. For students the start year is a
+-- reasonable stand-in - they joined when their first year began - so the field
+-- is useful straight away rather than blank for everybody. Only rows with no
+-- date are touched, so an admin's correction is never overwritten, and staff
+-- are left null because nothing in the data hints at when they arrived.
+PRINT 'Inferring a join date for students from their start year...';
+UPDATE u
+   SET u.JoinDate = DATEFROMPARTS(sd.StartYear, 9, 1)
+  FROM dbo.UserAccount u
+  JOIN dbo.StudentData sd ON sd.ID = u.ID
+ WHERE u.JoinDate IS NULL
+   AND sd.StartYear IS NOT NULL;
+GO
+
 PRINT '';
 PRINT 'dbo.StudentData now:';
 SELECT ID, StudentID, Major, AcademicYear, StartYear, Degree
