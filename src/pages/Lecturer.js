@@ -18,6 +18,10 @@ const Lecturer = () => {
   const [loadingCourses, setLoadingCourses] = useState(true);
   const [courseError, setCourseError] = useState(null);
   const [saving, setSaving] = useState(false);
+  // Courses run and places filled, both counted. The panel used to report a
+  // survey count, a response count and an average score, none of which
+  // anything in the database could support.
+  const [stats, setStats] = useState(null);
 
   const [rescheduleId, setRescheduleId] = useState(null);
   const [rescheduleData, setRescheduleData] = useState({ title: '', time: '', focus: '' });
@@ -55,6 +59,28 @@ const Lecturer = () => {
   useEffect(() => {
     loadCourses();
   }, [loadCourses]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadStats = async () => {
+      try {
+        const response = await apiFetch('/api/courses/statistics');
+        if (!response.ok) {
+          throw new Error('STATS_FAILED');
+        }
+        const data = await response.json();
+        if (!cancelled) {
+          setStats(data);
+        }
+      } catch (error) {
+        console.warn('Unable to load the course statistics', error);
+      }
+    };
+
+    loadStats();
+    return () => { cancelled = true; };
+  }, []);
 
   const analytics = user?.analytics || {};
 
@@ -280,10 +306,8 @@ const Lecturer = () => {
           {activeTool === 'statistics' && (
             <div className="statistics-panel">
               <h2>{t('lecturerPage.stats.statistics')}</h2>
-              <p>{t('lecturerPage.stats.totalCourses')} {courses.length}</p>
-              <p>{t('lecturerPage.stats.totalSurveys')} 12</p>
-              <p>{t('lecturerPage.stats.responsesCollected')} 87</p>
-              <p>{t('lecturerPage.stats.averageScore')}: 4.5 / 5</p>
+              <p>{t('lecturerPage.stats.totalCourses')} {stats ? stats.courses : courses.length}</p>
+              <p>{t('lecturerPage.stats.studentsEnrolled')} {stats ? stats.students : '—'}</p>
             </div>
           )}
 

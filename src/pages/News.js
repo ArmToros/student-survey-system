@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, User, Eye, MessageCircle, Share2, BookOpen, X, Check } from 'lucide-react';
+import { Calendar, User, Share2, BookOpen, X, Check } from 'lucide-react';
 import './News.css';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -79,20 +79,60 @@ const News = () => {
   // The API returns the whole body, so "Read More" opens it in place.
   const openReader = (article) => setOpenArticle(article);
 
+  /**
+   * Copies the link to the article.
+   *
+   * navigator.share and navigator.clipboard only exist in a secure context, so
+   * over plain HTTP - which is how this is published - both are undefined and
+   * the button did nothing at all. The hidden textarea with execCommand is the
+   * old way, and it is the one that still works there. The modern APIs are
+   * tried first for when this is served over HTTPS or opened on localhost.
+   */
   const shareArticle = async (article) => {
     const link = `${window.location.origin}/news#article-${article.id}`;
+
+    const flash = () => {
+      setSharedId(article.id);
+      setTimeout(() => setSharedId(current => (current === article.id ? null : current)), 2000);
+    };
+
     try {
       if (navigator.share) {
         await navigator.share({ title: article.title, text: article.excerpt, url: link });
         return;
       }
-      await navigator.clipboard.writeText(link);
-      setSharedId(article.id);
-      setTimeout(() => setSharedId(current => (current === article.id ? null : current)), 2000);
+
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(link);
+        flash();
+        return;
+      }
     } catch (error) {
-      // A cancelled share dialog or a browser that blocks clipboard access is
-      // not worth interrupting the page for.
-      console.warn('Unable to share article', error);
+      // A cancelled share sheet is not a failure worth reporting; fall through
+      // to the copy below.
+      console.warn('Share sheet unavailable, copying instead', error);
+    }
+
+    try {
+      const field = document.createElement('textarea');
+      field.value = link;
+      field.setAttribute('readonly', '');
+      field.style.position = 'fixed';
+      field.style.opacity = '0';
+      document.body.appendChild(field);
+      field.select();
+      const copied = document.execCommand('copy');
+      document.body.removeChild(field);
+
+      if (copied) {
+        flash();
+        return;
+      }
+
+      window.prompt(t('news.copyLink'), link);
+    } catch (error) {
+      console.warn('Unable to copy the link', error);
+      window.prompt(t('news.copyLink'), link);
     }
   };
 
@@ -161,8 +201,6 @@ const News = () => {
                     <div className="article-meta">
                       <div className="meta-item"><User size={16}/> <span>{article.author}</span></div>
                       <div className="meta-item"><Calendar size={16}/> <span>{formatDate(article.date)}</span></div>
-                      <div className="meta-item"><Eye size={16}/> <span>{article.views} {t('news.meta.views')}</span></div>
-                      <div className="meta-item"><MessageCircle size={16}/> <span>{article.comments} {t('news.meta.comments')}</span></div>
                     </div>
 
                     <div className="article-actions">
@@ -209,11 +247,6 @@ const News = () => {
                   <div className="card-meta">
                     <div className="meta-item"><User size={14}/><span>{article.author}</span></div>
                     <div className="meta-item"><Calendar size={14}/><span>{formatDate(article.date)}</span></div>
-                  </div>
-
-                  <div className="card-stats">
-                    <div className="stat"><Eye size={14}/><span>{article.views}</span></div>
-                    <div className="stat"><MessageCircle size={14}/><span>{article.comments}</span></div>
                   </div>
 
                   <div className="card-actions">

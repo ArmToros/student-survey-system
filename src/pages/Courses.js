@@ -45,6 +45,16 @@ const Courses = () => {
   }, [loadCourses]);
 
   const toggleEnrolment = async (course) => {
+    // Both are one click next to the course name, so they are easy to hit by
+    // accident - and leaving gives up a place on the course.
+    const question = course.enrolled
+      ? t('courses.leaveConfirm')
+      : t('courses.joinConfirm');
+
+    if (!window.confirm(`${course.name}\n\n${question}`)) {
+      return;
+    }
+
     setBusyId(course.id);
     try {
       const response = await apiFetch(`/api/courses/${course.id}/enrollment`, {

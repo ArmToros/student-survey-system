@@ -19,6 +19,11 @@ const Account = () => {
   const photoInputRef = useRef(null);
   const [photoBusy, setPhotoBusy] = useState(false);
   const [photoError, setPhotoError] = useState(null);
+  // Counted from the data rather than invented: the panel used to show the
+  // same three numbers to every account.
+  const [stats, setStats] = useState(null);
+  const isStudent = user?.role === 'student';
+  const isLecturer = user?.role === 'lecturer';
   // The signed-in account is cached from the login, so the page re-reads it to
   // pick up anything an admin has changed since.
   useEffect(() => {
@@ -45,6 +50,32 @@ const Account = () => {
     };
 
     refresh();
+    return () => { cancelled = true; };
+  }, [user?.dbId]);
+
+  useEffect(() => {
+    if (!user?.dbId) {
+      return;
+    }
+
+    let cancelled = false;
+
+    const loadStats = async () => {
+      try {
+        const response = await apiFetch(`/api/users/${user.dbId}/statistics`);
+        if (!response.ok) {
+          throw new Error('STATS_FAILED');
+        }
+        const data = await response.json();
+        if (!cancelled) {
+          setStats(data);
+        }
+      } catch (error) {
+        console.warn('Unable to load the account statistics', error);
+      }
+    };
+
+    loadStats();
     return () => { cancelled = true; };
   }, [user?.dbId]);
 
@@ -323,6 +354,7 @@ const Account = () => {
                     )}
                   </div>
 
+                  {isStudent && (
                   <div className="detail-item">
                     <label className="detail-label">
                       <User size={18} />
@@ -330,7 +362,9 @@ const Account = () => {
                     </label>
                     <span className="detail-value">{displayId}</span>
                   </div>
+                  )}
 
+                  {isStudent && (
                   <div className="detail-item">
                     <label className="detail-label">
                       <User size={18} />
@@ -352,7 +386,9 @@ const Account = () => {
                       <span className="detail-value">{userData?.major || '—'}</span>
                     )}
                   </div>
+                  )}
 
+                  {isStudent && (
                   <div className="detail-item">
                     <label className="detail-label">
                       <User size={18} />
@@ -364,6 +400,7 @@ const Account = () => {
                         : '—'}
                     </span>
                   </div>
+                  )}
 
                   <div className="detail-item">
                     <label className="detail-label">
@@ -382,6 +419,7 @@ const Account = () => {
                     )}
                   </div>
 
+                  {isStudent && (
                   <div className="detail-item">
                     <label className="detail-label">
                       <GraduationCap size={18} />
@@ -389,6 +427,7 @@ const Account = () => {
                     </label>
                     <span className="detail-value">{userData?.degree || '—'}</span>
                   </div>
+                  )}
 
                   <div className="detail-item">
                     <label className="detail-label">
@@ -411,7 +450,7 @@ const Account = () => {
                 </div>
                 <div className="stat-content">
                   <h4>{t('accountPage.surveysCompleted')}</h4>
-                  <p className="stat-number">12</p>
+                  <p className="stat-number">{stats ? stats.surveysCompleted : '—'}</p>
                 </div>
               </div>
               <div className="stat-card">
@@ -420,7 +459,7 @@ const Account = () => {
                 </div>
                 <div className="stat-content">
                   <h4>{t('accountPage.daysActive')}</h4>
-                  <p className="stat-number">156</p>
+                  <p className="stat-number">{stats && stats.daysActive !== null ? stats.daysActive : '—'}</p>
                 </div>
               </div>
               <div className="stat-card">
@@ -429,7 +468,7 @@ const Account = () => {
                 </div>
                 <div className="stat-content">
                   <h4>{t('accountPage.messagesSent')}</h4>
-                  <p className="stat-number">89</p>
+                  <p className="stat-number">{stats ? stats.messagesSent : '—'}</p>
                 </div>
               </div>
             </div>

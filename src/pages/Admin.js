@@ -9,6 +9,7 @@ import {
   Info,
   HelpCircle,
   UserCog,
+  Newspaper,
   Pencil,
   Trash2
 
@@ -43,6 +44,15 @@ const Admin = () => {
   const [editingUser, setEditingUser] = useState(null);
   const [userBusy, setUserBusy] = useState(false);
   const [userError, setUserError] = useState(null);
+
+  // News. Admins write it; the audience decides who sees it.
+  const BLANK_ARTICLE = { title: '', content: '', newsTypeId: '', audience: [] };
+  const [articles, setArticles] = useState([]);
+  const [newsTypes, setNewsTypes] = useState([]);
+  const [articleForm, setArticleForm] = useState(BLANK_ARTICLE);
+  const [editingArticle, setEditingArticle] = useState(null);
+  const [newsBusy, setNewsBusy] = useState(false);
+  const [newsError, setNewsError] = useState(null);
   const [adminStats, setAdminStats] = useState(null);
 
   useEffect(() => {
@@ -103,6 +113,12 @@ const Admin = () => {
       icon: Settings2
     },
     {
+      id: 'news',
+      title: t('adminPage.quickActions.news.title'),
+      description: t('adminPage.quickActions.news.description'),
+      icon: Newspaper
+    },
+    {
       id: 'users',
       title: t('adminPage.quickActions.users.title'),
       description: t('adminPage.quickActions.users.description'),
@@ -156,6 +172,98 @@ const Admin = () => {
       color: '#10b981'
     }
   ];
+
+  const loadNews = async () => {
+    try {
+      const [itemsResponse, typesResponse] = await Promise.all([
+        // Admins author for every audience, so the list is unfiltered here.
+        apiFetch('/api/news'),
+        apiFetch('/api/news/types')
+      ]);
+
+      if (!itemsResponse.ok || !typesResponse.ok) {
+        throw new Error('NEWS_FAILED');
+      }
+
+      setArticles(await itemsResponse.json());
+      setNewsTypes(await typesResponse.json());
+      setNewsError(null);
+    } catch (error) {
+      console.warn('Unable to load news', error);
+      setNewsError(t('adminPage.quickActions.news.loadFailed'));
+    }
+  };
+
+  const saveArticle = async () => {
+    if (!articleForm.title.trim() || !articleForm.content.trim()) {
+      return;
+    }
+
+    setNewsBusy(true);
+    setNewsError(null);
+    try {
+      const response = await apiFetch(
+        editingArticle ? `/api/news/${editingArticle}` : '/api/news',
+        {
+          method: editingArticle ? 'PUT' : 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            title: articleForm.title,
+            content: articleForm.content,
+            newsTypeId: articleForm.newsTypeId ? Number(articleForm.newsTypeId) : null,
+            audience: articleForm.audience
+          })
+        }
+      );
+
+      const data = await response.json().catch(() => null);
+      if (!response.ok) {
+        throw new Error(data?.message || 'SAVE_FAILED');
+      }
+
+      setArticleForm(BLANK_ARTICLE);
+      setEditingArticle(null);
+      await loadNews();
+    } catch (error) {
+      console.error(error);
+      setNewsError(error.message === 'SAVE_FAILED'
+        ? t('adminPage.quickActions.news.saveFailed')
+        : error.message);
+    } finally {
+      setNewsBusy(false);
+    }
+  };
+
+  const editArticle = (article) => {
+    setEditingArticle(article.id);
+    setArticleForm({
+      title: article.title || '',
+      content: article.content || '',
+      newsTypeId: article.newsTypeId || '',
+      audience: article.audience || []
+    });
+  };
+
+  const deleteArticle = async (article) => {
+    if (!window.confirm(t('adminPage.quickActions.news.deleteConfirm').replace('{title}', article.title))) {
+      return;
+    }
+
+    setNewsBusy(true);
+    setNewsError(null);
+    try {
+      const response = await apiFetch(`/api/news/${article.id}`, { method: 'DELETE' });
+      if (!response.ok) {
+        throw new Error('DELETE_FAILED');
+      }
+      await loadNews();
+    } catch (error) {
+      console.error(error);
+      setNewsError(t('adminPage.quickActions.news.saveFailed'));
+    } finally {
+      setNewsBusy(false);
+    }
+  };
 
   const loadUsers = async () => {
     try {
@@ -309,6 +417,10 @@ const Admin = () => {
 
     if (activeSection === 'users') {
       loadUsers();
+    }
+
+    if (activeSection === 'news') {
+      loadNews();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeSection]);
@@ -536,6 +648,111 @@ const Admin = () => {
                   </div>
                 ))}
               </div>
+            </div>
+          )}
+
+          {activeSection === 'news' && (
+            <div className="content-section">
+              <h2>{t('adminPage.quickActions.news.heading')}</h2>
+              <p>{t('adminPage.quickActions.news.desc')}</p>
+
+              {newsError && <p className="preset-error">{newsError}</p>}
+
+              <div className="preset-form">
+                <input
+                  type="text"
+                  className="form-input"
+                  placeholder={t('adminPage.quickActions.news.titlePlaceholder')}
+                  value={articleForm.title}
+                  onChange={(event) => setArticleForm({ ...articleForm, title: event.target.value })}
+                />
+                <textarea
+                  rows="6"
+                  className="form-input"
+                  placeholder={t('adminPage.quickActions.news.bodyPlaceholder')}
+                  value={articleForm.content}
+                  onChange={(event) => setArticleForm({ ...articleForm, content: event.target.value })}
+                />
+
+                <select
+                  className="form-input"
+                  value={articleForm.newsTypeId}
+                  onChange={(event) => setArticleForm({ ...articleForm, newsTypeId: event.target.value })}
+                >
+                  <option value="">{t('adminPage.quickActions.news.chooseCategory')}</option>
+                  {newsTypes.map(type => (
+                    <option key={type.id} value={type.id}>{type.name}</option>
+                  ))}
+                </select>
+
+                <div>
+                  <label className="audience-label">{t('adminPage.quickActions.news.audience')}</label>
+                  <p className="form-hint">{t('adminPage.quickActions.news.audienceHint')}</p>
+                  <div className="audience-options">
+                    {['Student', 'Lecturer', 'Admin'].map(role => (
+                      <label key={role} className="audience-option">
+                        <input
+                          type="checkbox"
+                          checked={articleForm.audience.includes(role)}
+                          onChange={(event) => setArticleForm({
+                            ...articleForm,
+                            audience: event.target.checked
+                              ? [...articleForm.audience, role]
+                              : articleForm.audience.filter(item => item !== role)
+                          })}
+                        />
+                        <span>{t(`header.roleLabels.${role.toLowerCase()}`)}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="preset-form-actions">
+                  <button
+                    className="submit-button"
+                    onClick={saveArticle}
+                    disabled={newsBusy || !articleForm.title.trim() || !articleForm.content.trim()}
+                  >
+                    {editingArticle
+                      ? t('adminPage.quickActions.news.saveChanges')
+                      : t('adminPage.quickActions.news.publish')}
+                  </button>
+                  {editingArticle && (
+                    <button
+                      className="submit-button secondary"
+                      onClick={() => { setEditingArticle(null); setArticleForm(BLANK_ARTICLE); }}
+                    >
+                      {t('adminPage.quickActions.support.cancel')}
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              <ul className="preset-list">
+                {articles.map(article => (
+                  <li key={article.id} className="preset-row">
+                    <div className="preset-row-text">
+                      <strong>{article.title}</strong>
+                      <span>
+                        {article.category}
+                        {' · '}
+                        {article.audience && article.audience.length > 0
+                          ? article.audience.join(', ')
+                          : t('adminPage.quickActions.news.everyone')}
+                      </span>
+                    </div>
+                    <div className="preset-row-actions">
+                      <button onClick={() => editArticle(article)} title={t('adminPage.quickActions.support.edit')}>
+                        <Pencil size={16} />
+                      </button>
+                      <button onClick={() => deleteArticle(article)} disabled={newsBusy}
+                        title={t('adminPage.quickActions.news.delete')}>
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
             </div>
           )}
 

@@ -144,3 +144,11 @@
 .btn-danger:hover:not(:disabled) {
   background: rgba(220, 38, 38, 0.1);
 }
+
+.survey-category {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(100, 116, 139, 0.15);
+}

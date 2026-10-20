@@ -133,6 +133,9 @@ const Surveys = () => {
                       <Users size={16} />
                       {survey.responses} {t('dashboard.responses')}
                     </span>
+                    {survey.category && (
+                      <span className="survey-category">{survey.category}</span>
+                    )}
                     <span className={`survey-row-status ${survey.status}`}>
                       {survey.status === 'active'
                         ? t('dashboard.stats.active')

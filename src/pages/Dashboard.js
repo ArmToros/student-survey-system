@@ -137,9 +137,6 @@ const Dashboard = () => {
           <div className="recent-surveys">
             <div className="section-header">
               <h2>{t('dashboard.recentSurveys')}</h2>
-              <Link to="/surveys" className="btn btn-outline">
-                {t('dashboard.viewAll')}
-              </Link>
             </div>
             
             <div className="surveys-list">

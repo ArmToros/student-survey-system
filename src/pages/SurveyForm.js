@@ -17,6 +17,7 @@ const SurveyForm = () => {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [submitError, setSubmitError] = useState(null);
 
   useEffect(() => {
     const fallbackSurvey = {
@@ -76,6 +77,7 @@ const SurveyForm = () => {
 
   const handleSubmit = async () => {
     setSubmitting(true);
+    setSubmitError(null);
 
     try {
       const response = await apiFetch(`/api/surveys/${id}/responses`, {
@@ -87,6 +89,18 @@ const SurveyForm = () => {
       });
 
       if (!response.ok) {
+        // The API distinguishes these, so the page should too: being told you
+        // have already answered is not the same as something going wrong.
+        const data = await response.json().catch(() => null);
+
+        if (response.status === 409) {
+          throw new Error(data?.message || t('form.alreadyAnswered'));
+        }
+
+        if (response.status === 403) {
+          throw new Error(data?.message || t('form.notYourSurvey'));
+        }
+
         throw new Error('SUBMIT_SURVEY_FAILED');
       }
 
@@ -97,7 +111,9 @@ const SurveyForm = () => {
       }, 3000);
     } catch (error) {
       console.error(error);
-      alert('Could not submit survey response to the database. Please try again.');
+      setSubmitError(error.message === 'SUBMIT_SURVEY_FAILED'
+        ? t('form.submitFailed')
+        : error.message);
     } finally {
       setSubmitting(false);
     }
@@ -289,6 +305,7 @@ const SurveyForm = () => {
             {renderQuestion(currentQ)}
           </div>
 
+          {submitError && <p className="submit-error">{submitError}</p>}
           <div className="question-navigation">
             <button 
               onClick={handlePrevious}
