@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { Users, HelpCircle, ClipboardList, Trash2 } from 'lucide-react';
+import { Users, HelpCircle, ClipboardList, Trash2, Lock, Unlock } from 'lucide-react';
 import './Surveys.css';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -21,6 +21,7 @@ const Surveys = () => {
   const canDelete = user?.role === 'admin';
   const [deletingId, setDeletingId] = useState(null);
   const [deleteError, setDeleteError] = useState(null);
+  const [closingId, setClosingId] = useState(null);
 
   const [surveys, setSurveys] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -50,6 +51,43 @@ const Surveys = () => {
   useEffect(() => {
     loadSurveys();
   }, [loadSurveys]);
+
+  // Closing ends a survey without destroying it: no more answers, but the
+  // results stay open to everyone. Deleting is the other thing, and it takes
+  // the responses with it.
+  const toggleSurveyOpen = async (survey) => {
+    const closing = survey.status === 'active';
+    const question = closing
+      ? t('surveysPage.closeConfirm')
+      : t('surveysPage.reopenConfirm');
+
+    if (!window.confirm(`${survey.title}
+
+${question}`)) {
+      return;
+    }
+
+    setClosingId(survey.id);
+    setDeleteError(null);
+    try {
+      const response = await apiFetch(`/api/surveys/${survey.id}/status`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isClosed: closing })
+      });
+
+      if (!response.ok) {
+        throw new Error('CLOSE_FAILED');
+      }
+
+      await loadSurveys();
+    } catch (failure) {
+      console.error(failure);
+      setDeleteError(t('surveysPage.closeFailed'));
+    } finally {
+      setClosingId(null);
+    }
+  };
 
   const deleteSurvey = async (survey) => {
     const warning = survey.responses > 0
@@ -139,7 +177,7 @@ const Surveys = () => {
                     <span className={`survey-row-status ${survey.status}`}>
                       {survey.status === 'active'
                         ? t('dashboard.stats.active')
-                        : t('dashboard.stats.oneCompleted')}
+                        : t('surveysPage.closedNotice')}
                     </span>
                   </div>
                 </div>
@@ -153,6 +191,18 @@ const Surveys = () => {
                     <Link to={`/results/${survey.id}`} className="btn btn-secondary">
                       {t('dashboard.viewResults')}
                     </Link>
+                  )}
+                  {canDelete && (
+                    <button
+                      className="btn btn-secondary"
+                      onClick={() => toggleSurveyOpen(survey)}
+                      disabled={closingId === survey.id}
+                      title={survey.status === 'active'
+                        ? t('surveysPage.close')
+                        : t('surveysPage.reopen')}
+                    >
+                      {survey.status === 'active' ? <Lock size={16} /> : <Unlock size={16} />}
+                    </button>
                   )}
                   {canDelete && (
                     <button

@@ -332,6 +332,54 @@ namespace backend.Controllers
         /// responses people gave it, which is why it is an admin action and why
         /// the count is reported back.
         /// </summary>
+        public class SurveyStatusRequest
+        {
+            public bool IsClosed { get; set; }
+        }
+
+        /// <summary>
+        /// Closes a survey, or opens it again.
+        ///
+        /// Closing is how a survey ends without being destroyed: nobody can
+        /// answer it any more, but the answers already given stay where they
+        /// are and the results page carries on showing them. That is the
+        /// difference from Delete, which takes the responses with it.
+        ///
+        /// Submissions are refused by the check in SubmitResponse, so closing
+        /// holds even for somebody who kept the survey open in a tab and
+        /// pressed submit afterwards.
+        /// </summary>
+        [HttpPut("{id:int}/status")]
+        [Authorize(Policy = "AdminOnly")]
+        public async Task<ActionResult> SetStatus(int id, [FromBody] SurveyStatusRequest request)
+        {
+            if (request == null)
+            {
+                return BadRequest(new { message = "A status is required" });
+            }
+
+            var survey = await _context.Surveys.FirstOrDefaultAsync(item => item.SurveyId == id);
+            if (survey == null)
+            {
+                return NotFound(new { message = "Survey not found" });
+            }
+
+            survey.IsClosed = request.IsClosed;
+            // Kept for the "Created / Closed" dates on the results page. Re-opening
+            // clears it, so a survey never claims to have closed on a date it was
+            // still accepting answers.
+            survey.ClosedAt = request.IsClosed ? DateTime.UtcNow : null;
+
+            await _context.SaveChangesAsync();
+
+            return Ok(new
+            {
+                id = survey.SurveyId,
+                status = survey.IsClosed ? "completed" : "active",
+                closedDate = survey.ClosedAt
+            });
+        }
+
         [HttpDelete("{id:int}")]
         [Authorize(Policy = "AdminOnly")]
         public async Task<ActionResult> Delete(int id)

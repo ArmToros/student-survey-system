@@ -15,11 +15,13 @@ import {
   Menu,
   X, BookOpen } from 'lucide-react';
 import './Header.css';
+
+const COMPACT_CLASS = 'is-compact';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 const Header = () => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { user, logout } = useAuth();
   const { theme } = useTheme();
   const location = useLocation();
@@ -28,6 +30,12 @@ const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const dropdownRef = useRef(null);
   const mobileMenuRef = useRef(null);
+  const headerContentRef = useRef(null);
+  // Nav labels are shown when they fit and collapse to icons when they do not.
+  // A width threshold cannot decide this, because how much room the labels need
+  // depends on the language: in Armenian the six labels want 969px and the
+  // programme name another 682px, which is wider than any laptop. So measure.
+  const [isCompactNav, setIsCompactNav] = useState(false);
 
   const isActive = (path) => {
     return location.pathname === path;
@@ -56,6 +64,47 @@ const Header = () => {
   }, []);
 
   // Close mobile menu when route changes
+  useEffect(() => {
+    const node = headerContentRef.current;
+    if (!node) {
+      return undefined;
+    }
+
+    const measure = () => {
+      // Below the mobile breakpoint the nav moves into the drop-down panel,
+      // where every label has a line to itself and always fits.
+      if (window.innerWidth <= 768) {
+        setIsCompactNav(false);
+        return;
+      }
+
+      // Measure what the row wants with the labels showing, whether or not
+      // they are showing at the moment. Comparing that against the room
+      // available is a stable question with the same answer each time, so
+      // the header settles instead of flipping between the two states.
+      const wasCompact = node.classList.contains(COMPACT_CLASS);
+      if (wasCompact) {
+        node.classList.remove(COMPACT_CLASS);
+      }
+
+      const wanted = node.scrollWidth;
+      const room = node.clientWidth;
+
+      if (wasCompact) {
+        node.classList.add(COMPACT_CLASS);
+      }
+
+      setIsCompactNav(wanted > room + 1);
+    };
+
+    measure();
+
+    const observer = new ResizeObserver(measure);
+    observer.observe(node);
+
+    return () => observer.disconnect();
+  }, [language, user?.role]);
+
   useEffect(() => {
     setIsMobileMenuOpen(false);
   }, [location.pathname]);
@@ -96,7 +145,10 @@ const Header = () => {
       )}
       <header className="header">
         <div className="container">
-          <div className="header-content">
+          <div
+            className={`header-content ${isCompactNav ? COMPACT_CLASS : ''}`}
+            ref={headerContentRef}
+          >
             <Link to="/" className="logo">
               <img 
                 src={theme === 'dark' ? '/logo/logo-white.jpg' : '/logo/logo-black.jpg'} 
