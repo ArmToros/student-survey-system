@@ -65,6 +65,11 @@ namespace backend.Controllers
             public string Password { get; set; } = "";
         }
 
+        public class SetPasswordRequest
+        {
+            public string Password { get; set; } = "";
+        }
+
         /// <summary>The id in the claims, so a caller cannot act as another account.</summary>
         private int? CallerId =>
             int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var id) ? id : null;
@@ -306,6 +311,46 @@ namespace backend.Controllers
             await _context.SaveChangesAsync();
 
             return Ok(new { id, message = "Account deleted" });
+        }
+
+        /// <summary>
+        /// Sets somebody's password, for when they cannot get in and cannot wait
+        /// for a reset email. Admins only: this is a way into an account, so it
+        /// is deliberately not something a person can do to themselves here -
+        /// they use the reset link, which proves they hold the address.
+        ///
+        /// Any outstanding reset links for that account are spent at the same
+        /// time, so an old email cannot be used to undo the change.
+        /// </summary>
+        [HttpPut("{id:int}/password")]
+        [Authorize(Policy = "AdminOnly")]
+        public async Task<ActionResult> SetPassword(int id, [FromBody] SetPasswordRequest request)
+        {
+            if (request == null || string.IsNullOrWhiteSpace(request.Password) || request.Password.Length < 8)
+            {
+                return BadRequest(new { message = "A password of at least 8 characters is required" });
+            }
+
+            var user = await _context.UserAccounts.FirstOrDefaultAsync(item => item.Id == id);
+            if (user == null)
+            {
+                return NotFound(new { message = "User not found" });
+            }
+
+            user.PasswordHash = _passwords.Hash(request.Password);
+
+            var outstanding = await _context.PasswordResetTokens
+                .Where(token => token.UserId == id && token.UsedAt == null)
+                .ToListAsync();
+
+            foreach (var token in outstanding)
+            {
+                token.UsedAt = DateTime.UtcNow;
+            }
+
+            await _context.SaveChangesAsync();
+
+            return Ok(new { id, message = "Password updated" });
         }
 
         /// <summary>

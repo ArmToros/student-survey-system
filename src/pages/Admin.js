@@ -10,6 +10,7 @@ import {
   HelpCircle,
   UserCog,
   Newspaper,
+  KeyRound,
   Pencil,
   Trash2
 
@@ -44,6 +45,9 @@ const Admin = () => {
   const [editingUser, setEditingUser] = useState(null);
   const [userBusy, setUserBusy] = useState(false);
   const [userError, setUserError] = useState(null);
+  const [passwordFor, setPasswordFor] = useState(null);
+  const [newPassword, setNewPassword] = useState('');
+  const [passwordDone, setPasswordDone] = useState(null);
 
   // News. Admins write it; the audience decides who sees it.
   const BLANK_ARTICLE = { title: '', content: '', newsTypeId: '', audience: [] };
@@ -172,6 +176,39 @@ const Admin = () => {
       color: '#10b981'
     }
   ];
+
+  const setUserPassword = async () => {
+    if (!passwordFor || newPassword.trim().length < 8) {
+      return;
+    }
+
+    setUserBusy(true);
+    setUserError(null);
+    try {
+      const response = await apiFetch(`/api/users/${passwordFor.dbId}/password`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: newPassword })
+      });
+
+      const data = await response.json().catch(() => null);
+      if (!response.ok) {
+        throw new Error(data?.message || 'PASSWORD_FAILED');
+      }
+
+      setPasswordDone(passwordFor.email);
+      setPasswordFor(null);
+      setNewPassword('');
+      setTimeout(() => setPasswordDone(null), 6000);
+    } catch (error) {
+      console.error(error);
+      setUserError(error.message === 'PASSWORD_FAILED'
+        ? t('adminPage.quickActions.users.passwordFailed')
+        : error.message);
+    } finally {
+      setUserBusy(false);
+    }
+  };
 
   const loadNews = async () => {
     try {
@@ -832,6 +869,45 @@ const Admin = () => {
                 )}
               </div>
 
+              {passwordDone && (
+                <p className="bot-name-saved">
+                  {t('adminPage.quickActions.users.passwordSet').replace('{email}', passwordDone)}
+                </p>
+              )}
+
+              {passwordFor && (
+                <div className="password-panel">
+                  <strong>
+                    {t('adminPage.quickActions.users.setPasswordFor')
+                      .replace('{name}', `${passwordFor.firstName} ${passwordFor.lastName}`)}
+                  </strong>
+                  <p className="form-hint">{t('adminPage.quickActions.users.passwordHint')}</p>
+                  <div className="password-panel-row">
+                    <input
+                      type="text"
+                      className="form-input"
+                      placeholder={t('adminPage.quickActions.users.password')}
+                      value={newPassword}
+                      onChange={(event) => setNewPassword(event.target.value)}
+                      autoFocus
+                    />
+                    <button
+                      className="submit-button"
+                      onClick={setUserPassword}
+                      disabled={userBusy || newPassword.trim().length < 8}
+                    >
+                      {t('adminPage.quickActions.users.saveChanges')}
+                    </button>
+                    <button
+                      className="submit-button secondary"
+                      onClick={() => { setPasswordFor(null); setNewPassword(''); }}
+                    >
+                      {t('adminPage.quickActions.support.cancel')}
+                    </button>
+                  </div>
+                </div>
+              )}
+
               <ul className="preset-list user-list">
                 {users.map(account => (
                   <li key={account.dbId} className="preset-row">
@@ -848,6 +924,12 @@ const Admin = () => {
                     <div className="preset-row-actions">
                       <button onClick={() => editUser(account)} title={t('adminPage.quickActions.support.edit')}>
                         <Pencil size={16} />
+                      </button>
+                      <button
+                        onClick={() => { setPasswordFor(account); setNewPassword(''); }}
+                        title={t('adminPage.quickActions.users.setPassword')}
+                      >
+                        <KeyRound size={16} />
                       </button>
                       <button onClick={() => deleteUser(account)} disabled={userBusy}
                         title={t('adminPage.quickActions.users.delete')}>
