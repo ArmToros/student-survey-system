@@ -68,6 +68,18 @@
   transition: border-color 0.3s ease;
 }
 
+/* The same class covers the uploaded picture and the placeholder shown when
+   there is none. The placeholder is a div, so its icon needs centring - left to
+   itself it sits in the corner and the whole circle looks off. */
+div.profile-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+}
+
 .avatar-edit-btn {
   position: absolute;
   bottom: 0;

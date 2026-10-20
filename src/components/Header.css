@@ -167,6 +167,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  /* Without this the circle is squeezed narrower than it is tall when the name
+     beside it needs room, which turns the picture into an oval. */
+  flex-shrink: 0;
+  overflow: hidden;
   transition: background-color 0.3s ease;
 }
 
@@ -175,6 +179,7 @@
   height: 100%;
   border-radius: 50%;
   object-fit: cover;
+  display: block;
 }
 
 .account-name {
