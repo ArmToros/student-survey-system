@@ -35,7 +35,8 @@ development: on `localhost` the frontend falls back to `http://localhost:5001`.
 
 ## Daily use
 
-Start it:
+On this PC the app already runs on its own - see
+[Keeping it up](#keeping-it-up). Start it by hand with:
 
 ```bash
 npm run start:app
@@ -56,6 +57,48 @@ Rebuild the frontend after changing anything in `src/`:
 
 ```bash
 npm run build
+```
+
+## Keeping it up
+
+This PC is the host, so the public URL is only alive while it is awake and the
+app is running. Three things arrange that, none of which needed administrator
+rights:
+
+- **Sleep is disabled on mains power.** `powercfg /change standby-timeout-ac 0`
+  and the same for `hibernate-timeout-ac`; it used to sleep after 30 minutes,
+  which took the site down with it. The monitor still blanks, which is harmless.
+- **The app runs detached.** [scripts/serve-app.ps1](scripts/serve-app.ps1)
+  starts it, and it was launched through `Win32_Process.Create` so its process
+  tree roots at `services.exe` rather than at whatever terminal started it.
+  Closing the terminal, or Claude, does not stop it.
+- **It restarts at logon.** `StudentSurveySystem.cmd` in the Startup folder
+  (`shell:startup`) runs that script. SQL Server Express starts with Windows by
+  itself, so logging in is enough to bring everything back.
+
+Output goes to `serve-app.log` at the repository root, which is git-ignored by
+the `*.log` rule. That file is where an unhandled exception's detail ends up,
+since Production returns only a plain message to the caller.
+
+### What this still does not survive
+
+**Logging off, or a reboot that nobody logs back in to.** The Startup folder
+runs at logon, so the app waits for one. Surviving that needs the app installed
+as a Windows service, which does need an administrator shell - `sc.exe create`,
+or a wrapper like NSSM. Worth doing if the machine is ever left headless.
+
+Manually sleeping the machine, or closing a laptop lid, still sleeps it.
+
+### Checking and restarting
+
+```powershell
+Get-NetTCPConnection -LocalPort 5001 -State Listen
+```
+
+To restart it after stopping it, run the Startup entry again:
+
+```powershell
+powershell -NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File D:\Projects\kursayin\scripts\serve-app.ps1
 ```
 
 ## One-time setup on this PC
