@@ -51,6 +51,7 @@ public static class UserPresentation
             address = user.Address,
             language = ToLanguageCode(user.Language),
             theme = ToTheme(user.Theme),
+            avatar = user.PhotoUrl,
             preferences = ToPreferences(user.Preferences)
         };
     }

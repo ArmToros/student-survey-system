@@ -21,3 +21,6 @@ database/*.bak
 
 # Generated account passwords (the only copy - see PERSONAL_ACCESS.md)
 credentials.local.txt
+
+# Uploaded profile pictures (served from /uploads, not source)
+uploads/

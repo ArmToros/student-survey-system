@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { User, Mail, Phone, MapPin, Calendar, Edit3, Save, X, Camera } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import { User, Mail, Phone, MapPin, Calendar, Edit3, Save, X, Camera, Trash2 } from 'lucide-react';
 import './Account.css';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -12,6 +12,71 @@ const Account = () => {
   const { user, updateUser } = useAuth();
   const [userData, setUserData] = useState(user);
   const [editData, setEditData] = useState({ ...userData });
+  const photoInputRef = useRef(null);
+  const [photoBusy, setPhotoBusy] = useState(false);
+  const [photoError, setPhotoError] = useState(null);
+  // The picture is uploaded on its own, not with the rest of the profile, so
+  // choosing one takes effect immediately and does not need the edit mode.
+  const uploadPhoto = async (event) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+
+    if (!file || !userData?.dbId) {
+      return;
+    }
+
+    setPhotoBusy(true);
+    setPhotoError(null);
+    try {
+      const body = new FormData();
+      body.append('file', file);
+
+      // No Content-Type header here on purpose: the browser has to set the
+      // multipart boundary itself.
+      const response = await apiFetch(`/api/users/${userData.dbId}/photo`, {
+        method: 'POST',
+        body
+      });
+
+      const data = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        throw new Error(data?.message || 'UPLOAD_FAILED');
+      }
+
+      setUserData(data);
+      updateUser(data);
+    } catch (error) {
+      console.error(error);
+      setPhotoError(error.message === 'UPLOAD_FAILED' ? t('accountPage.photoFailed') : error.message);
+    } finally {
+      setPhotoBusy(false);
+    }
+  };
+
+  const removePhoto = async () => {
+    if (!userData?.dbId) {
+      return;
+    }
+
+    setPhotoBusy(true);
+    setPhotoError(null);
+    try {
+      const response = await apiFetch(`/api/users/${userData.dbId}/photo`, { method: 'DELETE' });
+      if (!response.ok) {
+        throw new Error('REMOVE_FAILED');
+      }
+      const data = await response.json();
+      setUserData(data);
+      updateUser(data);
+    } catch (error) {
+      console.error(error);
+      setPhotoError(t('accountPage.photoFailed'));
+    } finally {
+      setPhotoBusy(false);
+    }
+  };
+
   const displayId = userData?.studentId || userData?.dbId || userData?.id?.split('-').pop() || '—';
 
   // The same field holds the account number for every role, so only the label
@@ -97,12 +162,35 @@ const Account = () => {
                       <User size={40} />
                     </div>
                   )}
-                  <button className="avatar-edit-btn">
+                  <input
+                    ref={photoInputRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp,image/gif"
+                    onChange={uploadPhoto}
+                    className="avatar-file-input"
+                  />
+                  <button
+                    className="avatar-edit-btn"
+                    onClick={() => photoInputRef.current?.click()}
+                    disabled={photoBusy}
+                    title={t('accountPage.changePhoto')}
+                  >
                     <Camera size={16} />
                   </button>
+                  {userData?.avatar && (
+                    <button
+                      className="avatar-remove-btn"
+                      onClick={removePhoto}
+                      disabled={photoBusy}
+                      title={t('accountPage.removePhoto')}
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  )}
                 </div>
                 <div className="profile-info">
                   <h2>{userData?.firstName} {userData?.lastName}</h2>
+                  {photoError && <p className="photo-error">{photoError}</p>}
                   <p className="profile-email">{userData?.email}</p>
                   <p className="profile-role">{userData?.roleLabel}</p>
                 </div>

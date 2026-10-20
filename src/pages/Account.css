@@ -302,3 +302,40 @@
   }
 }
 
+
+/* Profile picture ---------------------------------------------------------- */
+.avatar-file-input {
+  display: none;
+}
+
+.avatar-remove-btn {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  border: none;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #dc2626;
+  color: #fff;
+  cursor: pointer;
+}
+
+.avatar-remove-btn:disabled,
+.avatar-edit-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+img.profile-avatar {
+  object-fit: cover;
+}
+
+.photo-error {
+  color: #dc2626;
+  font-size: 13px;
+  margin: 4px 0 0;
+}

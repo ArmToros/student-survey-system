@@ -236,6 +236,21 @@ if (frontendFiles != null)
     app.UseStaticFiles(new StaticFileOptions { FileProvider = frontendFiles });
 }
 
+// Uploaded profile pictures. They live on disk rather than in the database, so
+// restoring the SSS backup leaves them alone. The folder is created on the
+// first upload, and is git-ignored.
+var uploadsPath = Path.Combine(app.Environment.ContentRootPath, "uploads");
+Directory.CreateDirectory(uploadsPath);
+
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(uploadsPath),
+    RequestPath = "/uploads",
+    // Only the handful of image types the upload endpoint accepts are served,
+    // so an unexpected file in that folder is not handed out as anything.
+    ServeUnknownFileTypes = false
+});
+
 app.UseRateLimiter();
 
 app.UseAuthentication();
