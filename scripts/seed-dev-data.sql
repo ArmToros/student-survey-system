@@ -259,6 +259,10 @@ PRINT 'Including schema-support-chat.sql...';
 GO
 :r $(SssScriptsDir)/schema-support-chat.sql
 
+PRINT 'Including schema-student-profile.sql...';
+GO
+:r $(SssScriptsDir)/schema-student-profile.sql
+
 USE SSS;
 GO
 

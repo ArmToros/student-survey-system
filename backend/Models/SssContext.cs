@@ -317,7 +317,10 @@ public partial class SssContext : DbContext
                         j.ToTable("StudentCourse");
                         j.IndexerProperty<int>("StudentId").HasColumnName("StudentID");
                         j.IndexerProperty<int>("CourseId").HasColumnName("CourseID");
-                    });
+                        entity.Property(e => e.Degree)
+                .HasMaxLength(30)
+                .IsUnicode(false);
+            });
         });
 
         modelBuilder.Entity<Survey>(entity =>

@@ -64,6 +64,7 @@ $followUpScripts = @(
     'schema-password-reset-token.sql',  # the reset token table
     'schema-authoring.sql',             # question type/options, survey category and status
     'schema-support-chat.sql',          # preset questions and per-side hiding
+    'schema-student-profile.sql',       # start year and degree, for the academic year
     'data-news-categories.sql'          # the four news categories the UI offers
 )
 
