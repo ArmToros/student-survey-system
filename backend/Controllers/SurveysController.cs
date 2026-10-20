@@ -118,9 +118,12 @@ namespace backend.Controllers
             });
         }
 
-        /// <summary>Aggregated answers are for staff; students only take surveys.</summary>
+        /// <summary>
+        /// Results are open to anyone signed in. They are totals per question and
+        /// carry no names, so there is nothing here that identifies who answered
+        /// what - and people who took a survey can see what it found.
+        /// </summary>
         [HttpGet("{id:int}/results")]
-        [Authorize(Policy = "Staff")]
         public async Task<ActionResult> GetResults(int id)
         {
             var survey = await _context.Surveys
@@ -203,8 +206,9 @@ namespace backend.Controllers
             });
         }
 
+        /// <summary>Only admins author surveys.</summary>
         [HttpPost]
-        [Authorize(Policy = "Staff")]
+        [Authorize(Policy = "AdminOnly")]
         public async Task<ActionResult> Create([FromBody] CreateSurveyRequest request)
         {
             if (request == null || string.IsNullOrWhiteSpace(request.Title))

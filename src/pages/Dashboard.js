@@ -11,9 +11,11 @@ const Dashboard = () => {
   const { user } = useAuth();
 
   // The API restricts aggregated results to staff, so students never see the link.
-  const canViewResults = user?.role === 'admin' || user?.role === 'lecturer';
+  // Results are totals per question with no names attached, so everyone who can
+  // see a survey can see what it found.
+  const canViewResults = true;
   // Survey creation is staff-only too, so students are not offered the shortcut.
-  const canCreateSurvey = canViewResults;
+  const canCreateSurvey = user?.role === 'admin';
   const [stats, setStats] = useState({
     totalSurveys: 0,
     activeSurveys: 0,

@@ -34,7 +34,8 @@ const Header = () => {
   };
 
   // Only staff may create surveys, so students are not offered the link at all.
-  const canCreateSurvey = user?.role === 'admin' || user?.role === 'lecturer';
+  // Authoring surveys is an admin job; lecturers read the results like everyone else.
+  const canCreateSurvey = user?.role === 'admin';
 
   // Close dropdown when clicking outside
   useEffect(() => {

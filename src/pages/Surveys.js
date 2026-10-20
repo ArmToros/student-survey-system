@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import { Users, HelpCircle, ClipboardList } from 'lucide-react';
 import './Surveys.css';
 import { useLanguage } from '../contexts/LanguageContext';
-import { useAuth } from '../contexts/AuthContext';
 import { apiFetch } from '../services/api';
 
 /**
@@ -12,10 +11,10 @@ import { apiFetch } from '../services/api';
  */
 const Surveys = () => {
   const { t } = useLanguage();
-  const { user } = useAuth();
 
   // The API restricts aggregated results to staff, so students never see the link.
-  const canViewResults = user?.role === 'admin' || user?.role === 'lecturer';
+  // Results carry no names, so they are open to anyone signed in.
+  const canViewResults = true;
 
   const [surveys, setSurveys] = useState([]);
   const [loading, setLoading] = useState(true);

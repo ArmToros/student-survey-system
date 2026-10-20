@@ -60,7 +60,7 @@ function AppContent() {
           <Route
             path="/create-survey"
             element={
-              <ProtectedRoute allowedRoles={['admin', 'lecturer']}>
+              <ProtectedRoute allowedRoles={['admin']}>
                 <CreateSurvey />
               </ProtectedRoute>
             }
@@ -68,7 +68,7 @@ function AppContent() {
           <Route
             path="/results/:id"
             element={
-              <ProtectedRoute allowedRoles={['admin', 'lecturer']}>
+              <ProtectedRoute>
                 <SurveyResults />
               </ProtectedRoute>
             }
