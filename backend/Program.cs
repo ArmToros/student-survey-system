@@ -266,7 +266,43 @@ IFileProvider? frontendFiles = frontendBuildExists
 if (frontendFiles != null)
 {
     app.UseDefaultFiles(new DefaultFilesOptions { FileProvider = frontendFiles });
-    app.UseStaticFiles(new StaticFileOptions { FileProvider = frontendFiles });
+
+    // index.html must never be cached, and everything under /static always can.
+    //
+    // Without a Cache-Control header a browser caches by its own heuristic, and
+    // a stale index.html points at a bundle from a previous build - so people
+    // keep seeing the old app after a deploy and report things that were fixed
+    // days ago. The files under /static carry a content hash in the name, so a
+    // new build is a new URL and the old one can be kept for as long as liked.
+    app.UseStaticFiles(new StaticFileOptions
+    {
+        FileProvider = frontendFiles,
+        OnPrepareResponse = context =>
+        {
+            var path = context.Context.Request.Path.Value ?? "";
+            var headers = context.Context.Response.GetTypedHeaders();
+
+            if (path.StartsWith("/static/", StringComparison.OrdinalIgnoreCase))
+            {
+                headers.CacheControl = new Microsoft.Net.Http.Headers.CacheControlHeaderValue
+                {
+                    Public = true,
+                    MaxAge = TimeSpan.FromDays(365),
+                    // The name changes whenever the contents do.
+                    Extensions = { new Microsoft.Net.Http.Headers.NameValueHeaderValue("immutable") }
+                };
+            }
+            else
+            {
+                headers.CacheControl = new Microsoft.Net.Http.Headers.CacheControlHeaderValue
+                {
+                    NoCache = true,
+                    NoStore = true,
+                    MustRevalidate = true
+                };
+            }
+        }
+    });
 }
 
 // Uploaded profile pictures. They live on disk rather than in the database, so
@@ -295,7 +331,22 @@ if (frontendFiles != null)
 {
     // Client-side routes (/surveys/2, /admin, ...) are not files on disk, so
     // anything the API did not handle falls back to the React entry point.
-    app.MapFallbackToFile("index.html", new StaticFileOptions { FileProvider = frontendFiles });
+    app.MapFallbackToFile("index.html", new StaticFileOptions
+    {
+        FileProvider = frontendFiles,
+        OnPrepareResponse = context =>
+        {
+            // Every deep link is served this same file, so it needs the same
+            // "always ask" treatment as the one served from the root.
+            context.Context.Response.GetTypedHeaders().CacheControl =
+                new Microsoft.Net.Http.Headers.CacheControlHeaderValue
+                {
+                    NoCache = true,
+                    NoStore = true,
+                    MustRevalidate = true
+                };
+        }
+    });
 }
 
 app.Run();

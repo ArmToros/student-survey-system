@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Settings as SettingsIcon, Palette, Moon, Sun, Save, RotateCcw, ArrowLeft } from 'lucide-react';
+import { Palette, Moon, Sun, Save, RotateCcw, ArrowLeft } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -16,67 +16,15 @@ const Settings = () => {
 const [showSettingsModal, setShowSettingsModal] = useState(false);
 const [saveState, setSaveState] = useState(null);
   const [settings, setSettings] = useState({
-    notifications: {
-      email: true,
-      push: true,
-      surveys: true,
-      news: true,
-      chat: true
-    },
-    privacy: {
-      showEmail: false,
-    },
     appearance: {
       theme: theme,
-      language: language,
-    },
-    account: {
-      sessionTimeout: 15,
-      autoLogout: true
+      language: language
     }
   });
 
 
-  const [activeTab, setActiveTab] = useState('notifications');
+  const [activeTab, setActiveTab] = useState('appearance');
 
-  // Notifications, privacy and account switches live in UserAccount.Preferences
-  // as JSON; theme and language have their own columns and are applied by their
-  // own contexts. Anything absent keeps the default set above, so an account
-  // that has never saved still gets a sensible page.
-  useEffect(() => {
-    if (!user?.dbId) {
-      return;
-    }
-
-    let cancelled = false;
-
-    const loadPreferences = async () => {
-      try {
-        const response = await apiFetch(`/api/users/${user.dbId}`);
-        if (!response.ok) {
-          throw new Error('PREFERENCES_FAILED');
-        }
-
-        const data = await response.json();
-        if (cancelled || !data?.preferences) {
-          return;
-        }
-
-        setSettings(prev => ({
-          ...prev,
-          notifications: { ...prev.notifications, ...(data.preferences.notifications || {}) },
-          privacy: { ...prev.privacy, ...(data.preferences.privacy || {}) },
-          account: { ...prev.account, ...(data.preferences.account || {}) }
-        }));
-      } catch (error) {
-        console.warn('Unable to load saved settings', error);
-      }
-    };
-
-    loadPreferences();
-    return () => { cancelled = true; };
-  }, [user?.dbId]);
-  
   const handleTabChange = (tabId) => {
     setActiveTab(tabId);
     // Show modal on mobile/tablet
@@ -114,14 +62,10 @@ const [saveState, setSaveState] = useState(null);
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          // Theme and language are stored in their own columns.
+          // Theme and language are stored in their own columns, and nothing is
+          // left that belongs in the preferences document.
           theme: settings.appearance.theme,
-          language: settings.appearance.language,
-          preferences: {
-            notifications: settings.notifications,
-            privacy: settings.privacy,
-            account: settings.account
-          }
+          language: settings.appearance.language
         })
       });
 
@@ -140,23 +84,9 @@ const [saveState, setSaveState] = useState(null);
   const handleReset = () => {
     if (window.confirm(t('settings.resetConfirm'))) {
       setSettings({
-        notifications: {
-          email: true,
-          push: true,
-          surveys: true,
-          news: true,
-          chat: true
-        },
-        privacy: {
-          showEmail: false,
-        },
         appearance: {
           theme: 'light',
-          language: 'am',
-        },
-        account: {
-          sessionTimeout: 15,
-          autoLogout: true
+          language: 'am'
         }
       });
       changeLanguage('am');
@@ -166,8 +96,7 @@ const [saveState, setSaveState] = useState(null);
 
 
   const tabs = [
-    { id: 'appearance', label: t('tabs.appearance'), icon: Palette },
-    { id: 'account', label: t('tabs.account'), icon: SettingsIcon }
+    { id: 'appearance', label: t('tabs.appearance'), icon: Palette }
   ];
   const renderSettingsContent = () => (
     <div className="settings-panel">
@@ -232,48 +161,6 @@ const [saveState, setSaveState] = useState(null);
                   </div>
                 </div>
               )}
-
-             {activeTab === 'account' && (
-  <div className="settings-section">
-    <h2>{t('account.title')}</h2>
-    <p className="section-description">{t('account.subtitle')}</p>
-
-    <div className="settings-group">
-      <h3>{t('account.security')}</h3>
-      <div className="setting-item">
-        <div className="setting-info">
-          <label className="setting-label">{t('account.sessionTimeout')}</label>
-          <p className="setting-description">{t('account.sessionTimeoutDesc')}</p>
-        </div>
-        <select
-          value={settings.account.sessionTimeout}
-          onChange={(e) => handleSettingChange('account', 'sessionTimeout', parseInt(e.target.value))}
-          className="setting-select"
-        >
-          <option value={15}>{t('account.minutes15')}</option>
-          <option value={30}>{t('account.minutes30')}</option>
-          <option value={60}>{t('account.hour1')}</option>
-          <option value={120}>{t('account.hours2')}</option>
-        </select>
-      </div>
-
-      <div className="setting-item">
-        <div className="setting-info">
-          <label className="setting-label">{t('account.autoLogout')}</label>
-          <p className="setting-description">{t('account.autoLogoutDesc')}</p>
-        </div>
-        <label className="toggle">
-          <input
-            type="checkbox"
-            checked={settings.account.autoLogout}
-            onChange={(e) => handleSettingChange('account', 'autoLogout', e.target.checked)}
-          />
-          <span className="toggle-slider"></span>
-        </label>
-      </div>
-    </div>
-  </div>
-)}
 
               <div className="settings-actions">
                   <button onClick={handleReset} className="btn btn-secondary">
