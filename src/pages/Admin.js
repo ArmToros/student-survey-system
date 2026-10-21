@@ -1,12 +1,20 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   ShieldCheck,
   Users,
   ClipboardList,
   BellRing,
-  Settings2,
   AlertTriangle,
-  Info
+  Info,
+  HelpCircle,
+  UserCog,
+  Newspaper,
+  Search,
+  Paperclip,
+  X,
+  KeyRound,
+  Pencil,
+  Trash2
 
 } from 'lucide-react';
 import './Admin.css';
@@ -18,6 +26,47 @@ const Admin = () => {
   const { t } = useLanguage();
   const { user } = useAuth();
   const [activeSection, setActiveSection] = useState(null);
+
+  // The preset questions shown on the support page, with their ready-made
+  // answers. Admins own this list; everyone else only reads it.
+  const [presets, setPresets] = useState([]);
+  const [presetForm, setPresetForm] = useState({ question: '', answer: '' });
+  const [editingPreset, setEditingPreset] = useState(null);
+  const [presetBusy, setPresetBusy] = useState(false);
+  const [presetError, setPresetError] = useState(null);
+  const [botName, setBotName] = useState('');
+  const [botSaved, setBotSaved] = useState(false);
+
+  // Accounts. Only admins reach this, and only here can a profile be changed.
+  const BLANK_USER = {
+    firstName: '', lastName: '', email: '', phone: '', address: '',
+    role: 'Student', major: '', degree: 'Bachelor', startYear: '', department: '', password: ''
+  };
+  const [users, setUsers] = useState([]);
+  const [userForm, setUserForm] = useState(BLANK_USER);
+  const [editingUser, setEditingUser] = useState(null);
+  const [userBusy, setUserBusy] = useState(false);
+  const [userError, setUserError] = useState(null);
+  const [broadcast, setBroadcast] = useState({ title: '', content: '', audience: [] });
+  const [broadcastFile, setBroadcastFile] = useState(null);
+  const [broadcastBusy, setBroadcastBusy] = useState(false);
+  const [broadcastResult, setBroadcastResult] = useState(null);
+  const [broadcastError, setBroadcastError] = useState(null);
+  const [userSearch, setUserSearch] = useState('');
+  const [userRoleFilter, setUserRoleFilter] = useState('All');
+  const [userSort, setUserSort] = useState('name');
+  const [passwordFor, setPasswordFor] = useState(null);
+  const [newPassword, setNewPassword] = useState('');
+  const [passwordDone, setPasswordDone] = useState(null);
+
+  // News. Admins write it; the audience decides who sees it.
+  const BLANK_ARTICLE = { title: '', content: '', newsTypeId: '', audience: [] };
+  const [articles, setArticles] = useState([]);
+  const [newsTypes, setNewsTypes] = useState([]);
+  const [articleForm, setArticleForm] = useState(BLANK_ARTICLE);
+  const [editingArticle, setEditingArticle] = useState(null);
+  const [newsBusy, setNewsBusy] = useState(false);
+  const [newsError, setNewsError] = useState(null);
   const [adminStats, setAdminStats] = useState(null);
 
   useEffect(() => {
@@ -51,15 +100,15 @@ const Admin = () => {
       icon: ClipboardList
     },
     {
-      label: t('adminPage.stats.pendingApprovals'),
+      label: t('adminPage.stats.completedSurveys'),
       value: adminStats?.completedSurveys ?? '0',
-      trend: t('dashboard.stats.completed'),
+      trend: t('adminPage.stats.allTime'),
       icon: ShieldCheck
     },
     {
-      label: t('adminPage.stats.incidents'),
+      label: t('dashboard.stats.totalResponses'),
       value: adminStats?.totalResponses ?? '0',
-      trend: t('dashboard.stats.totalResponses'),
+      trend: t('adminPage.stats.allTime'),
       icon: AlertTriangle
     }
   ];
@@ -72,63 +121,504 @@ const Admin = () => {
       icon: BellRing
     },
     {
-      id: 'roles',
-      title: t('adminPage.quickActions.roles.title'),
-      description: t('adminPage.quickActions.roles.description'),
-      icon: Settings2
+      id: 'news',
+      title: t('adminPage.quickActions.news.title'),
+      description: t('adminPage.quickActions.news.description'),
+      icon: Newspaper
     },
     {
-      id: 'pending',
-      title: t('adminPage.quickActions.pending.title'),
-      description: t('adminPage.quickActions.pending.description'),
-      icon: ClipboardList
+      id: 'users',
+      title: t('adminPage.quickActions.users.title'),
+      description: t('adminPage.quickActions.users.description'),
+      icon: UserCog
+    },
+    {
+      id: 'support',
+      title: t('adminPage.quickActions.support.title'),
+      description: t('adminPage.quickActions.support.description'),
+      icon: HelpCircle
     },
   ];
 
-  // The three roles are fixed in the code and enforced by the API, so this is a
-  // reference list rather than something the console can edit.
-  const roleTemplates = [
-    {
-      id: 'admin',
-      name: t('adminPage.quickActions.roles.admin'),
-      permissions: [
-        t('adminPage.quickActions.roles.manageUsers'),
-        t('adminPage.quickActions.roles.publish'),
-        t('adminPage.quickActions.roles.viewResults'),
-        t('adminPage.quickActions.roles.editSystem')
-      ],
-      color: '#ef4444'
-    },
-    {
-      id: 'lecturer',
-      name: t('adminPage.quickActions.roles.lecturer'),
-      permissions: [
-        t('adminPage.quickActions.roles.create'),
-        t('adminPage.quickActions.roles.viewCourses'),
-        t('adminPage.quickActions.roles.viewResults')
-      ],
-      color: '#f59e0b'
-    },
-    {
-      id: 'student',
-      name: t('adminPage.quickActions.roles.student'),
-      permissions: [
-        t('adminPage.quickActions.roles.takeSurveys'),
-        t('adminPage.quickActions.roles.viewNews')
-      ],
-      color: '#10b981'
+  // A broadcast goes to real mailboxes and cannot be unsent, so it asks first
+  // and says plainly how many addresses it is about to reach.
+  const sendBroadcast = async () => {
+    if (!broadcast.title.trim() || !broadcast.content.trim()) {
+      return;
     }
-  ];
 
-  const UnavailableNotice = ({ children }) => (
-    <p className="feature-unavailable">
-      <Info size={18} />
-      <span>{children}</span>
-    </p>
-  );
+    const who = broadcast.audience.length > 0
+      ? broadcast.audience.map(role => t(`header.roleLabels.${role.toLowerCase()}`)).join(', ')
+      : t('adminPage.quickActions.broadcast.allUsers');
+
+    const question = broadcastFile
+      ? t('adminPage.quickActions.broadcast.confirmWithFile')
+          .replace('{who}', who)
+          .replace('{file}', broadcastFile.name)
+      : t('adminPage.quickActions.broadcast.confirm').replace('{who}', who);
+
+    if (!window.confirm(question)) {
+      return;
+    }
+
+    setBroadcastBusy(true);
+    setBroadcastError(null);
+    setBroadcastResult(null);
+    try {
+      // Multipart rather than JSON, so the message and the file travel
+      // together. No Content-Type here on purpose: the browser has to set it,
+      // because only it knows the boundary string.
+      const payload = new FormData();
+      payload.append('Title', broadcast.title);
+      payload.append('Content', broadcast.content);
+      broadcast.audience.forEach(role => payload.append('Audience', role));
+      if (broadcastFile) {
+        payload.append('Attachment', broadcastFile);
+      }
+
+      const response = await apiFetch('/api/broadcast', {
+        method: 'POST',
+        body: payload
+      });
+
+      const data = await response.json().catch(() => null);
+      if (!response.ok) {
+        throw new Error(data?.message || 'BROADCAST_FAILED');
+      }
+
+      setBroadcastResult(data);
+      setBroadcast({ title: '', content: '', audience: [] });
+      setBroadcastFile(null);
+    } catch (failure) {
+      console.error(failure);
+      setBroadcastError(failure.message === 'BROADCAST_FAILED'
+        ? t('adminPage.quickActions.broadcast.failed')
+        : failure.message);
+    } finally {
+      setBroadcastBusy(false);
+    }
+  };
+
+  const setUserPassword = async () => {
+    if (!passwordFor || newPassword.trim().length < 8) {
+      return;
+    }
+
+    setUserBusy(true);
+    setUserError(null);
+    try {
+      const response = await apiFetch(`/api/users/${passwordFor.dbId}/password`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: newPassword })
+      });
+
+      const data = await response.json().catch(() => null);
+      if (!response.ok) {
+        throw new Error(data?.message || 'PASSWORD_FAILED');
+      }
+
+      setPasswordDone(passwordFor.email);
+      setPasswordFor(null);
+      setNewPassword('');
+      setTimeout(() => setPasswordDone(null), 6000);
+    } catch (error) {
+      console.error(error);
+      setUserError(error.message === 'PASSWORD_FAILED'
+        ? t('adminPage.quickActions.users.passwordFailed')
+        : error.message);
+    } finally {
+      setUserBusy(false);
+    }
+  };
+
+  // What the Accounts list actually shows: the search, the role filter and the
+  // sort applied in that order. Nineteen rows already need this; a real intake
+  // would be unusable without it.
+  const visibleUsers = useMemo(() => {
+    const needle = userSearch.trim().toLowerCase();
+
+    const matches = users.filter(account => {
+      if (userRoleFilter !== 'All' && account.roleLabel !== userRoleFilter && account.role !== userRoleFilter.toLowerCase()) {
+        return false;
+      }
+
+      if (!needle) {
+        return true;
+      }
+
+      return [
+        account.firstName,
+        account.lastName,
+        `${account.firstName} ${account.lastName}`,
+        account.email,
+        account.studentId,
+        account.major,
+        account.department,
+        account.degree
+      ].some(field => (field || '').toString().toLowerCase().includes(needle));
+    });
+
+    const byName = (a, b) =>
+      `${a.firstName} ${a.lastName}`.localeCompare(`${b.firstName} ${b.lastName}`);
+
+    const sorted = [...matches];
+    if (userSort === 'name') {
+      sorted.sort(byName);
+    } else if (userSort === 'email') {
+      sorted.sort((a, b) => (a.email || '').localeCompare(b.email || ''));
+    } else if (userSort === 'role') {
+      // Admins first, then lecturers, then students; alphabetical inside each.
+      const rank = { admin: 0, lecturer: 1, student: 2 };
+      sorted.sort((a, b) => (rank[a.role] ?? 9) - (rank[b.role] ?? 9) || byName(a, b));
+    } else if (userSort === 'newest') {
+      sorted.sort((a, b) => (b.dbId || 0) - (a.dbId || 0));
+    }
+
+    return sorted;
+  }, [users, userSearch, userRoleFilter, userSort]);
+
+  const loadNews = async () => {
+    try {
+      const [itemsResponse, typesResponse] = await Promise.all([
+        // Admins author for every audience, so the list is unfiltered here.
+        apiFetch('/api/news'),
+        apiFetch('/api/news/types')
+      ]);
+
+      if (!itemsResponse.ok || !typesResponse.ok) {
+        throw new Error('NEWS_FAILED');
+      }
+
+      setArticles(await itemsResponse.json());
+      setNewsTypes(await typesResponse.json());
+      setNewsError(null);
+    } catch (error) {
+      console.warn('Unable to load news', error);
+      setNewsError(t('adminPage.quickActions.news.loadFailed'));
+    }
+  };
+
+  const saveArticle = async () => {
+    if (!articleForm.title.trim() || !articleForm.content.trim()) {
+      return;
+    }
+
+    setNewsBusy(true);
+    setNewsError(null);
+    try {
+      const response = await apiFetch(
+        editingArticle ? `/api/news/${editingArticle}` : '/api/news',
+        {
+          method: editingArticle ? 'PUT' : 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            title: articleForm.title,
+            content: articleForm.content,
+            newsTypeId: articleForm.newsTypeId ? Number(articleForm.newsTypeId) : null,
+            audience: articleForm.audience
+          })
+        }
+      );
+
+      const data = await response.json().catch(() => null);
+      if (!response.ok) {
+        throw new Error(data?.message || 'SAVE_FAILED');
+      }
+
+      setArticleForm(BLANK_ARTICLE);
+      setEditingArticle(null);
+      await loadNews();
+    } catch (error) {
+      console.error(error);
+      setNewsError(error.message === 'SAVE_FAILED'
+        ? t('adminPage.quickActions.news.saveFailed')
+        : error.message);
+    } finally {
+      setNewsBusy(false);
+    }
+  };
+
+  const editArticle = (article) => {
+    setEditingArticle(article.id);
+    setArticleForm({
+      title: article.title || '',
+      content: article.content || '',
+      newsTypeId: article.newsTypeId || '',
+      audience: article.audience || []
+    });
+  };
+
+  const deleteArticle = async (article) => {
+    if (!window.confirm(t('adminPage.quickActions.news.deleteConfirm').replace('{title}', article.title))) {
+      return;
+    }
+
+    setNewsBusy(true);
+    setNewsError(null);
+    try {
+      const response = await apiFetch(`/api/news/${article.id}`, { method: 'DELETE' });
+      if (!response.ok) {
+        throw new Error('DELETE_FAILED');
+      }
+      await loadNews();
+    } catch (error) {
+      console.error(error);
+      setNewsError(t('adminPage.quickActions.news.saveFailed'));
+    } finally {
+      setNewsBusy(false);
+    }
+  };
+
+  const loadUsers = async () => {
+    try {
+      const response = await apiFetch('/api/users');
+      if (!response.ok) {
+        throw new Error('USERS_FAILED');
+      }
+      setUsers(await response.json());
+      setUserError(null);
+    } catch (error) {
+      console.warn('Unable to load accounts', error);
+      setUserError(t('adminPage.quickActions.users.loadFailed'));
+    }
+  };
+
+  const saveUser = async () => {
+    // Creating an account sends somebody a way into the system, and editing one
+    // changes details the person cannot change back themselves. Both are a
+    // click away from a misclick, so both ask.
+    const name = `${userForm.firstName} ${userForm.lastName}`.trim() || userForm.email;
+    const question = editingUser
+      ? t('adminPage.quickActions.users.saveConfirm').replace('{name}', name)
+      : t('adminPage.quickActions.users.createConfirm')
+          .replace('{name}', name)
+          .replace('{role}', t(`header.roleLabels.${userForm.role.toLowerCase()}`));
+
+    if (!window.confirm(question)) {
+      return;
+    }
+
+    setUserBusy(true);
+    setUserError(null);
+    try {
+      const payload = { ...userForm };
+      payload.startYear = payload.startYear === '' ? null : Number(payload.startYear);
+      if (editingUser) {
+        delete payload.password;
+      }
+
+      const response = await apiFetch(
+        editingUser ? `/api/users/${editingUser}` : '/api/users',
+        {
+          method: editingUser ? 'PUT' : 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        }
+      );
+
+      const data = await response.json().catch(() => null);
+      if (!response.ok) {
+        throw new Error(data?.message || 'SAVE_FAILED');
+      }
+
+      setUserForm(BLANK_USER);
+      setEditingUser(null);
+      await loadUsers();
+    } catch (error) {
+      console.error(error);
+      setUserError(error.message === 'SAVE_FAILED'
+        ? t('adminPage.quickActions.users.saveFailed')
+        : error.message);
+    } finally {
+      setUserBusy(false);
+    }
+  };
+
+  const editUser = (account) => {
+    setEditingUser(account.dbId);
+    setUserForm({
+      firstName: account.firstName || '',
+      lastName: account.lastName || '',
+      email: account.email || '',
+      phone: account.phone || '',
+      address: account.address || '',
+      role: account.role ? account.role.charAt(0).toUpperCase() + account.role.slice(1) : 'Student',
+      major: account.major || '',
+      degree: account.degree || 'Bachelor',
+      startYear: account.startYear || '',
+      department: account.department || '',
+      password: ''
+    });
+  };
+
+  const deleteUser = async (account) => {
+    if (!window.confirm(t('adminPage.quickActions.users.deleteConfirm').replace('{name}', `${account.firstName} ${account.lastName}`))) {
+      return;
+    }
+
+    setUserBusy(true);
+    setUserError(null);
+    try {
+      const response = await apiFetch(`/api/users/${account.dbId}`, { method: 'DELETE' });
+      const data = await response.json().catch(() => null);
+      if (!response.ok) {
+        throw new Error(data?.message || 'DELETE_FAILED');
+      }
+      await loadUsers();
+    } catch (error) {
+      console.error(error);
+      setUserError(error.message === 'DELETE_FAILED'
+        ? t('adminPage.quickActions.users.saveFailed')
+        : error.message);
+    } finally {
+      setUserBusy(false);
+    }
+  };
+
+  const loadBotName = async () => {
+    try {
+      const response = await apiFetch('/api/support/bot');
+      if (!response.ok) {
+        throw new Error('BOT_FAILED');
+      }
+      const data = await response.json();
+      setBotName(data?.name || '');
+    } catch (error) {
+      console.warn('Unable to load the bot name', error);
+    }
+  };
+
+  const saveBotName = async () => {
+    if (!botName.trim()) {
+      return;
+    }
+
+    setPresetBusy(true);
+    try {
+      const response = await apiFetch('/api/support/bot', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: botName })
+      });
+      if (!response.ok) {
+        throw new Error('BOT_SAVE_FAILED');
+      }
+      setBotSaved(true);
+      setTimeout(() => setBotSaved(false), 2500);
+    } catch (error) {
+      console.error(error);
+      setPresetError(t('adminPage.quickActions.support.saveFailed'));
+    } finally {
+      setPresetBusy(false);
+    }
+  };
+
+  const loadPresets = async () => {
+    try {
+      const response = await apiFetch('/api/support/questions');
+      if (!response.ok) {
+        throw new Error('PRESETS_FAILED');
+      }
+      setPresets(await response.json());
+      setPresetError(null);
+    } catch (error) {
+      console.warn('Unable to load preset questions', error);
+      setPresetError(t('adminPage.quickActions.support.loadFailed'));
+    }
+  };
+
+  useEffect(() => {
+    if (activeSection === 'support') {
+      loadPresets();
+      loadBotName();
+    }
+
+    if (activeSection === 'users') {
+      loadUsers();
+    }
+
+    if (activeSection === 'news') {
+      loadNews();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeSection]);
+
+  const savePreset = async () => {
+    if (!presetForm.question.trim() || !presetForm.answer.trim()) {
+      return;
+    }
+
+    setPresetBusy(true);
+    try {
+      const response = await apiFetch(
+        editingPreset ? `/api/support/questions/${editingPreset}` : '/api/support/questions',
+        {
+          method: editingPreset ? 'PUT' : 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(presetForm)
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error('SAVE_FAILED');
+      }
+
+      setPresetForm({ question: '', answer: '' });
+      setEditingPreset(null);
+      await loadPresets();
+    } catch (error) {
+      console.error(error);
+      setPresetError(t('adminPage.quickActions.support.saveFailed'));
+    } finally {
+      setPresetBusy(false);
+    }
+  };
+
+  const togglePresetActive = async (preset) => {
+    setPresetBusy(true);
+    try {
+      const response = await apiFetch(`/api/support/questions/${preset.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isActive: !preset.isActive })
+      });
+      if (!response.ok) {
+        throw new Error('TOGGLE_FAILED');
+      }
+      await loadPresets();
+    } catch (error) {
+      console.error(error);
+      setPresetError(t('adminPage.quickActions.support.saveFailed'));
+    } finally {
+      setPresetBusy(false);
+    }
+  };
+
+  const deletePreset = async (preset) => {
+    if (!window.confirm(t('adminPage.quickActions.support.deleteConfirm'))) {
+      return;
+    }
+
+    setPresetBusy(true);
+    try {
+      const response = await apiFetch(`/api/support/questions/${preset.id}`, { method: 'DELETE' });
+      if (!response.ok) {
+        throw new Error('DELETE_FAILED');
+      }
+      await loadPresets();
+    } catch (error) {
+      console.error(error);
+      setPresetError(t('adminPage.quickActions.support.saveFailed'));
+    } finally {
+      setPresetBusy(false);
+    }
+  };
+
 
   return (
     <div className="admin-page">
+      <div className="container">
       <section className="admin-hero">
         <div className="admin-hero-text">
           <p className="admin-hero-label">{t('adminPage.eyebrow')}</p>
@@ -211,81 +701,509 @@ const Admin = () => {
             <div className="content-section">
               <h2>{t('adminPage.quickActions.broadcast.broadcast')}</h2>
               <p>{t('adminPage.quickActions.broadcast.send')}</p>
-              <UnavailableNotice>
-                {t('adminPage.quickActions.broadcast.unavailable')}
-              </UnavailableNotice>
-              {/* Nothing delivers these messages, so the form is switched off and
-                  the submit is swallowed rather than reloading the page. */}
-              <form className="broadcast-form is-disabled" onSubmit={(event) => event.preventDefault()}>
-                <fieldset disabled>
-                  <div className="form-group">
-                    <label>{t('adminPage.quickActions.broadcast.messageTitle')}</label>
-                    <input type="text" placeholder={t('adminPage.quickActions.broadcast.enterTitle')} className="form-input" />
-                  </div>
-                  <div className="form-group">
-                    <label>{t('adminPage.quickActions.broadcast.messageContent')}</label>
-                    <textarea placeholder={t('adminPage.quickActions.broadcast.enterContent')} rows="6" className="form-input" />
-                  </div>
-                  <div className="form-group">
-                    <label>{t('adminPage.quickActions.broadcast.target')}</label>
-                    <div className="checkbox-group">
-                      <label className="checkbox-label">
-                        <input type="checkbox" />
-                        <span>{t('adminPage.quickActions.broadcast.allUsers')}</span>
-                      </label>
-                      <label className="checkbox-label">
-                        <input type="checkbox" />
-                        <span>{t('adminPage.quickActions.broadcast.admins')}</span>
-                      </label>
-                      <label className="checkbox-label">
-                        <input type="checkbox" />
-                        <span>{t('adminPage.quickActions.broadcast.lecturers')}</span>
-                      </label>
-                      <label className="checkbox-label">
-                        <input type="checkbox" />
-                        <span>{t('adminPage.quickActions.broadcast.students')}</span>
-                      </label>
+
+              {broadcastResult && (
+                <p className="bot-name-saved">
+                  {t('adminPage.quickActions.broadcast.sent')
+                    .replace('{sent}', broadcastResult.sent)
+                    .replace('{total}', broadcastResult.total)}
+                  {broadcastResult.failed > 0 && ' ' + t('adminPage.quickActions.broadcast.someFailed')
+                    .replace('{failed}', broadcastResult.failed)}
+                </p>
+              )}
+              {broadcastError && <p className="surveys-error">{broadcastError}</p>}
+
+              <form className="broadcast-form" onSubmit={(event) => { event.preventDefault(); sendBroadcast(); }}>
+                <div className="form-group">
+                  <label>{t('adminPage.quickActions.broadcast.messageTitle')}</label>
+                  <input
+                    type="text"
+                    placeholder={t('adminPage.quickActions.broadcast.enterTitle')}
+                    className="form-input"
+                    value={broadcast.title}
+                    onChange={(event) => setBroadcast({ ...broadcast, title: event.target.value })}
+                  />
+                </div>
+                <div className="form-group">
+                  <label>{t('adminPage.quickActions.broadcast.messageContent')}</label>
+                  <textarea
+                    placeholder={t('adminPage.quickActions.broadcast.enterContent')}
+                    rows="6"
+                    className="form-input"
+                    value={broadcast.content}
+                    onChange={(event) => setBroadcast({ ...broadcast, content: event.target.value })}
+                  />
+                </div>
+                <div className="form-group">
+                  <label>{t('adminPage.quickActions.broadcast.attachment')}</label>
+                  <p className="form-hint">{t('adminPage.quickActions.broadcast.attachmentHint')}</p>
+                  {broadcastFile ? (
+                    <div className="attachment-chosen">
+                      <Paperclip size={16} />
+                      <span className="attachment-name">{broadcastFile.name}</span>
+                      <span className="attachment-size">
+                        {(broadcastFile.size / 1024).toFixed(0)} KB
+                      </span>
+                      <button
+                        type="button"
+                        className="attachment-remove"
+                        onClick={() => setBroadcastFile(null)}
+                        title={t('adminPage.quickActions.broadcast.removeFile')}
+                      >
+                        <X size={14} />
+                      </button>
                     </div>
+                  ) : (
+                    <input
+                      type="file"
+                      className="form-input"
+                      onChange={(event) => setBroadcastFile(event.target.files?.[0] || null)}
+                    />
+                  )}
+                </div>
+                <div className="form-group">
+                  <label className="audience-label">{t('adminPage.quickActions.broadcast.target')}</label>
+                  <p className="form-hint">{t('adminPage.quickActions.broadcast.targetHint')}</p>
+                  <div className="audience-options">
+                    {['Student', 'Lecturer', 'Admin'].map(role => (
+                      <label key={role} className="audience-option">
+                        <input
+                          type="checkbox"
+                          checked={broadcast.audience.includes(role)}
+                          onChange={(event) => setBroadcast({
+                            ...broadcast,
+                            audience: event.target.checked
+                              ? [...broadcast.audience, role]
+                              : broadcast.audience.filter(item => item !== role)
+                          })}
+                        />
+                        <span>{t(`header.roleLabels.${role.toLowerCase()}`)}</span>
+                      </label>
+                    ))}
                   </div>
-                  <button type="submit" className="submit-button">{t('adminPage.quickActions.broadcast.sendBroadcast')}</button>
-                </fieldset>
+                </div>
+                <button
+                  type="submit"
+                  className="submit-button"
+                  disabled={broadcastBusy || !broadcast.title.trim() || !broadcast.content.trim()}
+                >
+                  {broadcastBusy
+                    ? t('adminPage.quickActions.broadcast.sending')
+                    : t('adminPage.quickActions.broadcast.sendBroadcast')}
+                </button>
               </form>
             </div>
           )}
 
-          {activeSection === 'roles' && (
+          {activeSection === 'news' && (
             <div className="content-section">
-              <h2>{t('adminPage.quickActions.roles.manage')}</h2>
-              <p>{t('adminPage.quickActions.roles.configure')}</p>
-              <UnavailableNotice>
-                {t('adminPage.quickActions.roles.readOnly')}
-              </UnavailableNotice>
-              <div className="roles-grid">
-                {roleTemplates.map((role) => (
-                  <div key={role.id} className="role-card">
-                    <h3 style={{ color: role.color }}>{role.name}</h3>
-                    <div className="permissions-list">
-                      {role.permissions.map((perm) => (
-                        <span key={perm} className="permission-badge">{perm}</span>
-                      ))}
-                    </div>
+              <h2>{t('adminPage.quickActions.news.heading')}</h2>
+              <p>{t('adminPage.quickActions.news.desc')}</p>
+
+              {newsError && <p className="preset-error">{newsError}</p>}
+
+              <div className="preset-form">
+                <input
+                  type="text"
+                  className="form-input"
+                  placeholder={t('adminPage.quickActions.news.titlePlaceholder')}
+                  value={articleForm.title}
+                  onChange={(event) => setArticleForm({ ...articleForm, title: event.target.value })}
+                />
+                <textarea
+                  rows="6"
+                  className="form-input"
+                  placeholder={t('adminPage.quickActions.news.bodyPlaceholder')}
+                  value={articleForm.content}
+                  onChange={(event) => setArticleForm({ ...articleForm, content: event.target.value })}
+                />
+
+                <select
+                  className="form-input"
+                  value={articleForm.newsTypeId}
+                  onChange={(event) => setArticleForm({ ...articleForm, newsTypeId: event.target.value })}
+                >
+                  <option value="">{t('adminPage.quickActions.news.chooseCategory')}</option>
+                  {newsTypes.map(type => (
+                    <option key={type.id} value={type.id}>{type.name}</option>
+                  ))}
+                </select>
+
+                <div>
+                  <label className="audience-label">{t('adminPage.quickActions.news.audience')}</label>
+                  <p className="form-hint">{t('adminPage.quickActions.news.audienceHint')}</p>
+                  <div className="audience-options">
+                    {['Student', 'Lecturer', 'Admin'].map(role => (
+                      <label key={role} className="audience-option">
+                        <input
+                          type="checkbox"
+                          checked={articleForm.audience.includes(role)}
+                          onChange={(event) => setArticleForm({
+                            ...articleForm,
+                            audience: event.target.checked
+                              ? [...articleForm.audience, role]
+                              : articleForm.audience.filter(item => item !== role)
+                          })}
+                        />
+                        <span>{t(`header.roleLabels.${role.toLowerCase()}`)}</span>
+                      </label>
+                    ))}
                   </div>
-                ))}
+                </div>
+
+                <div className="preset-form-actions">
+                  <button
+                    className="submit-button"
+                    onClick={saveArticle}
+                    disabled={newsBusy || !articleForm.title.trim() || !articleForm.content.trim()}
+                  >
+                    {editingArticle
+                      ? t('adminPage.quickActions.news.saveChanges')
+                      : t('adminPage.quickActions.news.publish')}
+                  </button>
+                  {editingArticle && (
+                    <button
+                      className="submit-button secondary"
+                      onClick={() => { setEditingArticle(null); setArticleForm(BLANK_ARTICLE); }}
+                    >
+                      {t('adminPage.quickActions.support.cancel')}
+                    </button>
+                  )}
+                </div>
               </div>
+
+              <ul className="preset-list">
+                {articles.map(article => (
+                  <li key={article.id} className="preset-row">
+                    <div className="preset-row-text">
+                      <strong>{article.title}</strong>
+                      <span>
+                        {article.category}
+                        {' · '}
+                        {article.audience && article.audience.length > 0
+                          ? article.audience.join(', ')
+                          : t('adminPage.quickActions.news.everyone')}
+                      </span>
+                    </div>
+                    <div className="preset-row-actions">
+                      <button onClick={() => editArticle(article)} title={t('adminPage.quickActions.support.edit')}>
+                        <Pencil size={16} />
+                      </button>
+                      <button onClick={() => deleteArticle(article)} disabled={newsBusy}
+                        title={t('adminPage.quickActions.news.delete')}>
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
             </div>
           )}
 
-          {activeSection === 'pending' && (
+          {activeSection === 'users' && (
             <div className="content-section">
-              <h2>{t('adminPage.quickActions.pending.pendingApprovals')}</h2>
-              <p>{t('adminPage.quickActions.pending.desc')}</p>
-              <UnavailableNotice>
-                {t('adminPage.quickActions.pending.unavailable')}
-              </UnavailableNotice>
+              <h2>{t('adminPage.quickActions.users.heading')}</h2>
+              <p>{t('adminPage.quickActions.users.desc')}</p>
+
+              {userError && <p className="preset-error">{userError}</p>}
+
+              <div className="user-form">
+                <input className="form-input" placeholder={t('adminPage.quickActions.users.firstName')}
+                  value={userForm.firstName}
+                  onChange={(e) => setUserForm({ ...userForm, firstName: e.target.value })} />
+                <input className="form-input" placeholder={t('adminPage.quickActions.users.lastName')}
+                  value={userForm.lastName}
+                  onChange={(e) => setUserForm({ ...userForm, lastName: e.target.value })} />
+                <input className="form-input" type="email" placeholder={t('adminPage.quickActions.users.email')}
+                  value={userForm.email}
+                  onChange={(e) => setUserForm({ ...userForm, email: e.target.value })} />
+                <input className="form-input" placeholder={t('adminPage.quickActions.users.phone')}
+                  value={userForm.phone}
+                  onChange={(e) => setUserForm({ ...userForm, phone: e.target.value })} />
+
+                <select className="form-input" value={userForm.role}
+                  onChange={(e) => setUserForm({ ...userForm, role: e.target.value })}>
+                  <option value="Student">{t('header.roleLabels.student')}</option>
+                  <option value="Lecturer">{t('header.roleLabels.lecturer')}</option>
+                  <option value="Admin">{t('header.roleLabels.admin')}</option>
+                </select>
+
+                {userForm.role === 'Student' && (
+                  <>
+                    <input className="form-input" placeholder={t('adminPage.quickActions.users.major')}
+                      value={userForm.major}
+                      onChange={(e) => setUserForm({ ...userForm, major: e.target.value })} />
+                    <select className="form-input" value={userForm.degree}
+                      onChange={(e) => setUserForm({ ...userForm, degree: e.target.value })}>
+                      <option value="Bachelor">Bachelor</option>
+                      <option value="Master">Master</option>
+                      <option value="PhD">PhD</option>
+                    </select>
+                    <input className="form-input" type="number" min="1900" max="2100"
+                      placeholder={t('adminPage.quickActions.users.startYear')}
+                      value={userForm.startYear}
+                      onChange={(e) => setUserForm({ ...userForm, startYear: e.target.value })} />
+                  </>
+                )}
+
+                {userForm.role === 'Lecturer' && (
+                  <input className="form-input" placeholder={t('adminPage.quickActions.users.department')}
+                    value={userForm.department}
+                    onChange={(e) => setUserForm({ ...userForm, department: e.target.value })} />
+                )}
+
+                {!editingUser && (
+                  <input className="form-input" type="password"
+                    placeholder={t('adminPage.quickActions.users.password')}
+                    value={userForm.password}
+                    onChange={(e) => setUserForm({ ...userForm, password: e.target.value })} />
+                )}
+              </div>
+
+              <p className="bot-name-hint">{t('adminPage.quickActions.users.yearHint')}</p>
+
+              <div className="preset-form-actions">
+                <button className="submit-button" onClick={saveUser} disabled={userBusy}>
+                  {editingUser
+                    ? t('adminPage.quickActions.users.saveChanges')
+                    : t('adminPage.quickActions.users.addUser')}
+                </button>
+                {editingUser && (
+                  <button className="submit-button secondary"
+                    onClick={() => { setEditingUser(null); setUserForm(BLANK_USER); }}>
+                    {t('adminPage.quickActions.support.cancel')}
+                  </button>
+                )}
+              </div>
+
+              {passwordDone && (
+                <p className="bot-name-saved">
+                  {t('adminPage.quickActions.users.passwordSet').replace('{email}', passwordDone)}
+                </p>
+              )}
+
+              {passwordFor && (
+                <div className="password-panel">
+                  <strong>
+                    {t('adminPage.quickActions.users.setPasswordFor')
+                      .replace('{name}', `${passwordFor.firstName} ${passwordFor.lastName}`)}
+                  </strong>
+                  <p className="form-hint">{t('adminPage.quickActions.users.passwordHint')}</p>
+                  <div className="password-panel-row">
+                    <input
+                      type="text"
+                      className="form-input"
+                      placeholder={t('adminPage.quickActions.users.password')}
+                      value={newPassword}
+                      onChange={(event) => setNewPassword(event.target.value)}
+                      autoFocus
+                    />
+                    <button
+                      className="submit-button"
+                      onClick={setUserPassword}
+                      disabled={userBusy || newPassword.trim().length < 8}
+                    >
+                      {t('adminPage.quickActions.users.saveChanges')}
+                    </button>
+                    <button
+                      className="submit-button secondary"
+                      onClick={() => { setPasswordFor(null); setNewPassword(''); }}
+                    >
+                      {t('adminPage.quickActions.support.cancel')}
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              <div className="user-toolbar">
+                <div className="user-search">
+                  <Search size={16} />
+                  <input
+                    type="search"
+                    className="form-input"
+                    placeholder={t('adminPage.quickActions.users.searchPlaceholder')}
+                    value={userSearch}
+                    onChange={(event) => setUserSearch(event.target.value)}
+                  />
+                </div>
+
+                <select
+                  className="form-input"
+                  value={userRoleFilter}
+                  onChange={(event) => setUserRoleFilter(event.target.value)}
+                  aria-label={t('adminPage.quickActions.users.filterByRole')}
+                >
+                  <option value="All">{t('adminPage.quickActions.users.allRoles')}</option>
+                  <option value="Student">{t('header.roleLabels.student')}</option>
+                  <option value="Lecturer">{t('header.roleLabels.lecturer')}</option>
+                  <option value="Admin">{t('header.roleLabels.admin')}</option>
+                </select>
+
+                <select
+                  className="form-input"
+                  value={userSort}
+                  onChange={(event) => setUserSort(event.target.value)}
+                  aria-label={t('adminPage.quickActions.users.sortBy')}
+                >
+                  <option value="name">{t('adminPage.quickActions.users.sortName')}</option>
+                  <option value="role">{t('adminPage.quickActions.users.sortRole')}</option>
+                  <option value="email">{t('adminPage.quickActions.users.sortEmail')}</option>
+                  <option value="newest">{t('adminPage.quickActions.users.sortNewest')}</option>
+                </select>
+              </div>
+
+              <p className="user-count">
+                {t('adminPage.quickActions.users.showing')
+                  .replace('{shown}', visibleUsers.length)
+                  .replace('{total}', users.length)}
+              </p>
+
+              <ul className="preset-list user-list">
+                {visibleUsers.map(account => (
+                  <li key={account.dbId} className="preset-row">
+                    <div className="preset-row-text">
+                      <strong>{account.firstName} {account.lastName}</strong>
+                      <span>
+                        {account.email} &middot; {account.roleLabel}
+                        {account.major ? ` · ${account.major}` : ''}
+                        {account.degree ? ` · ${account.degree}` : ''}
+                        {account.academicYear ? ` · ${t('accountPage.year')} ${account.academicYear}` : ''}
+                        {account.department ? ` · ${account.department}` : ''}
+                      </span>
+                    </div>
+                    <div className="preset-row-actions">
+                      <button onClick={() => editUser(account)} title={t('adminPage.quickActions.support.edit')}>
+                        <Pencil size={16} />
+                      </button>
+                      <button
+                        onClick={() => { setPasswordFor(account); setNewPassword(''); }}
+                        title={t('adminPage.quickActions.users.setPassword')}
+                      >
+                        <KeyRound size={16} />
+                      </button>
+                      <button onClick={() => deleteUser(account)} disabled={userBusy}
+                        title={t('adminPage.quickActions.users.delete')}>
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+
+              {visibleUsers.length === 0 && users.length > 0 && (
+                <p className="form-hint">{t('adminPage.quickActions.users.noMatches')}</p>
+              )}
             </div>
           )}
+
+          {activeSection === 'support' && (
+            <div className="content-section">
+              <h2>{t('adminPage.quickActions.support.heading')}</h2>
+              <p>{t('adminPage.quickActions.support.desc')}</p>
+
+              {presetError && <p className="preset-error">{presetError}</p>}
+
+              <div className="bot-name-row">
+                <label htmlFor="bot-name">{t('adminPage.quickActions.support.botName')}</label>
+                <input
+                  id="bot-name"
+                  type="text"
+                  className="form-input"
+                  value={botName}
+                  onChange={(event) => setBotName(event.target.value)}
+                />
+                <button
+                  className="submit-button"
+                  onClick={saveBotName}
+                  disabled={presetBusy || !botName.trim()}
+                >
+                  {t('adminPage.quickActions.support.saveChanges')}
+                </button>
+                {botSaved && <span className="bot-name-saved">{t('settings.saveSuccess')}</span>}
+              </div>
+              <p className="bot-name-hint">{t('adminPage.quickActions.support.botNameHint')}</p>
+
+              <div className="preset-form">
+                <input
+                  type="text"
+                  className="form-input"
+                  placeholder={t('adminPage.quickActions.support.questionPlaceholder')}
+                  value={presetForm.question}
+                  onChange={(event) => setPresetForm({ ...presetForm, question: event.target.value })}
+                />
+                <textarea
+                  rows="4"
+                  className="form-input"
+                  placeholder={t('adminPage.quickActions.support.answerPlaceholder')}
+                  value={presetForm.answer}
+                  onChange={(event) => setPresetForm({ ...presetForm, answer: event.target.value })}
+                />
+                <div className="preset-form-actions">
+                  <button
+                    className="submit-button"
+                    onClick={savePreset}
+                    disabled={presetBusy || !presetForm.question.trim() || !presetForm.answer.trim()}
+                  >
+                    {editingPreset
+                      ? t('adminPage.quickActions.support.saveChanges')
+                      : t('adminPage.quickActions.support.addQuestion')}
+                  </button>
+                  {editingPreset && (
+                    <button
+                      className="submit-button secondary"
+                      onClick={() => {
+                        setEditingPreset(null);
+                        setPresetForm({ question: '', answer: '' });
+                      }}
+                    >
+                      {t('adminPage.quickActions.support.cancel')}
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              <ul className="preset-list">
+                {presets.map(preset => (
+                  <li key={preset.id} className={`preset-row ${preset.isActive ? '' : 'retired'}`}>
+                    <div className="preset-row-text">
+                      <strong>{preset.question}</strong>
+                      <span>{preset.answer}</span>
+                    </div>
+                    <div className="preset-row-actions">
+                      <button
+                        onClick={() => {
+                          setEditingPreset(preset.id);
+                          setPresetForm({ question: preset.question, answer: preset.answer });
+                        }}
+                        title={t('adminPage.quickActions.support.edit')}
+                      >
+                        <Pencil size={16} />
+                      </button>
+                      <button
+                        onClick={() => togglePresetActive(preset)}
+                        disabled={presetBusy}
+                      >
+                        {preset.isActive
+                          ? t('adminPage.quickActions.support.retire')
+                          : t('adminPage.quickActions.support.restore')}
+                      </button>
+                      <button
+                        onClick={() => deletePreset(preset)}
+                        disabled={presetBusy}
+                        title={t('adminPage.quickActions.support.delete')}
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
         </div>
       )}
+      </div>
     </div>
   );
 };

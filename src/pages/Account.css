@@ -68,6 +68,18 @@
   transition: border-color 0.3s ease;
 }
 
+/* The same class covers the uploaded picture and the placeholder shown when
+   there is none. The placeholder is a div, so its icon needs centring - left to
+   itself it sits in the corner and the whole circle looks off. */
+div.profile-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+}
+
 .avatar-edit-btn {
   position: absolute;
   bottom: 0;
@@ -132,7 +144,7 @@
 
 .details-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr));
   gap: 24px;
 }
 
@@ -207,7 +219,7 @@
 
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr));
   gap: 24px;
 }
 
@@ -288,11 +300,11 @@
   }
   
   .details-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
   
   .stats-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 16px;
   }
   
@@ -302,3 +314,40 @@
   }
 }
 
+
+/* Profile picture ---------------------------------------------------------- */
+.avatar-file-input {
+  display: none;
+}
+
+.avatar-remove-btn {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  border: none;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #dc2626;
+  color: #fff;
+  cursor: pointer;
+}
+
+.avatar-remove-btn:disabled,
+.avatar-edit-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+img.profile-avatar {
+  object-fit: cover;
+}
+
+.photo-error {
+  color: #dc2626;
+  font-size: 13px;
+  margin: 4px 0 0;
+}

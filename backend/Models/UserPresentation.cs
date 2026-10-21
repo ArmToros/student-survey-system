@@ -1,3 +1,4 @@
+using System.Text.Json;
 using System;
 using System.Collections.Generic;
 
@@ -49,8 +50,71 @@ public static class UserPresentation
             phone = user.Phone,
             address = user.Address,
             language = ToLanguageCode(user.Language),
-            theme = ToTheme(user.Theme)
+            theme = ToTheme(user.Theme),
+            avatar = user.PhotoUrl,
+            joinDate = user.JoinDate,
+            studentId = user.StudentDatum?.StudentId,
+            major = user.StudentDatum?.Major,
+            degree = user.StudentDatum?.Degree,
+            academicYear = ToAcademicYear(user.StudentDatum),
+            startYear = user.StudentDatum?.StartYear,
+            department = user.LecturerDatum?.Department,
+            preferences = ToPreferences(user.Preferences)
         };
+    }
+
+    /// <summary>
+    /// The stored preferences document, as an object rather than a string, so the
+    /// client reads it like any other field. Anything unparseable is treated as
+    /// "no preferences saved yet" rather than failing the whole request.
+    /// </summary>
+    public static JsonElement? ToPreferences(string? stored)
+    {
+        if (string.IsNullOrWhiteSpace(stored))
+        {
+            return null;
+        }
+
+        try
+        {
+            using var document = JsonDocument.Parse(stored);
+            return document.RootElement.Clone();
+        }
+        catch (JsonException)
+        {
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// Which year of their degree a student is in, counted from the September
+    /// they started: 2023 means year 1 in 2023/24, year 2 in 2024/25 and so on.
+    ///
+    /// Working it out on every read is what makes it roll over on 1 September
+    /// without anything having to run that day. A row with no StartYear falls
+    /// back to the stored AcademicYear, which is the best that can be said about
+    /// it.
+    /// </summary>
+    public static int? ToAcademicYear(StudentDatum? student, DateTime? asOf = null)
+    {
+        if (student == null)
+        {
+            return null;
+        }
+
+        if (student.StartYear == null)
+        {
+            return student.AcademicYear;
+        }
+
+        var today = asOf ?? DateTime.Today;
+
+        // The academic year turns over on 1 September, so anything before that
+        // still belongs to the year that began the previous September.
+        var currentIntake = today.Month >= 9 ? today.Year : today.Year - 1;
+        var year = currentIntake - student.StartYear.Value + 1;
+
+        return year < 1 ? 1 : year;
     }
 
     /// <summary>"Admin" -> "admin"; anything unrecognised falls back to "student".</summary>

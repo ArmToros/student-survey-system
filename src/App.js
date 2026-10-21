@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { ThemeProvider } from './contexts/ThemeContext';
 import Header from './components/Header';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -9,6 +9,7 @@ import SurveyForm from './pages/SurveyForm';
 import CreateSurvey from './pages/CreateSurvey';
 import SurveyResults from './pages/SurveyResults';
 import News from './pages/News';
+import Courses from './pages/Courses';
 import Chat from './pages/Chat';
 import Account from './pages/Account';
 import Settings from './pages/Settings';
@@ -30,7 +31,9 @@ function AppContent() {
       <main className={isLoginPage ? "main-content no-header" : "main-content"}>
         <Routes>
           <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Login />} />
+          {/* Accounts are created by an admin, so there is nothing to sign up for.
+              Anyone arriving on an old /register link lands on the login page. */}
+          <Route path="/register" element={<Navigate to="/login" replace />} />
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route
             path="/"
@@ -59,7 +62,7 @@ function AppContent() {
           <Route
             path="/create-survey"
             element={
-              <ProtectedRoute allowedRoles={['admin', 'lecturer']}>
+              <ProtectedRoute allowedRoles={['admin']}>
                 <CreateSurvey />
               </ProtectedRoute>
             }
@@ -67,8 +70,16 @@ function AppContent() {
           <Route
             path="/results/:id"
             element={
-              <ProtectedRoute allowedRoles={['admin', 'lecturer']}>
+              <ProtectedRoute>
                 <SurveyResults />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/courses"
+            element={
+              <ProtectedRoute>
+                <Courses />
               </ProtectedRoute>
             }
           />

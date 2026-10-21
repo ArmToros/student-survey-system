@@ -5,6 +5,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
 import './Settings.css';
 import emailjs from '@emailjs/browser';
+import { apiFetch } from '../services/api';
 
 const Settings = () => {
   const { theme, toggleTheme } = useTheme();
@@ -17,6 +18,7 @@ const [emailError, setEmailError] = useState("");
 
 const [twoFactorSent, setTwoFactorSent] = useState(false);
 const [showSettingsModal, setShowSettingsModal] = useState(false);
+const [saveState, setSaveState] = useState(null);
   const [settings, setSettings] = useState({
     notifications: {
       email: true,
@@ -44,6 +46,44 @@ const [showSettingsModal, setShowSettingsModal] = useState(false);
   const { logout } = useAuth();
 
   const [activeTab, setActiveTab] = useState('notifications');
+
+  // Notifications, privacy and account switches live in UserAccount.Preferences
+  // as JSON; theme and language have their own columns and are applied by their
+  // own contexts. Anything absent keeps the default set above, so an account
+  // that has never saved still gets a sensible page.
+  useEffect(() => {
+    if (!user?.dbId) {
+      return;
+    }
+
+    let cancelled = false;
+
+    const loadPreferences = async () => {
+      try {
+        const response = await apiFetch(`/api/users/${user.dbId}`);
+        if (!response.ok) {
+          throw new Error('PREFERENCES_FAILED');
+        }
+
+        const data = await response.json();
+        if (cancelled || !data?.preferences) {
+          return;
+        }
+
+        setSettings(prev => ({
+          ...prev,
+          notifications: { ...prev.notifications, ...(data.preferences.notifications || {}) },
+          privacy: { ...prev.privacy, ...(data.preferences.privacy || {}) },
+          account: { ...prev.account, ...(data.preferences.account || {}) }
+        }));
+      } catch (error) {
+        console.warn('Unable to load saved settings', error);
+      }
+    };
+
+    loadPreferences();
+    return () => { cancelled = true; };
+  }, [user?.dbId]);
   
   const handleTabChange = (tabId) => {
     setActiveTab(tabId);
@@ -71,9 +111,38 @@ const [showSettingsModal, setShowSettingsModal] = useState(false);
     }
   };
 
-  const handleSave = () => {
-    console.log('Settings saved:', settings);
-    alert(t('settings.saveSuccess'));
+  const handleSave = async () => {
+    if (!user?.dbId) {
+      return;
+    }
+
+    setSaveState('saving');
+    try {
+      const response = await apiFetch(`/api/users/${user.dbId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          // Theme and language are stored in their own columns.
+          theme: settings.appearance.theme,
+          language: settings.appearance.language,
+          preferences: {
+            notifications: settings.notifications,
+            privacy: settings.privacy,
+            account: settings.account
+          }
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('SAVE_FAILED');
+      }
+
+      setSaveState('saved');
+      setTimeout(() => setSaveState(current => (current === 'saved' ? null : current)), 2500);
+    } catch (error) {
+      console.error(error);
+      setSaveState('error');
+    }
   };
 
   const handleReset = () => {
@@ -500,10 +569,20 @@ const [showSettingsModal, setShowSettingsModal] = useState(false);
                     <RotateCcw size={16} />
                     {t('settings.reset')}
                   </button>
-                  <button onClick={handleSave} className="btn btn-primary">
+                  <button
+                    onClick={handleSave}
+                    className="btn btn-primary"
+                    disabled={saveState === 'saving'}
+                  >
                     <Save size={16} />
-                    {t('settings.save')}
+                    {saveState === 'saving' ? t('settings.saving') : t('settings.save')}
                   </button>
+                  {saveState === 'saved' && (
+                    <span className="settings-saved">{t('settings.saveSuccess')}</span>
+                  )}
+                  {saveState === 'error' && (
+                    <span className="settings-save-error">{t('settings.saveFailed')}</span>
+                  )}
                 </div>
               )}
     </div>

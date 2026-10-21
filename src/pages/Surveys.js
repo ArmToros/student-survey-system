@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { Users, HelpCircle, ClipboardList } from 'lucide-react';
+import { Users, HelpCircle, ClipboardList, Trash2, Lock, Unlock } from 'lucide-react';
 import './Surveys.css';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -12,10 +12,16 @@ import { apiFetch } from '../services/api';
  */
 const Surveys = () => {
   const { t } = useLanguage();
-  const { user } = useAuth();
 
   // The API restricts aggregated results to staff, so students never see the link.
-  const canViewResults = user?.role === 'admin' || user?.role === 'lecturer';
+  const { user } = useAuth();
+
+  // Results carry no names, so they are open to anyone signed in.
+  const canViewResults = true;
+  const canDelete = user?.role === 'admin';
+  const [deletingId, setDeletingId] = useState(null);
+  const [deleteError, setDeleteError] = useState(null);
+  const [closingId, setClosingId] = useState(null);
 
   const [surveys, setSurveys] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -46,6 +52,68 @@ const Surveys = () => {
     loadSurveys();
   }, [loadSurveys]);
 
+  // Closing ends a survey without destroying it: no more answers, but the
+  // results stay open to everyone. Deleting is the other thing, and it takes
+  // the responses with it.
+  const toggleSurveyOpen = async (survey) => {
+    const closing = survey.status === 'active';
+    const question = closing
+      ? t('surveysPage.closeConfirm')
+      : t('surveysPage.reopenConfirm');
+
+    if (!window.confirm(`${survey.title}
+
+${question}`)) {
+      return;
+    }
+
+    setClosingId(survey.id);
+    setDeleteError(null);
+    try {
+      const response = await apiFetch(`/api/surveys/${survey.id}/status`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isClosed: closing })
+      });
+
+      if (!response.ok) {
+        throw new Error('CLOSE_FAILED');
+      }
+
+      await loadSurveys();
+    } catch (failure) {
+      console.error(failure);
+      setDeleteError(t('surveysPage.closeFailed'));
+    } finally {
+      setClosingId(null);
+    }
+  };
+
+  const deleteSurvey = async (survey) => {
+    const warning = survey.responses > 0
+      ? t('surveysPage.deleteConfirmWithResponses').replace('{count}', survey.responses)
+      : t('surveysPage.deleteConfirm');
+
+    if (!window.confirm(`${survey.title}\n\n${warning}`)) {
+      return;
+    }
+
+    setDeletingId(survey.id);
+    setDeleteError(null);
+    try {
+      const response = await apiFetch(`/api/surveys/${survey.id}`, { method: 'DELETE' });
+      if (!response.ok) {
+        throw new Error('DELETE_FAILED');
+      }
+      await loadSurveys();
+    } catch (failure) {
+      console.error(failure);
+      setDeleteError(t('surveysPage.deleteFailed'));
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
   if (loading) {
     return (
       <div className="surveys-page">
@@ -66,6 +134,8 @@ const Surveys = () => {
           <h1>{t('surveysPage.title')}</h1>
           <p>{t('surveysPage.subtitle')}</p>
         </div>
+
+        {deleteError && <p className="surveys-error">{deleteError}</p>}
 
         {failed && (
           <div className="surveys-state">
@@ -101,10 +171,13 @@ const Surveys = () => {
                       <Users size={16} />
                       {survey.responses} {t('dashboard.responses')}
                     </span>
+                    {survey.category && (
+                      <span className="survey-category">{survey.category}</span>
+                    )}
                     <span className={`survey-row-status ${survey.status}`}>
                       {survey.status === 'active'
                         ? t('dashboard.stats.active')
-                        : t('dashboard.stats.oneCompleted')}
+                        : t('surveysPage.closedNotice')}
                     </span>
                   </div>
                 </div>
@@ -118,6 +191,28 @@ const Surveys = () => {
                     <Link to={`/results/${survey.id}`} className="btn btn-secondary">
                       {t('dashboard.viewResults')}
                     </Link>
+                  )}
+                  {canDelete && (
+                    <button
+                      className="btn btn-secondary"
+                      onClick={() => toggleSurveyOpen(survey)}
+                      disabled={closingId === survey.id}
+                      title={survey.status === 'active'
+                        ? t('surveysPage.close')
+                        : t('surveysPage.reopen')}
+                    >
+                      {survey.status === 'active' ? <Lock size={16} /> : <Unlock size={16} />}
+                    </button>
+                  )}
+                  {canDelete && (
+                    <button
+                      className="btn btn-danger"
+                      onClick={() => deleteSurvey(survey)}
+                      disabled={deletingId === survey.id}
+                      title={t('surveysPage.delete')}
+                    >
+                      <Trash2 size={16} />
+                    </button>
                   )}
                 </div>
               </div>

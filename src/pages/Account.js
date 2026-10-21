@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from 'react';
-import { User, Mail, Phone, MapPin, Calendar, Edit3, Save, X, Camera } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { User, Mail, Phone, MapPin, Calendar, Edit3, Save, X, Camera, Trash2, GraduationCap, MessageCircle } from 'lucide-react';
 import './Account.css';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -10,8 +11,136 @@ const Account = () => {
   const {  t } = useLanguage();
   const [isEditing, setIsEditing] = useState(false);
   const { user, updateUser } = useAuth();
+  // An account is administrative data. Admins change it; everyone else reads
+  // their own and asks support for a correction.
+  const isAdmin = user?.role === 'admin';
   const [userData, setUserData] = useState(user);
   const [editData, setEditData] = useState({ ...userData });
+  const photoInputRef = useRef(null);
+  const [photoBusy, setPhotoBusy] = useState(false);
+  const [photoError, setPhotoError] = useState(null);
+  // Counted from the data rather than invented: the panel used to show the
+  // same three numbers to every account.
+  const [stats, setStats] = useState(null);
+  const isStudent = user?.role === 'student';
+  const isLecturer = user?.role === 'lecturer';
+  // The signed-in account is cached from the login, so the page re-reads it to
+  // pick up anything an admin has changed since.
+  useEffect(() => {
+    if (!user?.dbId) {
+      return;
+    }
+
+    let cancelled = false;
+
+    const refresh = async () => {
+      try {
+        const response = await apiFetch(`/api/users/${user.dbId}`);
+        if (!response.ok) {
+          throw new Error('ACCOUNT_FAILED');
+        }
+        const data = await response.json();
+        if (!cancelled) {
+          setUserData(data);
+          setEditData({ ...data });
+        }
+      } catch (error) {
+        console.warn('Unable to refresh the account', error);
+      }
+    };
+
+    refresh();
+    return () => { cancelled = true; };
+  }, [user?.dbId]);
+
+  useEffect(() => {
+    if (!user?.dbId) {
+      return;
+    }
+
+    let cancelled = false;
+
+    const loadStats = async () => {
+      try {
+        const response = await apiFetch(`/api/users/${user.dbId}/statistics`);
+        if (!response.ok) {
+          throw new Error('STATS_FAILED');
+        }
+        const data = await response.json();
+        if (!cancelled) {
+          setStats(data);
+        }
+      } catch (error) {
+        console.warn('Unable to load the account statistics', error);
+      }
+    };
+
+    loadStats();
+    return () => { cancelled = true; };
+  }, [user?.dbId]);
+
+  // The picture is uploaded on its own, not with the rest of the profile, so
+  // choosing one takes effect immediately and does not need the edit mode.
+  const uploadPhoto = async (event) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+
+    if (!file || !userData?.dbId) {
+      return;
+    }
+
+    setPhotoBusy(true);
+    setPhotoError(null);
+    try {
+      const body = new FormData();
+      body.append('file', file);
+
+      // No Content-Type header here on purpose: the browser has to set the
+      // multipart boundary itself.
+      const response = await apiFetch(`/api/users/${userData.dbId}/photo`, {
+        method: 'POST',
+        body
+      });
+
+      const data = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        throw new Error(data?.message || 'UPLOAD_FAILED');
+      }
+
+      setUserData(data);
+      updateUser(data);
+    } catch (error) {
+      console.error(error);
+      setPhotoError(error.message === 'UPLOAD_FAILED' ? t('accountPage.photoFailed') : error.message);
+    } finally {
+      setPhotoBusy(false);
+    }
+  };
+
+  const removePhoto = async () => {
+    if (!userData?.dbId) {
+      return;
+    }
+
+    setPhotoBusy(true);
+    setPhotoError(null);
+    try {
+      const response = await apiFetch(`/api/users/${userData.dbId}/photo`, { method: 'DELETE' });
+      if (!response.ok) {
+        throw new Error('REMOVE_FAILED');
+      }
+      const data = await response.json();
+      setUserData(data);
+      updateUser(data);
+    } catch (error) {
+      console.error(error);
+      setPhotoError(t('accountPage.photoFailed'));
+    } finally {
+      setPhotoBusy(false);
+    }
+  };
+
   const displayId = userData?.studentId || userData?.dbId || userData?.id?.split('-').pop() || '—';
 
   // The same field holds the account number for every role, so only the label
@@ -97,17 +226,45 @@ const Account = () => {
                       <User size={40} />
                     </div>
                   )}
-                  <button className="avatar-edit-btn">
+                  <input
+                    ref={photoInputRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp,image/gif"
+                    onChange={uploadPhoto}
+                    className="avatar-file-input"
+                  />
+                  <button
+                    className="avatar-edit-btn"
+                    onClick={() => photoInputRef.current?.click()}
+                    disabled={photoBusy}
+                    title={t('accountPage.changePhoto')}
+                  >
                     <Camera size={16} />
                   </button>
+                  {userData?.avatar && (
+                    <button
+                      className="avatar-remove-btn"
+                      onClick={removePhoto}
+                      disabled={photoBusy}
+                      title={t('accountPage.removePhoto')}
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  )}
                 </div>
                 <div className="profile-info">
                   <h2>{userData?.firstName} {userData?.lastName}</h2>
+                  {photoError && <p className="photo-error">{photoError}</p>}
                   <p className="profile-email">{userData?.email}</p>
                   <p className="profile-role">{userData?.roleLabel}</p>
                 </div>
                 <div className="profile-actions">
-                  {!isEditing ? (
+                  {!isAdmin ? (
+                    <Link to="/chat" className="btn btn-outline">
+                      <MessageCircle size={16} />
+                      {t('accountPage.askSupport')}
+                    </Link>
+                  ) : !isEditing ? (
                     <button onClick={handleEdit} className="btn btn-outline">
                       <Edit3 size={16} />
                       {t('accountPage.editProfile')}
@@ -197,6 +354,7 @@ const Account = () => {
                     )}
                   </div>
 
+                  {isStudent && (
                   <div className="detail-item">
                     <label className="detail-label">
                       <User size={18} />
@@ -204,7 +362,9 @@ const Account = () => {
                     </label>
                     <span className="detail-value">{displayId}</span>
                   </div>
+                  )}
 
+                  {isStudent && (
                   <div className="detail-item">
                     <label className="detail-label">
                       <User size={18} />
@@ -226,28 +386,21 @@ const Account = () => {
                       <span className="detail-value">{userData?.major || '—'}</span>
                     )}
                   </div>
+                  )}
 
+                  {isStudent && (
                   <div className="detail-item">
                     <label className="detail-label">
                       <User size={18} />
                       {t('accountPage.academicYear')}
                     </label>
-                    {isEditing ? (
-                      <select
-                        value={editData.year || ''}
-                        onChange={(e) => handleInputChange('year', e.target.value)}
-                        className="detail-input"
-                      >
-                        <option value="Freshman">{t('accountPage.years.freshman')}</option>
-                        <option value="Sophomore">{t('accountPage.years.sophomore')}</option>
-                        <option value="Junior">{t('accountPage.years.junior')}</option>
-                        <option value="Senior">{t('accountPage.years.senior')}</option>
-                        <option value="Graduate">{t('accountPage.years.graduate')}</option>
-                      </select>
-                    ) : (
-                      <span className="detail-value">{userData?.year || '—'}</span>
-                    )}
+                    <span className="detail-value">
+                      {userData?.academicYear
+                        ? `${t('accountPage.year')} ${userData.academicYear}`
+                        : '—'}
+                    </span>
                   </div>
+                  )}
 
                   <div className="detail-item">
                     <label className="detail-label">
@@ -265,6 +418,16 @@ const Account = () => {
                       <span className="detail-value">{userData?.address || '—'}</span>
                     )}
                   </div>
+
+                  {isStudent && (
+                  <div className="detail-item">
+                    <label className="detail-label">
+                      <GraduationCap size={18} />
+                      {t('accountPage.degree')}
+                    </label>
+                    <span className="detail-value">{userData?.degree || '—'}</span>
+                  </div>
+                  )}
 
                   <div className="detail-item">
                     <label className="detail-label">
@@ -287,7 +450,7 @@ const Account = () => {
                 </div>
                 <div className="stat-content">
                   <h4>{t('accountPage.surveysCompleted')}</h4>
-                  <p className="stat-number">12</p>
+                  <p className="stat-number">{stats ? stats.surveysCompleted : '—'}</p>
                 </div>
               </div>
               <div className="stat-card">
@@ -296,7 +459,7 @@ const Account = () => {
                 </div>
                 <div className="stat-content">
                   <h4>{t('accountPage.daysActive')}</h4>
-                  <p className="stat-number">156</p>
+                  <p className="stat-number">{stats && stats.daysActive !== null ? stats.daysActive : '—'}</p>
                 </div>
               </div>
               <div className="stat-card">
@@ -305,7 +468,7 @@ const Account = () => {
                 </div>
                 <div className="stat-content">
                   <h4>{t('accountPage.messagesSent')}</h4>
-                  <p className="stat-number">89</p>
+                  <p className="stat-number">{stats ? stats.messagesSent : '—'}</p>
                 </div>
               </div>
             </div>

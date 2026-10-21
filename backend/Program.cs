@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -189,6 +190,32 @@ if (runPasswordAssignment)
     return await PasswordAssignment.RunAsync(app.Services, passwordOutputPath);
 }
 
+// The app is reached through nginx on the VPS, so every request arrives from
+// the proxy's Tailscale address. Without this, the login rate limiter keys on
+// that one address and its ten attempts a minute are shared by everybody -
+// one tester signing in locks the rest out with a 429.
+//
+// Only the proxy is trusted to speak for its clients, and the forwarded list
+// is cleared first so a header invented by a caller cannot be believed. The
+// address comes from TRUSTED_PROXY so a different proxy does not need a code
+// change; with nothing set, nothing is trusted and behaviour is unchanged.
+var trustedProxy = builder.Configuration["TRUSTED_PROXY"];
+if (!string.IsNullOrWhiteSpace(trustedProxy)
+    && System.Net.IPAddress.TryParse(trustedProxy.Trim(), out var proxyAddress))
+{
+    var forwarding = new ForwardedHeadersOptions
+    {
+        ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto,
+        ForwardLimit = 1
+    };
+
+    forwarding.KnownNetworks.Clear();
+    forwarding.KnownProxies.Clear();
+    forwarding.KnownProxies.Add(proxyAddress);
+
+    app.UseForwardedHeaders(forwarding);
+}
+
 if (app.Environment.IsDevelopment())
 {
     // Both of these are developer tools and neither belongs on a published URL:
@@ -235,6 +262,21 @@ if (frontendFiles != null)
     app.UseDefaultFiles(new DefaultFilesOptions { FileProvider = frontendFiles });
     app.UseStaticFiles(new StaticFileOptions { FileProvider = frontendFiles });
 }
+
+// Uploaded profile pictures. They live on disk rather than in the database, so
+// restoring the SSS backup leaves them alone. The folder is created on the
+// first upload, and is git-ignored.
+var uploadsPath = Path.Combine(app.Environment.ContentRootPath, "uploads");
+Directory.CreateDirectory(uploadsPath);
+
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(uploadsPath),
+    RequestPath = "/uploads",
+    // Only the handful of image types the upload endpoint accepts are served,
+    // so an unexpected file in that folder is not handed out as anything.
+    ServeUnknownFileTypes = false
+});
 
 app.UseRateLimiter();
 

@@ -3,41 +3,6 @@ import { AUTH_EXPIRED_EVENT, apiFetch, getAuthToken, setAuthToken } from '../ser
 
 const STORAGE_KEY = 'sss-auth-user';
 
-// Accounts that exist in the restored SSS database, shown by the "Quick role
-// access" panel on the login page so the app can be tried without hunting for a
-// login. These replace an earlier hardcoded set (admin@sss.edu / Admin@123) that
-// no longer exists in the database.
-//
-// The passwords really are these strings: UserAccount.PasswordHash holds
-// placeholder values such as "hash_admin_1" and the backend compares them in
-// plain text. Replace this with real hashing before any deployment.
-const DEMO_ACCOUNTS = [
-  {
-    role: 'admin',
-    roleLabel: 'Administrator',
-    firstName: 'Arman',
-    lastName: 'Sargsyan',
-    email: 'arman.sargsyan@uni.am',
-    password: 'hash_admin_1'
-  },
-  {
-    role: 'lecturer',
-    roleLabel: 'Lecturer',
-    firstName: 'Gevorg',
-    lastName: 'Harutyunyan',
-    email: 'gevorg.h@uni.am',
-    password: 'hash_lect_1'
-  },
-  {
-    role: 'student',
-    roleLabel: 'Student',
-    firstName: 'Davit',
-    lastName: 'Hovhannisyan',
-    email: 'davit.h@student.uni.am',
-    password: 'hash_stud_1'
-  }
-];
-
 const loadPersistedUser = () => {
   if (typeof window === 'undefined') {
     return null;
@@ -80,23 +45,6 @@ export const AuthProvider = ({ children }) => {
   // real accounts on a page anyone can open, so it is withheld. The passwords it
   // lists are the placeholders from the backup and stop working as soon as
   // "npm run db:set-passwords" has been run.
-  const credentialHints = useMemo(
-    () => {
-      const hostname = typeof window === 'undefined' ? '' : window.location.hostname;
-      if (hostname !== 'localhost' && hostname !== '127.0.0.1') {
-        return [];
-      }
-
-      return DEMO_ACCOUNTS.map(({ role, roleLabel, email, password, firstName, lastName }) => ({
-        role,
-        roleLabel,
-        email,
-        password,
-        name: `${firstName} ${lastName}`
-      }));
-    },
-    []
-  );
 
   const login = async (email, password) => {
     const normalizedEmail = email.toLowerCase().trim();
@@ -136,72 +84,6 @@ export const AuthProvider = ({ children }) => {
       }
 
       throw new Error('INVALID_CREDENTIALS');
-    }
-  };
-
-  const register = async (name, email, password) => {
-    const normalizedEmail = email.toLowerCase().trim();
-
-    // Validation
-    if (!normalizedEmail || !password || !name) {
-      throw new Error('MISSING_FIELDS');
-    }
-
-    // Email format validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(normalizedEmail)) {
-      throw new Error('INVALID_EMAIL');
-    }
-
-    let response;
-    try {
-      response = await apiFetch('/api/auth/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ name, email: normalizedEmail, password })
-      });
-    } catch (networkErr) {
-      console.error(networkErr);
-      throw new Error('NETWORK_ERROR');
-    }
-
-    if (!response.ok) {
-      let apiMessage = '';
-      try {
-        const errBody = await response.json();
-        apiMessage = String(errBody?.message ?? errBody?.title ?? '');
-      } catch {
-        // non-JSON error body
-      }
-
-      const looksLikeDuplicate =
-        response.status === 400 &&
-        /email\s+already|already\s+exists|duplicate/i.test(apiMessage);
-
-      if (looksLikeDuplicate) {
-        throw new Error('EMAIL_ALREADY_EXISTS');
-      }
-
-      if (response.status >= 500) {
-        throw new Error('SERVER_ERROR');
-      }
-
-      throw new Error('REGISTRATION_FAILED');
-    }
-
-    try {
-      const session = await response.json();
-      setAuthToken(session.token);
-
-      const safeUser = session.user;
-      setUser(safeUser);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(safeUser));
-      return safeUser;
-    } catch (parseErr) {
-      console.error(parseErr);
-      throw new Error('INVALID_RESPONSE');
     }
   };
 
@@ -296,13 +178,11 @@ export const AuthProvider = ({ children }) => {
     user,
     isAuthenticated: Boolean(user),
     login,
-    register,
     logout,
     updateUser,
     requestPasswordReset,
     confirmPasswordReset,
     hasRole,
-    credentialHints,
     roles: {
       ADMIN: 'admin',
       LECTURER: 'lecturer',

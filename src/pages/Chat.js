@@ -1,416 +1,560 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Send, Phone, Video, MoreVertical, Search, Users, MessageCircle, Smile, ArrowLeft, X } from 'lucide-react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { Send, MessageCircle, Search, Smile, CheckCircle, RotateCcw, Trash2, Bot } from 'lucide-react';
 import './Chat.css';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
 import { apiFetch } from '../services/api';
 
+// A small fixed palette: enough to be useful without pulling in an emoji library.
+const EMOJIS = ['😀', '🙂', '👍', '🙏', '📚', '✅', '❓', '🎉', '😢', '❤️'];
+
+/**
+ * Help and support.
+ *
+ * The left column is the old messenger list, now holding two kinds of row: the
+ * questions admins have written answers for, and the conversations you are part
+ * of. Picking a question shows its answer and starts nothing. "Ask something
+ * else" sends your question to an admin and opens a conversation.
+ *
+ * Closing, reopening and removing a conversation belong to the admin it was
+ * assigned to. Everyone else can read and reply.
+ */
 const Chat = () => {
-  const {t} = useLanguage();
+  const { t } = useLanguage();
   const { user } = useAuth();
-  const [selectedChat, setSelectedChat] = useState(1);
-  const [message, setMessage] = useState('');
+
+  const [presets, setPresets] = useState([]);
+  const [botName, setBotName] = useState('Bot AI');
+  // The bot conversation is not stored: it is a transcript of what this visitor
+  // has asked it during this visit, rebuilt from the preset list each time.
+  const [botTranscript, setBotTranscript] = useState([]);
   const [chats, setChats] = useState([]);
-  const [messages, setMessages] = useState([]);
-  const [aiMessages, setAiMessages] = useState([
-    {
-      id: 1,
-      sender: 'AI Assistant',
-      message: 'Hi. Ask me anything about surveys, courses, news, student services, or how to use this university system.',
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      isOwn: false
-    }
-  ]);
-  const [isAiTyping, setIsAiTyping] = useState(false);
-  const [showChatModal, setShowChatModal] = useState(() => window.innerWidth <= 1024);
-  const messagesEndRef = useRef(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  useEffect(() => {
-    const mockChats = [
-      {
-        id: 1,
-        name: 'AI Assistant',
-        lastMessage: 'Ask university questions',
-        time: "Online",
-        unread: 0,
-        online: true,
-        avatar: "https://images.unsplash.com/photo-1677442136019-21780ecad995?w=50&h=50&fit=crop&crop=face",
-        type: "bot"
-      },
-      {
-        id: 2,
-        name: t('chat.universityAdmin'),
-        lastMessage: t('chat.last_message2'),
-        time: "5 min ago",
-        unread: 1,
-        online: true,
-        avatar: "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=50&h=50&fit=crop&crop=face",
-        type: "university"
-      },
-      {
-        id: 3,
-        name: t('chat.librarySupport'),
-        lastMessage:  t('chat.last_message3'),
-        time: "3 hours ago",
-        unread: 1,
-        online: true,
-        avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=50&h=50&fit=crop&crop=face",
-        type: "support"
+  // What the right-hand panel shows: nothing, a preset answer, the ask form, or
+  // a conversation.
+  const [view, setView] = useState({ kind: 'none' });
+  const [thread, setThread] = useState(null);
+
+  const [draft, setDraft] = useState('');
+  const [newQuestion, setNewQuestion] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [showSearch, setShowSearch] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [showEmoji, setShowEmoji] = useState(false);
+
+  const endOfMessagesRef = useRef(null);
+
+  const loadPresets = useCallback(async () => {
+    try {
+      const response = await apiFetch('/api/support/questions');
+      if (!response.ok) {
+        throw new Error('PRESETS_FAILED');
       }
-    ];
+      setPresets(await response.json());
+    } catch (loadError) {
+      console.warn('Unable to load the preset questions', loadError);
+      setError(t('chat.loadFailed'));
+    }
+  }, [t]);
 
-    setChats(mockChats);
+  const loadBotName = useCallback(async () => {
+    try {
+      const response = await apiFetch('/api/support/bot');
+      if (!response.ok) {
+        throw new Error('BOT_FAILED');
+      }
+      const data = await response.json();
+      if (data?.name) {
+        setBotName(data.name);
+      }
+    } catch (loadError) {
+      // The default name is good enough; this is not worth an error banner.
+      console.warn('Unable to load the bot name', loadError);
+    }
+  }, []);
+
+  const loadChats = useCallback(async () => {
+    try {
+      const response = await apiFetch('/api/support/chats');
+      if (!response.ok) {
+        throw new Error('CHATS_FAILED');
+      }
+      setChats(await response.json());
+    } catch (loadError) {
+      console.warn('Unable to load conversations', loadError);
+      setError(t('chat.loadFailed'));
+    }
   }, [t]);
 
   useEffect(() => {
-    const mockMessages = {
-      1: [
-        { id: 1, sender: t('chat.botName'), message: t('chat.bot_msg1'), time: "10:30 AM", isOwn: false },
-        { id: 2, sender: "You", message: t('chat.bot_msg2'), time: "10:32 AM", isOwn: true },
-        { id: 3, sender: t('chat.botName'), message: t('chat.bot_msg3'), time: "10:33 AM", isOwn: false },
-        { id: 4, sender: "You", message: t('chat.bot_msg4'), time: "10:35 AM", isOwn: true },
-        { id: 5, sender: t('chat.botName'), message: t('chat.bot_msg5'), time: "10:36 AM", isOwn: false }
-      ],
-      2: [
-        { id: 1, sender: t('chat.universityAdmin'), message: t('chat.uni_msg1'), time: "9:15 AM", isOwn: false },
-        { id: 2, sender: "You", message:  t('chat.uni_msg2'), time: "9:20 AM", isOwn: true },
-        { id: 3, sender: t('chat.universityAdmin'), message: t('chat.uni_msg3'), time: "9:22 AM", isOwn: false },
-        { id: 4, sender: "You", message: t('chat.uni_msg4'), time: "9:25 AM", isOwn: true },
-        { id: 5, sender: t('chat.universityAdmin'), message: t('chat.uni_msg5'), time: "9:27 AM", isOwn: false }
-      ],
-      3: [
-        { id: 1, sender: t('chat.librarySupport'), message: t('chat.lib_msg1'), time: "8:30 AM", isOwn: false },
-        { id: 2, sender: "You", message: t('chat.lib_msg2'), time: "8:35 AM", isOwn: true },
-        { id: 3, sender:t('chat.librarySupport'), message: t('chat.lib_msg3'), time: "8:37 AM", isOwn: false },
-        { id: 4, sender: "You", message: t('chat.lib_msg4'), time: "8:40 AM", isOwn: true },
-        { id: 5, sender:t('chat.librarySupport'), message:t('chat.lib_msg5'), time: "8:42 AM", isOwn: false }
-      ]
-    };
-
-    if (selectedChat === 1) {
-      setMessages(aiMessages);
-    } else if (selectedChat) {
-      setMessages(mockMessages[selectedChat] || []);
-    } else {
-      setMessages([]);
-    }
-  }, [selectedChat, t, aiMessages]);
+    Promise.all([loadPresets(), loadChats(), loadBotName()]).finally(() => setLoading(false));
+  }, [loadPresets, loadChats, loadBotName]);
 
   useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
+    endOfMessagesRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [thread, botTranscript]);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  const openThread = async (chatId) => {
+    setView({ kind: 'chat', id: chatId });
+    setThread(null);
+    try {
+      const response = await apiFetch(`/api/support/chats/${chatId}`);
+      if (!response.ok) {
+        throw new Error('THREAD_FAILED');
+      }
+      setThread(await response.json());
+      setError(null);
+    } catch (threadError) {
+      console.error(threadError);
+      setError(t('chat.loadFailed'));
+    }
   };
 
-  const handleSendMessage = async () => {
-    const trimmedMessage = message.trim();
-    if (!trimmedMessage) {
+  const sendReply = async () => {
+    if (!draft.trim() || !thread) {
       return;
     }
 
-    const newMessage = {
-      id: Date.now(),
-      sender: "You",
-      message: trimmedMessage,
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      isOwn: true
-    };
-
-    setMessage('');
-
-    if (selectedChat !== 1) {
-      setMessages(prev => [...prev, newMessage]);
-      return;
-    }
-
-    const nextAiMessages = [...aiMessages, newMessage];
-    setAiMessages(nextAiMessages);
-    setIsAiTyping(true);
-
+    setBusy(true);
     try {
-      const response = await apiFetch('/api/ai-assistant/chat', {
+      const response = await apiFetch(`/api/support/chats/${thread.id}/messages`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          userId: user?.dbId,
-          message: trimmedMessage,
-          history: aiMessages
-            .slice(-8)
-            .map(item => ({
-              role: item.isOwn ? 'user' : 'assistant',
-              content: item.message
-            }))
-        })
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: draft })
       });
 
       if (!response.ok) {
-        const errorBody = await response.json().catch(() => null);
-        const detail = errorBody?.detail ? ` ${errorBody.detail}` : '';
-        throw new Error(`${errorBody?.message || 'AI assistant is unavailable.'}${detail}`);
+        throw new Error('SEND_FAILED');
       }
 
-      const data = await response.json();
-      setAiMessages(prev => [
-        ...prev,
-        {
-          id: Date.now() + 1,
-          sender: 'AI Assistant',
-          message: data.answer,
-          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-          isOwn: false
-        }
-      ]);
-    } catch (error) {
-      setAiMessages(prev => [
-        ...prev,
-        {
-          id: Date.now() + 1,
-          sender: 'AI Assistant',
-          message: error.message || 'AI assistant is unavailable. Please try again later.',
-          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-          isOwn: false,
-          isError: true
-        }
-      ]);
+      setDraft('');
+      await openThread(thread.id);
+      await loadChats();
+    } catch (sendError) {
+      console.error(sendError);
+      setError(t('chat.sendFailed'));
     } finally {
-      setIsAiTyping(false);
+      setBusy(false);
     }
   };
 
-  const handleKeyPress = (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSendMessage();
+  const askSomethingElse = async () => {
+    if (!newQuestion.trim()) {
+      return;
+    }
+
+    setBusy(true);
+    try {
+      const response = await apiFetch('/api/support/chats', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: newQuestion })
+      });
+
+      if (!response.ok) {
+        throw new Error('ASK_FAILED');
+      }
+
+      const created = await response.json();
+      setNewQuestion('');
+      await loadChats();
+      await openThread(created.id);
+    } catch (askError) {
+      console.error(askError);
+      setError(t('chat.sendFailed'));
+    } finally {
+      setBusy(false);
     }
   };
 
-  const handleChatSelect = (chatId) => {
-    setSelectedChat(chatId);
-    // Show modal on mobile/tablet
-    if (window.innerWidth <= 1024) {
-      setShowChatModal(true);
+  const setClosed = async (chatId, closed) => {
+    setBusy(true);
+    try {
+      const response = await apiFetch(
+        `/api/support/chats/${chatId}/${closed ? 'close' : 'reopen'}`,
+        { method: 'POST' }
+      );
+      if (!response.ok) {
+        throw new Error('CLOSE_FAILED');
+      }
+      await openThread(chatId);
+      await loadChats();
+    } catch (closeError) {
+      console.error(closeError);
+      setError(t('chat.actionFailed'));
+    } finally {
+      setBusy(false);
     }
   };
 
-  const handleCloseModal = () => {
-    setShowChatModal(false);
+  const removeConversation = async (chatId) => {
+    if (!window.confirm(t('chat.removeConfirm'))) {
+      return;
+    }
+
+    setBusy(true);
+    try {
+      const response = await apiFetch(`/api/support/chats/${chatId}`, { method: 'DELETE' });
+      if (!response.ok) {
+        throw new Error('REMOVE_FAILED');
+      }
+      setView({ kind: 'none' });
+      setThread(null);
+      await loadChats();
+    } catch (removeError) {
+      console.error(removeError);
+      setError(t('chat.actionFailed'));
+    } finally {
+      setBusy(false);
+    }
   };
 
-  const selectedChatData = chats.find(chat => chat.id === selectedChat);
+  // Picking a question writes both sides of the exchange into the transcript,
+  // so the bot reads as a conversation rather than a list of links.
+  const askBot = (preset) => {
+    setBotTranscript(current => [
+      ...current,
+      { id: `q-${preset.id}-${current.length}`, own: true, text: preset.question, at: new Date() },
+      { id: `a-${preset.id}-${current.length}`, own: false, text: preset.answer, at: new Date() }
+    ]);
+  };
+
+  const formatTime = (value) => {
+    if (!value) {
+      return '';
+    }
+    return new Date(value).toLocaleString(undefined, {
+      day: 'numeric',
+      month: 'short',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  const initials = (name) => (name || '?')
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map(part => part[0].toUpperCase())
+    .join('');
+
+  const term = searchTerm.trim().toLowerCase();
+  const matches = (text) => !term || (text || '').toLowerCase().includes(term);
+
+  const visiblePresets = presets.filter(preset => matches(preset.question) || matches(preset.answer));
+  const visibleChats = chats.filter(chat => matches(chat.title) || matches(chat.lastMessage));
+
+  // Only the admin a conversation was assigned to may close or remove it.
+  const canManageThread = thread && user?.role === 'admin' && !thread.mine;
+
+  if (loading) {
+    return (
+      <div className="chat">
+        <div className="chat-container">
+          <div className="loading">
+            <div className="spinner"></div>
+            <p>{t('chat.loading')}</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="chat">
       <div className="chat-container">
-        {/* Main Content with Chat Items */}
         <div className="chat-main-content">
           <div className="main-content-header">
-            <h2>{t('chat.messages')}</h2>
+            <h2>{t('chat.help')}</h2>
             <div className="header-actions">
-              <button className="action-btn">
+              <button
+                className="action-btn"
+                onClick={() => {
+                  setShowSearch(open => !open);
+                  setSearchTerm('');
+                }}
+                title={t('chat.search')}
+              >
                 <Search size={20} />
-              </button>
-              <button className="action-btn">
-                <MoreVertical size={20} />
               </button>
             </div>
           </div>
 
+          {showSearch && (
+            <div className="chat-search">
+              <input
+                type="text"
+                className="chat-search-input"
+                placeholder={t('chat.search')}
+                value={searchTerm}
+                onChange={(event) => setSearchTerm(event.target.value)}
+                autoFocus
+              />
+            </div>
+          )}
+
           <div className="chat-list-column">
-            {chats.map(chat => (
-              <div
-                key={chat.id}
-                className={`chat-item ${selectedChat === chat.id ? 'active' : ''}`}
-                onClick={() => handleChatSelect(chat.id)}
-              >
-                <div className="chat-avatar">
-                  <img src={chat.avatar} alt={chat.name} />
-                  {chat.online && <div className="online-indicator"></div>}
-                </div>
-                <div className="chat-info">
-                  <div className="chat-name">
-                    {chat.name}
-                    {chat.type === 'bot' && <span className="chat-badge bot">🤖</span>}
-                    {chat.type === 'university' && <span className="chat-badge university">🏛️</span>}
-                    {chat.type === 'support' && <span className="chat-badge support">📚</span>}
-                  </div>
-                  <div className="chat-preview">{chat.lastMessage}</div>
-                </div>
-                <div className="chat-meta">
-                  <div className="chat-time">{chat.time}</div>
-                  {chat.unread > 0 && (
-                    <div className="unread-badge">{chat.unread}</div>
-                  )}
-                </div>
+            <div
+              className={`chat-item ${view.kind === 'bot' ? 'active' : ''}`}
+              onClick={() => setView({ kind: 'bot' })}
+            >
+              <div className="chat-avatar">
+                <div className="avatar-initials bot"><Bot size={20} /></div>
               </div>
-            ))}
+              <div className="chat-info">
+                <div className="chat-name">
+                  <span className="chat-title-text">{botName}</span>
+                </div>
+                <div className="chat-preview">{t('chat.botPreview')}</div>
+              </div>
+            </div>
+
+            <p className="chat-section-label">{t('chat.yourConversations')}</p>
+
+            {visibleChats.length === 0 && (
+              <div className="chat-empty-hint">{t('chat.noConversations')}</div>
+            )}
+
+            {visibleChats.map(chat => {
+              const counterpart = chat.mine ? chat.adminName : chat.askedBy;
+              return (
+                <div
+                  key={`chat-${chat.id}`}
+                  className={`chat-item ${view.kind === 'chat' && view.id === chat.id ? 'active' : ''}`}
+                  onClick={() => openThread(chat.id)}
+                >
+                  <div className="chat-avatar">
+                    <div className="avatar-initials">{initials(counterpart)}</div>
+                  </div>
+                  <div className="chat-info">
+                    <div className="chat-name">
+                      <span className="chat-title-text">{chat.title}</span>
+                      {chat.isClosed && <span className="chat-badge">{t('chat.closed')}</span>}
+                    </div>
+                    <div className="chat-preview">{chat.lastMessage}</div>
+                  </div>
+                  <div className="chat-meta">
+                    <div className="chat-time">{formatTime(chat.createdAt)}</div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
 
-        {/* Desktop Chat Main - Always visible on desktop */}
         <div className="chat-main desktop-only">
-          {selectedChatData ? (
+          {error && <p className="chat-error">{error}</p>}
+
+          {view.kind === 'none' && (
+            <div className="no-chat-selected">
+              <MessageCircle size={64} />
+              <h3>{t('chat.chatUnavailable')}</h3>
+              <p>{t('chat.pickAQuestion')}</p>
+            </div>
+          )}
+
+          {view.kind === 'bot' && (
             <>
               <div className="chat-header">
                 <div className="chat-user">
                   <div className="chat-avatar">
-                    <img src={selectedChatData.avatar} alt={selectedChatData.name} />
-                    {selectedChatData.online && <div className="online-indicator"></div>}
+                    <div className="avatar-initials bot"><Bot size={20} /></div>
                   </div>
                   <div className="user-info">
-                    <h3>{selectedChatData.name}</h3>
-                    <span className="user-status">
-                      {selectedChatData.online ? 'Online' : 'Offline'}
-                    </span>
+                    <h3>{botName}</h3>
+                    <span className="user-status">{t('chat.botStatus')}</span>
                   </div>
-                </div>
-                <div className="chat-actions">
-                  <button className="action-btn">
-                    <Phone size={20} />
-                  </button>
-                  <button className="action-btn">
-                    <Video size={20} />
-                  </button>
-                  <button className="action-btn">
-                    <MoreVertical size={20} />
-                  </button>
                 </div>
               </div>
 
               <div className="messages-container">
                 <div className="messages">
-                  {messages.map(msg => (
-                    <div key={msg.id} className={`message ${msg.isOwn ? 'own' : 'other'} ${msg.isError ? 'error' : ''}`}>
+                  <div className="message other">
+                    <div className="message-content">
+                      <div className="message-text">{t('chat.botGreeting')}</div>
+                    </div>
+                  </div>
+
+                  {botTranscript.map(entry => (
+                    <div key={entry.id} className={`message ${entry.own ? 'own' : 'other'}`}>
                       <div className="message-content">
-                        <div className="message-text">{msg.message}</div>
-                        <div className="message-time">{msg.time}</div>
+                        <div className="message-text">{entry.text}</div>
                       </div>
                     </div>
                   ))}
-                  {isAiTyping && selectedChat === 1 && (
-                    <div className="message other">
-                      <div className="message-content">
-                        <div className="message-text">AI Assistant is thinking...</div>
-                      </div>
-                    </div>
-                  )}
-                  <div ref={messagesEndRef} />
+
+                  <div ref={endOfMessagesRef} />
                 </div>
               </div>
 
-              <div className="message-input">
-                <button className="input-btn">
-                  <Smile size={20} />
-                </button>
-                <input
-                  type="text"
-                  placeholder="Type a message..."
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  onKeyDown={handleKeyPress}
-                  disabled={isAiTyping && selectedChat === 1}
-                  className="message-field"
-                />
-                <button 
-                  onClick={handleSendMessage}
-                  className="send-btn"
-                  disabled={!message.trim() || (isAiTyping && selectedChat === 1)}
-                >
-                  <Send size={20} />
-                </button>
+              <div className="bot-options">
+                <p className="bot-options-label">{t('chat.botPick')}</p>
+
+                {visiblePresets.length === 0 && (
+                  <p className="chat-empty-hint">{t('chat.noQuestions')}</p>
+                )}
+
+                <div className="bot-option-list">
+                  {visiblePresets.map(preset => (
+                    <button
+                      key={preset.id}
+                      className="bot-option"
+                      onClick={() => askBot(preset)}
+                    >
+                      {preset.question}
+                      {!preset.isActive && (
+                        <span className="chat-badge">{t('chat.retired')}</span>
+                      )}
+                    </button>
+                  ))}
+
+                  <button
+                    className="bot-option other"
+                    onClick={() => setView({ kind: 'ask' })}
+                  >
+                    {t('chat.other')}
+                  </button>
+                </div>
               </div>
             </>
-          ) : (
-            <div className="no-chat-selected">
-              <MessageCircle size={64} />
-              <h3>{t('chat.chatUnavailable')}</h3>
-              <p>{t('chat.chatUnavailableDesc')}</p>
+          )}
+
+          {view.kind === 'ask' && (
+            <div className="ask-form">
+              <h3>{t('chat.askTitle')}</h3>
+              <p>{t('chat.askHint')}</p>
+              <textarea
+                rows="6"
+                className="ask-input"
+                placeholder={t('chat.askPlaceholder')}
+                value={newQuestion}
+                onChange={(event) => setNewQuestion(event.target.value)}
+              />
+              <button
+                className="btn btn-primary"
+                onClick={askSomethingElse}
+                disabled={busy || !newQuestion.trim()}
+              >
+                <Send size={16} /> {t('chat.sendQuestion')}
+              </button>
             </div>
+          )}
+
+          {view.kind === 'chat' && thread && (
+            <>
+              <div className="chat-header">
+                <div className="chat-user">
+                  <div className="chat-avatar">
+                    <div className="avatar-initials">
+                      {initials(thread.messages.find(message => !message.own)?.senderName)}
+                    </div>
+                  </div>
+                  <div className="user-info">
+                    <h3>{thread.title}</h3>
+                    <span className="user-status">
+                      {thread.isClosed ? t('chat.closed') : t('chat.open')}
+                    </span>
+                  </div>
+                </div>
+
+                {canManageThread && (
+                  <div className="chat-actions">
+                    <button
+                      className="action-btn"
+                      onClick={() => setClosed(thread.id, !thread.isClosed)}
+                      disabled={busy}
+                      title={thread.isClosed ? t('chat.reopen') : t('chat.close')}
+                    >
+                      {thread.isClosed ? <RotateCcw size={20} /> : <CheckCircle size={20} />}
+                    </button>
+                    <button
+                      className="action-btn"
+                      onClick={() => removeConversation(thread.id)}
+                      disabled={busy}
+                      title={t('chat.remove')}
+                    >
+                      <Trash2 size={20} />
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              <div className="messages-container">
+                <div className="messages">
+                  {thread.messages.map(message => (
+                    <div key={message.id} className={`message ${message.own ? 'own' : 'other'}`}>
+                      <div className="message-content">
+                        {!message.own && (
+                          <div className="message-sender">{message.senderName}</div>
+                        )}
+                        <div className="message-text">{message.text}</div>
+                        <div className="message-time">{formatTime(message.sentAt)}</div>
+                      </div>
+                    </div>
+                  ))}
+                  <div ref={endOfMessagesRef} />
+                </div>
+              </div>
+
+              {thread.isClosed ? (
+                <div className="chat-closed-note">{t('chat.closedNote')}</div>
+              ) : (
+                <div className="message-input">
+                  <div className="emoji-wrapper">
+                    <button
+                      className="input-btn"
+                      onClick={() => setShowEmoji(open => !open)}
+                      title="Emoji"
+                    >
+                      <Smile size={20} />
+                    </button>
+                    {showEmoji && (
+                      <div className="emoji-picker">
+                        {EMOJIS.map(emoji => (
+                          <button
+                            key={emoji}
+                            type="button"
+                            className="emoji-option"
+                            onClick={() => {
+                              setDraft(current => current + emoji);
+                              setShowEmoji(false);
+                            }}
+                          >
+                            {emoji}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  <input
+                    type="text"
+                    placeholder={t('chat.typeMessage')}
+                    value={draft}
+                    onChange={(event) => setDraft(event.target.value)}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter' && !event.shiftKey) {
+                        event.preventDefault();
+                        sendReply();
+                      }
+                    }}
+                    className="message-field"
+                    disabled={busy}
+                  />
+                  <button
+                    onClick={sendReply}
+                    className="send-btn"
+                    disabled={busy || !draft.trim()}
+                  >
+                    <Send size={20} />
+                  </button>
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>
-
-      {/* Mobile/Tablet Chat Modal */}
-      {showChatModal && selectedChatData && (
-        <div className="chat-modal-overlay" onClick={handleCloseModal}>
-          <div className="chat-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="chat-header">
-              <button className="back-btn" onClick={handleCloseModal}>
-                <ArrowLeft size={20} />
-              </button>
-              <div className="chat-user">
-                <div className="chat-avatar">
-                  <img src={selectedChatData.avatar} alt={selectedChatData.name} />
-                  {selectedChatData.online && <div className="online-indicator"></div>}
-                </div>
-                <div className="user-info">
-                  <h3>{selectedChatData.name}</h3>
-                  <span className="user-status">
-                    {selectedChatData.online ? 'Online' : 'Offline'}
-                  </span>
-                </div>
-              </div>
-              <div className="chat-actions">
-                <button className="action-btn">
-                  <Phone size={20} />
-                </button>
-                <button className="action-btn">
-                  <Video size={20} />
-                </button>
-                <button className="action-btn">
-                  <MoreVertical size={20} />
-                </button>
-              </div>
-            </div>
-
-            <div className="messages-container">
-              <div className="messages">
-                {messages.map(msg => (
-                  <div key={msg.id} className={`message ${msg.isOwn ? 'own' : 'other'} ${msg.isError ? 'error' : ''}`}>
-                    <div className="message-content">
-                      <div className="message-text">{msg.message}</div>
-                      <div className="message-time">{msg.time}</div>
-                    </div>
-                  </div>
-                ))}
-                {isAiTyping && selectedChat === 1 && (
-                  <div className="message other">
-                    <div className="message-content">
-                      <div className="message-text">AI Assistant is thinking...</div>
-                    </div>
-                  </div>
-                )}
-                <div ref={messagesEndRef} />
-              </div>
-            </div>
-
-            <div className="message-input">
-              <button className="input-btn">
-                <Smile size={20} />
-              </button>
-              <input
-                type="text"
-                placeholder="Type a message..."
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                onKeyDown={handleKeyPress}
-                disabled={isAiTyping && selectedChat === 1}
-                className="message-field"
-              />
-              <button 
-                onClick={handleSendMessage}
-                className="send-btn"
-                disabled={!message.trim() || (isAiTyping && selectedChat === 1)}
-              >
-                <Send size={20} />
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

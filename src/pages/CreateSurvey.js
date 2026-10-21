@@ -13,6 +13,9 @@ const CreateSurvey = () =>{
     title: '',
     description: '',
     category: 'Academic',
+    // Empty means everyone, matching how the API reads a survey with no
+    // audience rows.
+    audience: [],
     questions: []
   });
   const [saving, setSaving] = useState(false);
@@ -121,6 +124,7 @@ const CreateSurvey = () =>{
           title: survey.title,
           description: survey.description,
           category: survey.category,
+          audience: survey.audience,
           createdBy: user?.dbId,
           assignedAdmin: user?.role === 'admin' ? user?.dbId : undefined,
           // The question id here is only a local React key. The server assigns the
@@ -276,6 +280,28 @@ const CreateSurvey = () =>{
                   <option value="Infrastructure">{t('createSurvey.infrastructure')}</option>
                   <option value="Student Life">{t('createSurvey.studentLife')}</option>
                 </select>
+              </div>
+
+              <div className="form-group">
+                <label>{t('createSurvey.audience')}</label>
+                <p className="form-hint">{t('createSurvey.audienceHint')}</p>
+                <div className="audience-options">
+                  {['Student', 'Lecturer', 'Admin'].map(role => (
+                    <label key={role} className="audience-option">
+                      <input
+                        type="checkbox"
+                        checked={survey.audience.includes(role)}
+                        onChange={(event) => setSurvey(prev => ({
+                          ...prev,
+                          audience: event.target.checked
+                            ? [...prev.audience, role]
+                            : prev.audience.filter(item => item !== role)
+                        }))}
+                      />
+                      <span>{t(`header.roleLabels.${role.toLowerCase()}`)}</span>
+                    </label>
+                  ))}
+                </div>
               </div>
             </div>
           </div>

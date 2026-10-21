@@ -57,7 +57,10 @@ code {
 .container {
   max-width: 1300px;
   margin: 0 auto;
-  padding: 0 20px;
+  /* Breathing room at the edges. On a laptop the window is often a little
+     narrower than the 1300px the layout wants, and at 20px the header sat
+     almost against the glass. */
+  padding: 0 32px;
 }
 
 .btn {
@@ -250,13 +253,13 @@ code {
 /* Responsive Design */
 @media (max-width: 1024px) {
   .container {
-    padding: 0 20px;
+    padding: 0 24px;
   }
 }
 
 @media (max-width: 768px) {
   .container {
-    padding: 0 16px;
+    padding: 0 20px;
   }
   
   .card {
@@ -276,7 +279,7 @@ code {
 
 @media (max-width: 480px) {
   .container {
-    padding: 0 12px;
+    padding: 0 16px;
   }
   
   .card {

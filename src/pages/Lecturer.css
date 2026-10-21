@@ -82,7 +82,7 @@
 
 .lecturer-stats-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr));
   gap: 20px;
 }
 
@@ -209,7 +209,7 @@
 .lecturer-tools-grid {
   margin-top: 18px;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));
   gap: 16px;
 }
 
@@ -271,7 +271,7 @@
 
 @media (max-width: 900px) {
   .lecturer-main-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
@@ -341,7 +341,7 @@
    ============================ */
 .course-list {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr));
   gap: 16px;
 }
 
@@ -597,4 +597,21 @@
 
 .lecturer-back-button:hover {
   background: var(--bg-hover);
+}
+
+/* Course list state ------------------------------------------------------- */
+.course-error {
+  color: #dc2626;
+  font-size: 14px;
+  margin: 0 0 12px;
+}
+
+.course-empty {
+  opacity: 0.7;
+  font-size: 14px;
+}
+
+.course-students {
+  font-size: 13px;
+  opacity: 0.7;
 }

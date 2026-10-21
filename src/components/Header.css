@@ -35,7 +35,10 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 80px;
+  /* Not a fixed height: when the programme name has to take two lines the
+     header grows rather than clipping it. */
+  min-height: 80px;
+  gap: 16px;
   position: relative;
 }
 
@@ -43,6 +46,10 @@
   display: flex;
   align-items: center;
   gap: 24px;
+  /* A flex item will not shrink past its content unless it is allowed to,
+     and without this the nav pushes the account button off the page. */
+  min-width: 0;
+  flex: 0 1 auto;
 }
 
 .logo {
@@ -53,15 +60,17 @@
   color: var(--accent-color);
   font-size: 20px;
   font-weight: 700;
-  flex: 1;
+  /* May give way, but only by wrapping onto a second line - the name of the
+     programme is never cut off or hidden. In Armenian it is 682px wide on its
+     own, so a logo that refused to shrink pushed the nav straight through the
+     account button. */
+  flex: 0 1 auto;
   min-width: 0;
   transition: color 0.3s ease;
 }
 
 .logo span {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  overflow-wrap: anywhere;
 }
 
 .logo-image {
@@ -99,6 +108,10 @@
   display: flex;
   align-items: center;
   gap: 4px;
+  /* Never narrower than its links. Letting it shrink does not make the links
+     smaller - they simply spill out of it and sit on top of whatever is next
+     to them, which is how the nav ended up drawn through the account button. */
+  flex: 0 0 auto;
 }
 
 .nav-link {
@@ -168,6 +181,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  /* Without this the circle is squeezed narrower than it is tall when the name
+     beside it needs room, which turns the picture into an oval. */
+  flex-shrink: 0;
+  overflow: hidden;
   transition: background-color 0.3s ease;
 }
 
@@ -176,6 +193,7 @@
   height: 100%;
   border-radius: 50%;
   object-fit: cover;
+  display: block;
 }
 
 .account-name {
@@ -306,27 +324,27 @@
   color: #dc2626;
 }
 
-/* Hide nav link text when width < 1245px */
-@media (max-width: 1244px) {
-  .nav-link span,
-  .nav-link-text {
-    display: none;
-  }
-  
-  .nav-link {
-    padding: 10px;
-    gap: 0;
-  }
-  
-  .nav-link svg {
-    margin: 0;
-  }
+/* Labels off, icons only. The header measures itself and adds .is-compact when
+   the labels no longer fit; see the effect in Header.js. A width alone cannot
+   decide it, because the labels are far longer in Armenian than in English. */
+.header-content.is-compact .nav-link span,
+.header-content.is-compact .nav-link-text {
+  display: none;
+}
+
+.header-content.is-compact .nav-link {
+  padding: 10px;
+  gap: 0;
+}
+
+.header-content.is-compact .nav-link svg {
+  margin: 0;
 }
 
 /* Tablet and Mobile Responsive Styles */
 @media (max-width: 1024px) {
   .logo span {
-    display: none;
+    font-size: 17px;
   }
   
   .logo-image {
@@ -355,14 +373,26 @@
   
   .mobile-menu-button {
     display: flex;
+    /* The one control that must never be pushed off the screen: without the
+       menu there is no way to reach any other page. */
+    flex: 0 0 auto;
   }
   
+  /* Once the nav is behind the menu button the logo is the only thing that can
+     give way, so here it may shrink and the name wraps onto a second line.
+     In Armenian the name is 446px wide - wider than a phone screen - and while
+     the logo refused to shrink it carried the menu button off the edge with
+     it. The name still shows in full; it just takes two lines. */
   .logo {
     font-size: 18px;
+    flex: 1 1 auto;
+    min-width: 0;
   }
   
   .logo span {
-    display: none;
+    font-size: 15px;
+    white-space: normal;
+    overflow-wrap: anywhere;
   }
   
   .logo-image {
@@ -504,14 +534,18 @@
   
   .logo {
     font-size: 16px;
+    gap: 8px;
   }
   
   .logo-image {
     height: 28px;
   }
   
+  /* Too narrow for one line, so it wraps rather than disappearing. */
   .logo span {
-    display: none;
+    font-size: 13px;
+    line-height: 1.15;
+    white-space: normal;
   }
   
   .header-right {

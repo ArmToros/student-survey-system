@@ -249,6 +249,24 @@ PRINT 'Including schema-password-reset-token.sql...';
 GO
 :r $(SssScriptsDir)/schema-password-reset-token.sql
 
+-- The survey authoring columns are likewise added after a restore rather than
+-- coming from the backup, so the seeded database takes them from the same script.
+PRINT 'Including schema-authoring.sql...';
+GO
+:r $(SssScriptsDir)/schema-authoring.sql
+
+PRINT 'Including schema-support-chat.sql...';
+GO
+:r $(SssScriptsDir)/schema-support-chat.sql
+
+PRINT 'Including schema-student-profile.sql...';
+GO
+:r $(SssScriptsDir)/schema-student-profile.sql
+
+PRINT 'Including schema-survey-audience.sql...';
+GO
+:r $(SssScriptsDir)/schema-survey-audience.sql
+
 USE SSS;
 GO
 

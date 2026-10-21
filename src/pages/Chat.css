@@ -614,3 +614,346 @@
     margin-right: 8px;
   }
 }
+
+/* Search and emoji -------------------------------------------------------- */
+.chat-search {
+  padding: 0 16px 12px;
+}
+
+.chat-search-input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  border-radius: 10px;
+  font-size: 14px;
+  background: transparent;
+  color: inherit;
+}
+
+.chat-search-input:focus {
+  outline: none;
+  border-color: #2563eb;
+}
+
+.chat-empty-hint {
+  padding: 24px 16px;
+  text-align: center;
+  font-size: 14px;
+  opacity: 0.7;
+}
+
+.emoji-wrapper {
+  position: relative;
+  display: inline-flex;
+}
+
+.emoji-picker {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 0;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 4px;
+  padding: 8px;
+  background: var(--card-bg, #fff);
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  border-radius: 12px;
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.18);
+  z-index: 20;
+}
+
+.emoji-option {
+  border: none;
+  background: transparent;
+  font-size: 20px;
+  line-height: 1;
+  padding: 6px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.emoji-option:hover {
+  background: rgba(148, 163, 184, 0.2);
+}
+
+/* Support layout ---------------------------------------------------------- */
+.chat-section-label {
+  margin: 16px 16px 8px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  opacity: 0.55;
+}
+
+.preset-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 16px;
+  border: none;
+  background: transparent;
+  text-align: left;
+  font-size: 14px;
+  line-height: 1.4;
+  color: inherit;
+  cursor: pointer;
+}
+
+.preset-item:hover,
+.preset-item.active {
+  background: rgba(37, 99, 235, 0.08);
+}
+
+.preset-item.active {
+  border-left: 3px solid #2563eb;
+}
+
+.preset-item.other {
+  font-weight: 600;
+  color: #2563eb;
+}
+
+.preset-retired {
+  font-size: 11px;
+  opacity: 0.6;
+  font-style: normal;
+}
+
+.chat-item-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+}
+
+.chat-item-title {
+  font-weight: 600;
+  font-size: 14px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chat-item-sub {
+  font-size: 12px;
+  opacity: 0.65;
+}
+
+.chat-chip {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: rgba(100, 116, 139, 0.18);
+  flex-shrink: 0;
+}
+
+.preset-answer,
+.ask-form {
+  padding: 32px;
+  max-width: 680px;
+}
+
+.preset-answer h3,
+.ask-form h3 {
+  margin: 0 0 12px;
+}
+
+.preset-answer p,
+.ask-form p {
+  line-height: 1.7;
+  margin: 0 0 20px;
+}
+
+.preset-answer-footer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  border-top: 1px solid rgba(148, 163, 184, 0.3);
+  padding-top: 20px;
+  font-size: 14px;
+  opacity: 0.85;
+}
+
+.ask-input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.45);
+  border-radius: 10px;
+  font: inherit;
+  background: transparent;
+  color: inherit;
+  margin-bottom: 16px;
+  resize: vertical;
+}
+
+.ask-input:focus {
+  outline: none;
+  border-color: #2563eb;
+}
+
+.message-sender {
+  font-size: 12px;
+  font-weight: 600;
+  opacity: 0.7;
+  margin-bottom: 4px;
+}
+
+.chat-closed-note {
+  padding: 16px;
+  text-align: center;
+  font-size: 14px;
+  opacity: 0.7;
+  border-top: 1px solid rgba(148, 163, 184, 0.3);
+}
+
+.chat-error {
+  margin: 16px 32px 0;
+  color: #dc2626;
+  font-size: 14px;
+}
+
+.chat-admin-hint {
+  text-align: center;
+  font-size: 13px;
+  opacity: 0.7;
+  margin: 12px 16px 0;
+}
+
+/* Initial-letter avatars --------------------------------------------------- */
+/* The old design used photographs. Support conversations are with real
+   colleagues and students, and there are no pictures for them, so the circle
+   carries their initials instead. */
+.avatar-initials {
+  width: 100%;
+  height: 100%;
+  min-width: 40px;
+  min-height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 600;
+  color: #1d4ed8;
+  background: rgba(37, 99, 235, 0.14);
+}
+
+.avatar-initials.question {
+  color: #475569;
+  background: rgba(100, 116, 139, 0.16);
+}
+
+.avatar-initials.ask {
+  color: #fff;
+  background: #2563eb;
+  font-size: 20px;
+  font-weight: 500;
+}
+
+.chat-item.ask-row .chat-name {
+  color: #2563eb;
+  font-weight: 600;
+}
+
+.chat-item .chat-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.chat-badge {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: rgba(100, 116, 139, 0.18);
+  color: inherit;
+  flex-shrink: 0;
+}
+
+/* Keep the list a list ----------------------------------------------------- */
+/* Preset answers and question titles are full sentences, far longer than the
+   short names the original design carried. Without truncation they force the
+   column open and squeeze the conversation panel. */
+.chat-title-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.chat-name {
+  min-width: 0;
+}
+
+@media (min-width: 1025px) {
+  .chat-main-content {
+    flex: 0 0 360px;
+    max-width: 360px;
+  }
+
+  .chat-main {
+    flex: 1;
+    min-width: 0;
+  }
+}
+
+/* The bot conversation ----------------------------------------------------- */
+.avatar-initials.bot {
+  color: #fff;
+  background: #2563eb;
+}
+
+.bot-options {
+  border-top: 1px solid var(--border-color, rgba(148, 163, 184, 0.3));
+  padding: 16px;
+  max-height: 45%;
+  overflow-y: auto;
+}
+
+.bot-options-label {
+  margin: 0 0 10px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  opacity: 0.55;
+}
+
+.bot-option-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.bot-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  text-align: left;
+  padding: 10px 14px;
+  border: 1px solid rgba(37, 99, 235, 0.35);
+  border-radius: 999px;
+  background: transparent;
+  color: #2563eb;
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.bot-option:hover {
+  background: rgba(37, 99, 235, 0.1);
+}
+
+.bot-option.other {
+  border-style: dashed;
+  font-weight: 600;
+}

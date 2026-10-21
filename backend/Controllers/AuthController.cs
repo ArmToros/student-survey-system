@@ -44,20 +44,6 @@ namespace backend.Controllers
             _logger = logger;
         }
 
-        /// <summary>
-        /// UserAccount.ID is not IDENTITY in the database (scaffolded as ValueGeneratedNever).
-        /// We must allocate the next key explicitly or inserts reuse Id=0 and violate PK.
-        /// </summary>
-        private async Task<int> AllocateNextUserAccountIdAsync()
-        {
-            if (!await _context.UserAccounts.AnyAsync())
-            {
-                return 1;
-            }
-
-            return await _context.UserAccounts.MaxAsync(u => u.Id) + 1;
-        }
-
         public class LoginRequest
         {
             public string Email { get; set; } = "";
@@ -87,8 +73,13 @@ namespace backend.Controllers
                 });
             }
 
-            var user = await _context.UserAccounts.FirstOrDefaultAsync(u =>
-                u.Email != null && u.Email.ToLower() == emailNorm);
+            // The student and lecturer rows come along, so the account the app
+            // holds after signing in carries the course details too, not just
+            // the name and email.
+            var user = await _context.UserAccounts
+                .Include(u => u.StudentDatum)
+                .Include(u => u.LecturerDatum)
+                .FirstOrDefaultAsync(u => u.Email != null && u.Email.ToLower() == emailNorm);
 
             // Same response whether the address is unknown or the password is wrong,
             // so this cannot be used to discover which accounts exist.
@@ -119,66 +110,9 @@ namespace backend.Controllers
             return Ok(BuildSession(user));
         }
 
-        public class RegisterRequest
-        {
-            public string Name { get; set; } = "";
-            public string Email { get; set; } = "";
-            public string Password { get; set; } = "";
-        }
-
         public class PasswordResetRequest
         {
             public string Email { get; set; } = "";
-        }
-
-        [HttpPost("register")]
-        public async Task<ActionResult> Register([FromBody] RegisterRequest request)
-        {
-            if (request == null || string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.Password))
-            {
-                return BadRequest(new { message = "Email and password are required" });
-            }
-
-            if (string.IsNullOrWhiteSpace(request.Name))
-            {
-                return BadRequest(new { message = "Name is required" });
-            }
-
-            if (request.Password.Length < 8)
-            {
-                return BadRequest(new { message = "Password must be at least 8 characters" });
-            }
-
-            var emailNormalized = request.Email.Trim().ToLowerInvariant();
-
-            // Case-insensitive match; avoids false "duplicate" from collation quirks and skips null emails in DB
-            var emailTaken = await _context.UserAccounts
-                .AnyAsync(u => u.Email != null && u.Email.ToLower() == emailNormalized);
-
-            if (emailTaken)
-            {
-                return BadRequest(new { message = "Email already exists" });
-            }
-
-            var parts = request.Name.Trim().Split(' ', 2, System.StringSplitOptions.RemoveEmptyEntries);
-            var newUser = new UserAccount
-            {
-                Id = await AllocateNextUserAccountIdAsync(),
-                Email = emailNormalized,
-                PasswordHash = _passwords.Hash(request.Password),
-                FirstName = parts[0],
-                LastName = parts.Length > 1 ? parts[1] : "",
-                // Stored capitalised to match the existing rows ("Admin", "Lecturer", "Student").
-                // Self-registration can only ever create a student.
-                Role = "Student",
-                Language = "English",
-                Theme = "Light"
-            };
-
-            _context.UserAccounts.Add(newUser);
-            await _context.SaveChangesAsync();
-
-            return Ok(BuildSession(newUser));
         }
 
         public class PasswordResetConfirmRequest

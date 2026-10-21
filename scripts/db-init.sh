@@ -72,10 +72,16 @@ if [ "$mode" = restore ]; then
     echo "Restoring $BACKUP_FILE into database SSS..."
     run_sql "$SCRIPTS_DIR/restore.sql"
 
-    # The backup predates the password reset feature, so its table is created after
-    # every restore. The seed path creates it itself, by including the same script.
+    # The backup predates both the password reset feature and the survey authoring
+    # columns, so they are added after every restore. The seed path creates them
+    # itself, by including the same two scripts.
     echo "Applying additive schema scripts..."
     run_sql "$SCRIPTS_DIR/schema-password-reset-token.sql"
+    run_sql "$SCRIPTS_DIR/schema-authoring.sql"
+    run_sql "$SCRIPTS_DIR/schema-support-chat.sql"
+    run_sql "$SCRIPTS_DIR/schema-student-profile.sql"
+    run_sql "$SCRIPTS_DIR/schema-survey-audience.sql"
+    run_sql "$SCRIPTS_DIR/data-news-categories.sql"
 else
     echo "Seeding database SSS with the synthetic sample data..."
     # seed-dev-data.sql includes schema-password-reset-token.sql through sqlcmd's

@@ -41,10 +41,30 @@ namespace backend.Controllers
         private int? CallerId =>
             int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var id) ? id : null;
 
+        /// <summary>The caller's role as stored: Admin, Lecturer or Student.</summary>
+        private string CallerRole
+        {
+            get
+            {
+                var role = User.FindFirstValue(ClaimTypes.Role);
+                return KnownRoles.FirstOrDefault(known =>
+                    string.Equals(known, role, StringComparison.OrdinalIgnoreCase)) ?? "Student";
+            }
+        }
+
+        private static readonly string[] KnownRoles = { "Admin", "Lecturer", "Student" };
+
         public class CreateSurveyRequest
         {
             public string Title { get; set; } = "";
             public string? Description { get; set; }
+            public string? Category { get; set; }
+
+            /// <summary>
+            /// Which roles the survey is for. Empty or missing means everyone,
+            /// which is how the surveys already in the database behave.
+            /// </summary>
+            public List<string>? Audience { get; set; }
             public List<SurveyQuestionDto> Questions { get; set; } = new();
             public int? CreatedBy { get; set; }
             public int? AssignedAdmin { get; set; }
@@ -72,7 +92,13 @@ namespace backend.Controllers
         [HttpGet]
         public async Task<ActionResult> GetAll()
         {
+            var role = CallerRole;
+
             var surveys = await _context.Surveys
+                // No audience rows means the survey is for everyone, which keeps
+                // the surveys restored from the backup visible.
+                .Where(survey => !survey.TargetRoles.Any() ||
+                                 survey.TargetRoles.Any(target => target.Role == role))
                 .OrderByDescending(survey => survey.SurveyId)
                 .Select(survey => new
                 {
@@ -80,9 +106,11 @@ namespace backend.Controllers
                     title = survey.Topic ?? ("Survey " + survey.SurveyId),
                     questionCount = survey.Questions.Count,
                     responses = survey.SurveySessions.Count,
-                    // dbo.Survey has no status column, so nothing can ever be "completed".
-                    status = "active",
-                    createdDate = (DateTime?)null
+                    category = survey.Category,
+                    status = survey.IsClosed ? "completed" : "active",
+                    createdDate = survey.CreatedAt,
+                    closedDate = survey.ClosedAt,
+                    audience = survey.TargetRoles.Select(target => target.Role).ToList()
                 })
                 .ToListAsync();
 
@@ -94,6 +122,7 @@ namespace backend.Controllers
         {
             var survey = await _context.Surveys
                 .Include(item => item.Questions)
+                .Include(item => item.TargetRoles)
                 .FirstOrDefaultAsync(item => item.SurveyId == id);
 
             if (survey == null)
@@ -108,14 +137,21 @@ namespace backend.Controllers
                 id = survey.SurveyId,
                 title = survey.Topic ?? ("Survey " + survey.SurveyId),
                 description = "",
-                status = "active",
+                category = survey.Category,
+                status = survey.IsClosed ? "completed" : "active",
+                createdDate = survey.CreatedAt,
+                closedDate = survey.ClosedAt,
+                audience = survey.TargetRoles.Select(target => target.Role).ToList(),
                 questions
             });
         }
 
-        /// <summary>Aggregated answers are for staff; students only take surveys.</summary>
+        /// <summary>
+        /// Results are open to anyone signed in. They are totals per question and
+        /// carry no names, so there is nothing here that identifies who answered
+        /// what - and people who took a survey can see what it found.
+        /// </summary>
         [HttpGet("{id:int}/results")]
-        [Authorize(Policy = "Staff")]
         public async Task<ActionResult> GetResults(int id)
         {
             var survey = await _context.Surveys
@@ -198,8 +234,9 @@ namespace backend.Controllers
             });
         }
 
+        /// <summary>Only admins author surveys.</summary>
         [HttpPost]
-        [Authorize(Policy = "Staff")]
+        [Authorize(Policy = "AdminOnly")]
         public async Task<ActionResult> Create([FromBody] CreateSurveyRequest request)
         {
             if (request == null || string.IsNullOrWhiteSpace(request.Title))
@@ -226,7 +263,10 @@ namespace backend.Controllers
             {
                 SurveyId = await GetNextIdAsync(_context.Surveys.Select(item => item.SurveyId)),
                 Topic = Truncate(request.Title.Trim(), 100),
-                CreatedBy = creatorId.Value
+                CreatedBy = creatorId.Value,
+                Category = Truncate(request.Category?.Trim(), 50),
+                CreatedAt = DateTime.UtcNow,
+                IsClosed = false
             };
 
             _context.Surveys.Add(survey);
@@ -234,13 +274,40 @@ namespace backend.Controllers
             var nextQuestionId = await GetNextIdAsync(_context.Questions.Select(item => item.QuestionId));
             foreach (var question in providedQuestions)
             {
-                // Only the question text can be stored: dbo.Question has no column
-                // for type, options, required or placeholder, so those are dropped.
+                var text = Truncate(question.Question.Trim(), 1000);
+                var options = (question.Options ?? new List<string>())
+                    .Where(option => !string.IsNullOrWhiteSpace(option))
+                    .Select(option => option.Trim())
+                    .ToList();
+
                 _context.Questions.Add(new Question
                 {
                     QuestionId = nextQuestionId++,
                     SurveyId = survey.SurveyId,
-                    Answear = Truncate(question.Question.Trim(), 500)
+                    // Answear is still written so anything reading the original
+                    // column, including the fallback in BuildQuestionsAsync, keeps
+                    // seeing a sensible label.
+                    Answear = Truncate(question.Question.Trim(), 500),
+                    QuestionText = text,
+                    QuestionType = Truncate(
+                        string.IsNullOrWhiteSpace(question.Type) ? "text" : question.Type.Trim(), 20),
+                    Options = options.Count > 0 ? JsonSerializer.Serialize(options) : null,
+                    IsRequired = question.Required
+                });
+            }
+
+            await _context.SaveChangesAsync();
+
+            foreach (var role in (request.Audience ?? new List<string>())
+                     .Select(role => KnownRoles.FirstOrDefault(known =>
+                         string.Equals(known, role?.Trim(), StringComparison.OrdinalIgnoreCase)))
+                     .Where(role => role != null)
+                     .Distinct())
+            {
+                _context.SurveyTargetRoles.Add(new SurveyTargetRole
+                {
+                    SurveyId = survey.SurveyId,
+                    Role = role!
                 });
             }
 
@@ -250,24 +317,157 @@ namespace backend.Controllers
             {
                 id = survey.SurveyId,
                 title = survey.Topic,
-                questionCount = providedQuestions.Count,
-                note = "Question type, options and validation are not stored: the Question table has no columns for them."
+                category = survey.Category,
+                audience = request.Audience ?? new List<string>(),
+                questionCount = providedQuestions.Count
+            });
+        }
+
+        /// <summary>
+        /// Deletes a survey and everything recorded against it.
+        ///
+        /// SurveyAnswer points at both SurveySession and Question, and both of
+        /// those point at Survey, so the rows have to go in that order or the
+        /// foreign keys refuse. Deleting a survey therefore destroys the
+        /// responses people gave it, which is why it is an admin action and why
+        /// the count is reported back.
+        /// </summary>
+        public class SurveyStatusRequest
+        {
+            public bool IsClosed { get; set; }
+        }
+
+        /// <summary>
+        /// Closes a survey, or opens it again.
+        ///
+        /// Closing is how a survey ends without being destroyed: nobody can
+        /// answer it any more, but the answers already given stay where they
+        /// are and the results page carries on showing them. That is the
+        /// difference from Delete, which takes the responses with it.
+        ///
+        /// Submissions are refused by the check in SubmitResponse, so closing
+        /// holds even for somebody who kept the survey open in a tab and
+        /// pressed submit afterwards.
+        /// </summary>
+        [HttpPut("{id:int}/status")]
+        [Authorize(Policy = "AdminOnly")]
+        public async Task<ActionResult> SetStatus(int id, [FromBody] SurveyStatusRequest request)
+        {
+            if (request == null)
+            {
+                return BadRequest(new { message = "A status is required" });
+            }
+
+            var survey = await _context.Surveys.FirstOrDefaultAsync(item => item.SurveyId == id);
+            if (survey == null)
+            {
+                return NotFound(new { message = "Survey not found" });
+            }
+
+            survey.IsClosed = request.IsClosed;
+            // Kept for the "Created / Closed" dates on the results page. Re-opening
+            // clears it, so a survey never claims to have closed on a date it was
+            // still accepting answers.
+            survey.ClosedAt = request.IsClosed ? DateTime.UtcNow : null;
+
+            await _context.SaveChangesAsync();
+
+            return Ok(new
+            {
+                id = survey.SurveyId,
+                status = survey.IsClosed ? "completed" : "active",
+                closedDate = survey.ClosedAt
+            });
+        }
+
+        [HttpDelete("{id:int}")]
+        [Authorize(Policy = "AdminOnly")]
+        public async Task<ActionResult> Delete(int id)
+        {
+            var survey = await _context.Surveys.FirstOrDefaultAsync(item => item.SurveyId == id);
+            if (survey == null)
+            {
+                return NotFound(new { message = "Survey not found" });
+            }
+
+            var sessionIds = await _context.SurveySessions
+                .Where(session => session.SurveyId == id)
+                .Select(session => session.Id)
+                .ToListAsync();
+
+            var questionIds = await _context.Questions
+                .Where(question => question.SurveyId == id)
+                .Select(question => question.QuestionId)
+                .ToListAsync();
+
+            var answers = await _context.SurveyAnswers
+                .Where(answer => sessionIds.Contains(answer.SessionId) || questionIds.Contains(answer.QuestionId))
+                .ToListAsync();
+
+            var sessions = await _context.SurveySessions
+                .Where(session => session.SurveyId == id)
+                .ToListAsync();
+
+            var questions = await _context.Questions
+                .Where(question => question.SurveyId == id)
+                .ToListAsync();
+
+            _context.SurveyAnswers.RemoveRange(answers);
+            _context.SurveySessions.RemoveRange(sessions);
+            _context.Questions.RemoveRange(questions);
+            _context.Surveys.Remove(survey);
+
+            await _context.SaveChangesAsync();
+
+            return Ok(new
+            {
+                id,
+                message = "Survey deleted",
+                deletedResponses = sessions.Count,
+                deletedAnswers = answers.Count
             });
         }
 
         [HttpPost("{id:int}/responses")]
         public async Task<ActionResult> SubmitResponse(int id, [FromBody] SubmitSurveyRequest request)
         {
-            var surveyExists = await _context.Surveys.AnyAsync(survey => survey.SurveyId == id);
-            if (!surveyExists)
+            var survey = await _context.Surveys
+                .Include(item => item.TargetRoles)
+                .FirstOrDefaultAsync(item => item.SurveyId == id);
+
+            if (survey == null)
             {
                 return NotFound(new { message = "Survey not found" });
+            }
+
+            // Filtering the list is not enough on its own: without this check
+            // somebody outside the audience could answer by going to the URL.
+            var role = CallerRole;
+            if (survey.TargetRoles.Count > 0 && survey.TargetRoles.All(target => target.Role != role))
+            {
+                return StatusCode(403, new { message = "This survey is not open to your role." });
+            }
+
+            if (survey.IsClosed)
+            {
+                return Conflict(new { message = "This survey is closed." });
             }
 
             var userId = CallerId ?? await GetFallbackUserIdAsync("student");
             if (userId == null)
             {
                 return BadRequest(new { message = "A user account is required to submit a response" });
+            }
+
+            // One response per person per survey. Existing rows are left alone:
+            // the backup already contains people who answered the same survey more
+            // than once, and this only stops new duplicates.
+            var alreadyAnswered = await _context.SurveySessions
+                .AnyAsync(session => session.SurveyId == id && session.UserId == userId.Value);
+
+            if (alreadyAnswered)
+            {
+                return Conflict(new { message = "You have already responded to this survey." });
             }
 
             var questionIds = await _context.Questions
@@ -280,7 +480,8 @@ namespace backend.Controllers
             var session = new SurveySession
             {
                 SurveyId = id,
-                UserId = userId.Value
+                UserId = userId.Value,
+                SubmittedAt = DateTime.UtcNow
             };
 
             _context.SurveySessions.Add(session);
@@ -314,8 +515,14 @@ namespace backend.Controllers
 
         /// <summary>
         /// Turns the Question rows of a survey into the shape the React form expects.
-        /// Options are derived from the answers already recorded for each question,
-        /// because the schema stores no option list of its own.
+        ///
+        /// Questions authored since scripts/schema-authoring.sql ran carry their own
+        /// text, type and options and are returned as written. Rows restored from the
+        /// backup have those columns null, so they keep the old behaviour: the
+        /// misspelled Answear column is the label and the options are derived from the
+        /// answers already recorded. That fallback is why a question could appear as
+        /// multiple choice in one attempt and free text in another - the derived set
+        /// changes as responses accumulate. Newly authored questions are stable.
         /// </summary>
         private async Task<List<SurveyQuestionDto>> BuildQuestionsAsync(Survey survey)
         {
@@ -336,7 +543,12 @@ namespace backend.Controllers
 
             foreach (var question in questions)
             {
-                var options = knownAnswers
+                var storedOptions = ReadStoredOptions(question.Options);
+                var hasStoredType = !string.IsNullOrWhiteSpace(question.QuestionType);
+
+                // Derived options are only a fallback for rows written before the
+                // authoring columns existed.
+                var derivedOptions = knownAnswers
                     .Where(answer => answer.QuestionId == question.QuestionId)
                     .Select(answer => answer.Answer!)
                     .Where(answer => !string.IsNullOrWhiteSpace(answer))
@@ -344,17 +556,36 @@ namespace backend.Controllers
                     .OrderBy(answer => answer)
                     .ToList();
 
-                var isChoice = options.Count > 1 && options.Count <= MaxDerivedOptions;
+                var label = question.QuestionText;
+                if (string.IsNullOrWhiteSpace(label))
+                {
+                    label = string.IsNullOrWhiteSpace(question.Answear)
+                        ? "Question " + position
+                        : question.Answear;
+                }
+
+                string type;
+                List<string> options;
+
+                if (hasStoredType)
+                {
+                    type = question.QuestionType!;
+                    options = storedOptions;
+                }
+                else
+                {
+                    var isChoice = derivedOptions.Count > 1 && derivedOptions.Count <= MaxDerivedOptions;
+                    type = isChoice ? "single-choice" : "text";
+                    options = isChoice ? derivedOptions : new List<string>();
+                }
 
                 result.Add(new SurveyQuestionDto
                 {
                     Id = question.QuestionId,
-                    Question = string.IsNullOrWhiteSpace(question.Answear)
-                        ? "Question " + position
-                        : question.Answear!,
-                    Type = isChoice ? "single-choice" : "text",
-                    Options = isChoice ? options : new List<string>(),
-                    Required = false,
+                    Question = label!,
+                    Type = type,
+                    Options = options,
+                    Required = question.IsRequired ?? false,
                     Min = 1,
                     Max = 5
                 });
@@ -363,6 +594,29 @@ namespace backend.Controllers
             }
 
             return result;
+        }
+
+        /// <summary>
+        /// Reads the JSON array stored in dbo.Question.Options. A malformed or empty
+        /// value is treated as "no options" rather than failing the whole request.
+        /// </summary>
+        private static List<string> ReadStoredOptions(string? stored)
+        {
+            if (string.IsNullOrWhiteSpace(stored))
+            {
+                return new List<string>();
+            }
+
+            try
+            {
+                return JsonSerializer.Deserialize<List<string>>(stored)?
+                    .Where(option => !string.IsNullOrWhiteSpace(option))
+                    .ToList() ?? new List<string>();
+            }
+            catch (JsonException)
+            {
+                return new List<string>();
+            }
         }
 
         /// <summary>Reads one submitted answer value as the strings to store.</summary>
@@ -433,8 +687,13 @@ namespace backend.Controllers
             return await ids.MaxAsync() + 1;
         }
 
-        private static string Truncate(string value, int maxLength)
+        private static string? Truncate(string? value, int maxLength)
         {
+            if (value == null)
+            {
+                return null;
+            }
+
             return value.Length <= maxLength ? value : value[..maxLength];
         }
     }

@@ -4,9 +4,10 @@ using System.Collections.Generic;
 namespace backend.Models;
 
 /// <summary>
-/// A survey in the restored SSS database: dbo.Survey (SurveyID, CreatedBy, Topic).
-/// Note this table carries no status or created date, so the API reports every
-/// survey as active and leaves dates null.
+/// A survey in the SSS database: dbo.Survey.
+/// Category, CreatedAt, ClosedAt and IsClosed were added by
+/// scripts/schema-authoring.sql; surveys restored from the backup have the dates
+/// null and IsClosed false.
 /// </summary>
 public partial class Survey
 {
@@ -16,9 +17,20 @@ public partial class Survey
 
     public string? Topic { get; set; }
 
+    public string? Category { get; set; }
+
+    public DateTime? CreatedAt { get; set; }
+
+    public DateTime? ClosedAt { get; set; }
+
+    public bool IsClosed { get; set; }
+
     public virtual UserAccount CreatedByNavigation { get; set; } = null!;
 
     public virtual ICollection<Question> Questions { get; set; } = new List<Question>();
 
     public virtual ICollection<SurveySession> SurveySessions { get; set; } = new List<SurveySession>();
+
+    /// <summary>Roles this survey is aimed at. Empty means everyone.</summary>
+    public virtual ICollection<SurveyTargetRole> TargetRoles { get; set; } = new List<SurveyTargetRole>();
 }

@@ -128,3 +128,27 @@
     flex: 1;
   }
 }
+
+.surveys-error {
+  color: #dc2626;
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+.btn-danger {
+  background: transparent;
+  border: 1px solid rgba(220, 38, 38, 0.5);
+  color: #dc2626;
+}
+
+.btn-danger:hover:not(:disabled) {
+  background: rgba(220, 38, 38, 0.1);
+}
+
+.survey-category {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(100, 116, 139, 0.15);
+}

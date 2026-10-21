@@ -39,6 +39,10 @@ public partial class SssContext : DbContext
 
     public virtual DbSet<PasswordResetToken> PasswordResetTokens { get; set; }
 
+    public virtual DbSet<AppSetting> AppSettings { get; set; }
+
+    public virtual DbSet<PresetQuestion> PresetQuestions { get; set; }
+
     public virtual DbSet<Question> Questions { get; set; }
 
     public virtual DbSet<StudentDatum> StudentData { get; set; }
@@ -46,6 +50,8 @@ public partial class SssContext : DbContext
     public virtual DbSet<Survey> Surveys { get; set; }
 
     public virtual DbSet<SurveyAnswer> SurveyAnswers { get; set; }
+
+    public virtual DbSet<SurveyTargetRole> SurveyTargetRoles { get; set; }
 
     public virtual DbSet<SurveySession> SurveySessions { get; set; }
 
@@ -133,6 +139,10 @@ public partial class SssContext : DbContext
             entity.Property(e => e.CourseName)
                 .HasMaxLength(100)
                 .IsUnicode(false);
+            entity.Property(e => e.LecturerId).HasColumnName("LecturerID");
+            entity.Property(e => e.Schedule).HasMaxLength(200);
+            entity.Property(e => e.Room).HasMaxLength(200);
+            entity.Property(e => e.Focus).HasMaxLength(600);
             entity.Property(e => e.CourseNumber)
                 .HasMaxLength(10)
                 .IsUnicode(false);
@@ -229,6 +239,27 @@ public partial class SssContext : DbContext
                 .HasConstraintName("FK_PasswordResetToken_UserAccount");
         });
 
+        modelBuilder.Entity<AppSetting>(entity =>
+        {
+            entity.HasKey(e => e.SettingKey).HasName("PK_AppSetting");
+
+            entity.ToTable("AppSetting");
+
+            entity.Property(e => e.SettingKey).HasMaxLength(100);
+            entity.Property(e => e.Value).HasMaxLength(400);
+        });
+
+        modelBuilder.Entity<PresetQuestion>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK_PresetQuestion");
+
+            entity.ToTable("PresetQuestion");
+
+            entity.Property(e => e.Id).HasColumnName("ID");
+            entity.Property(e => e.Question).HasMaxLength(400);
+            entity.Property(e => e.CreatedBy).HasColumnName("CreatedBy");
+        });
+
         modelBuilder.Entity<Question>(entity =>
         {
             entity.HasKey(e => e.QuestionId).HasName("PK_Question");
@@ -240,6 +271,10 @@ public partial class SssContext : DbContext
                 .ValueGeneratedNever()
                 .HasColumnName("QuestionID");
             entity.Property(e => e.Answear).HasMaxLength(500);
+            entity.Property(e => e.QuestionText).HasMaxLength(1000);
+            entity.Property(e => e.QuestionType)
+                .HasMaxLength(20)
+                .IsUnicode(false);
             entity.Property(e => e.SurveyId).HasColumnName("SurveyID");
 
             entity.HasOne(d => d.Survey).WithMany(p => p.Questions)
@@ -284,7 +319,10 @@ public partial class SssContext : DbContext
                         j.ToTable("StudentCourse");
                         j.IndexerProperty<int>("StudentId").HasColumnName("StudentID");
                         j.IndexerProperty<int>("CourseId").HasColumnName("CourseID");
-                    });
+                        entity.Property(e => e.Degree)
+                .HasMaxLength(30)
+                .IsUnicode(false);
+            });
         });
 
         modelBuilder.Entity<Survey>(entity =>
@@ -298,6 +336,7 @@ public partial class SssContext : DbContext
                 .ValueGeneratedNever()
                 .HasColumnName("SurveyID");
             entity.Property(e => e.Topic).HasMaxLength(100);
+            entity.Property(e => e.Category).HasMaxLength(50);
 
             entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.SurveysCreated)
                 .HasForeignKey(d => d.CreatedBy)
@@ -324,6 +363,20 @@ public partial class SssContext : DbContext
                 .HasForeignKey(d => d.SessionId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_SurveyAnswer_SurveySession");
+        });
+
+        modelBuilder.Entity<SurveyTargetRole>(entity =>
+        {
+            entity.HasKey(e => new { e.SurveyId, e.Role }).HasName("PK_SurveyTargetRole");
+
+            entity.ToTable("SurveyTargetRole");
+
+            entity.Property(e => e.SurveyId).HasColumnName("SurveyID");
+            entity.Property(e => e.Role).HasMaxLength(20);
+
+            entity.HasOne(d => d.Survey).WithMany(p => p.TargetRoles)
+                .HasForeignKey(d => d.SurveyId)
+                .HasConstraintName("FK_SurveyTargetRole_Survey");
         });
 
         modelBuilder.Entity<SurveySession>(entity =>
@@ -357,6 +410,7 @@ public partial class SssContext : DbContext
                 .ValueGeneratedNever()
                 .HasColumnName("ID");
             entity.Property(e => e.Address).HasMaxLength(200);
+            entity.Property(e => e.PhotoUrl).HasMaxLength(400);
             entity.Property(e => e.Email)
                 .HasMaxLength(100)
                 .IsUnicode(false);

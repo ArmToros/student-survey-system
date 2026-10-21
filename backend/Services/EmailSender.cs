@@ -3,9 +3,21 @@ using System.Net.Mail;
 
 namespace backend.Services;
 
+/// <summary>
+/// A file to travel with the message, already read into memory. The bytes are
+/// held rather than a stream because one broadcast builds a separate message
+/// per recipient, and a stream can only be read once.
+/// </summary>
+public sealed record EmailAttachment(string FileName, string ContentType, byte[] Content);
+
 public interface IEmailSender
 {
-    Task SendAsync(string toAddress, string subject, string body, CancellationToken cancellationToken = default);
+    Task SendAsync(
+        string toAddress,
+        string subject,
+        string body,
+        IReadOnlyList<EmailAttachment>? attachments = null,
+        CancellationToken cancellationToken = default);
 }
 
 /// <summary>
@@ -76,14 +88,20 @@ public class EmailSender : IEmailSender
         string toAddress,
         string subject,
         string body,
+        IReadOnlyList<EmailAttachment>? attachments = null,
         CancellationToken cancellationToken = default)
     {
         if (!_options.IsConfigured)
         {
             _logger.LogWarning(
                 "SMTP is not configured, so this email was not sent. Set SMTP_HOST in .env to deliver it.\n" +
-                "  To:      {To}\n  Subject: {Subject}\n{Body}",
-                toAddress, subject, body);
+                "  To:      {To}\n  Subject: {Subject}\n  Files:   {Files}\n{Body}",
+                toAddress,
+                subject,
+                attachments == null || attachments.Count == 0
+                    ? "none"
+                    : string.Join(", ", attachments.Select(item => item.FileName)),
+                body);
             return;
         }
 
@@ -102,6 +120,19 @@ public class EmailSender : IEmailSender
         {
             IsBodyHtml = false
         };
+
+        // Each attachment owns a stream over its own copy of the bytes, and the
+        // MailMessage disposes them along with itself.
+        if (attachments != null)
+        {
+            foreach (var attachment in attachments)
+            {
+                message.Attachments.Add(new Attachment(
+                    new MemoryStream(attachment.Content),
+                    attachment.FileName,
+                    attachment.ContentType));
+            }
+        }
 
         await client.SendMailAsync(message, cancellationToken);
 
