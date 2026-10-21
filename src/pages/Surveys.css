@@ -152,3 +152,16 @@
   border-radius: 999px;
   background: rgba(100, 116, 139, 0.15);
 }
+
+/* A survey this person has already answered: the row stays, the way in goes. */
+.survey-answered {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 14px;
+  border-radius: 8px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  white-space: nowrap;
+}

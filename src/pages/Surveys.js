@@ -182,10 +182,13 @@ ${question}`)) {
                   </div>
                 </div>
                 <div className="survey-row-actions">
-                  {survey.status === 'active' && (
+                  {survey.status === 'active' && !survey.alreadyAnswered && (
                     <Link to={`/surveys/${survey.id}`} className="btn btn-primary">
                       {t('dashboard.takeSurvey')}
                     </Link>
+                  )}
+                  {survey.alreadyAnswered && (
+                    <span className="survey-answered">{t('surveysPage.answered')}</span>
                   )}
                   {canViewResults && survey.responses > 0 && (
                     <Link to={`/results/${survey.id}`} className="btn btn-secondary">

@@ -49,7 +49,13 @@ if (!string.IsNullOrWhiteSpace(port))
     builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
 }
 
-builder.Services.AddControllers();
+builder.Services.AddControllers().AddJsonOptions(options =>
+{
+    // Dates leave the API marked as UTC, so a browser can put them in the
+    // reader's own zone instead of guessing. See UtcDateTimeConverter.
+    options.JsonSerializerOptions.Converters.Add(new UtcDateTimeConverter());
+    options.JsonSerializerOptions.Converters.Add(new NullableUtcDateTimeConverter());
+});
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddHttpClient();
 

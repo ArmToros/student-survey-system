@@ -93,6 +93,18 @@ namespace backend.Controllers
         public async Task<ActionResult> GetAll()
         {
             var role = CallerRole;
+            var callerId = CallerId;
+
+            // Which of these the caller has already answered. Without this the
+            // page can only find out by letting them fill the survey in and
+            // refusing the submission, which wastes the work they just did.
+            var answered = callerId == null
+                ? new List<int>()
+                : await _context.SurveySessions
+                    .Where(session => session.UserId == callerId.Value)
+                    .Select(session => session.SurveyId)
+                    .Distinct()
+                    .ToListAsync();
 
             var surveys = await _context.Surveys
                 // No audience rows means the survey is for everyone, which keeps
@@ -110,7 +122,8 @@ namespace backend.Controllers
                     status = survey.IsClosed ? "completed" : "active",
                     createdDate = survey.CreatedAt,
                     closedDate = survey.ClosedAt,
-                    audience = survey.TargetRoles.Select(target => target.Role).ToList()
+                    audience = survey.TargetRoles.Select(target => target.Role).ToList(),
+                    alreadyAnswered = answered.Contains(survey.SurveyId)
                 })
                 .ToListAsync();
 
@@ -132,11 +145,16 @@ namespace backend.Controllers
 
             var questions = await BuildQuestionsAsync(survey);
 
+            var callerId = CallerId;
+            var alreadyAnswered = callerId != null && await _context.SurveySessions
+                .AnyAsync(session => session.SurveyId == id && session.UserId == callerId.Value);
+
             return Ok(new
             {
                 id = survey.SurveyId,
                 title = survey.Topic ?? ("Survey " + survey.SurveyId),
                 description = "",
+                alreadyAnswered,
                 category = survey.Category,
                 status = survey.IsClosed ? "completed" : "active",
                 createdDate = survey.CreatedAt,

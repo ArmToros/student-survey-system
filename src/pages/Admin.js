@@ -40,7 +40,7 @@ const Admin = () => {
   // Accounts. Only admins reach this, and only here can a profile be changed.
   const BLANK_USER = {
     firstName: '', lastName: '', email: '', phone: '', address: '',
-    role: 'Student', major: '', degree: 'Bachelor', startYear: '', department: '', password: ''
+    role: 'Student', major: '', degree: 'Bachelor', startYear: '', department: '', joinDate: '', password: ''
   };
   const [users, setUsers] = useState([]);
   const [userForm, setUserForm] = useState(BLANK_USER);
@@ -404,6 +404,11 @@ const Admin = () => {
     try {
       const payload = { ...userForm };
       payload.startYear = payload.startYear === '' ? null : Number(payload.startYear);
+      // Blank means "do not change it": the backup holds no join date for staff,
+      // and an empty box must not wipe one that is already recorded.
+      if (!payload.joinDate) {
+        delete payload.joinDate;
+      }
       if (editingUser) {
         delete payload.password;
       }
@@ -448,6 +453,7 @@ const Admin = () => {
       degree: account.degree || 'Bachelor',
       startYear: account.startYear || '',
       department: account.department || '',
+      joinDate: account.joinDate ? account.joinDate.slice(0, 10) : '',
       password: ''
     });
   };
@@ -920,6 +926,13 @@ const Admin = () => {
                 <input className="form-input" placeholder={t('adminPage.quickActions.users.phone')}
                   value={userForm.phone}
                   onChange={(e) => setUserForm({ ...userForm, phone: e.target.value })} />
+
+                <label className="field-label">
+                  {t('adminPage.quickActions.users.joinDate')}
+                  <input className="form-input" type="date"
+                    value={userForm.joinDate}
+                    onChange={(e) => setUserForm({ ...userForm, joinDate: e.target.value })} />
+                </label>
 
                 <select className="form-input" value={userForm.role}
                   onChange={(e) => setUserForm({ ...userForm, role: e.target.value })}>

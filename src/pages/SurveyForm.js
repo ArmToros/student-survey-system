@@ -139,24 +139,10 @@ const SurveyForm = () => {
           </div>
         );
 
+      // Both of these take more than one answer, and the API stores one row per
+      // selection, so they share the control. They differ only in wording on
+      // the Create Survey page.
       case 'multiple-choice':
-        return (
-          <div className="question-options">
-            {question.options.map((option, index) => (
-              <label key={index} className="radio-item">
-                <input
-                  type="radio"
-                  name={`question-${question.id}`}
-                  value={option}
-                  checked={responses[question.id] === option}
-                  onChange={(e) => handleResponseChange(question.id, e.target.value)}
-                />
-                <span>{option}</span>
-              </label>
-            ))}
-          </div>
-        );
-
       case 'checkbox':
         return (
           <div className="question-options">
@@ -245,6 +231,53 @@ const SurveyForm = () => {
             <h2>{t('form.thanks')}</h2>
             <p>{t('form.submit')}</p>
             <p>{t('form.redirecting')}</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Told before any of the work, not after submitting it: the API reports
+  // whether this person has already answered, so the form is never offered
+  // to somebody who cannot send it.
+  if (survey?.alreadyAnswered) {
+    return (
+      <div className="survey-form">
+        <div className="container">
+          <div className="error-message">
+            <AlertCircle size={64} />
+            <h2>{t('form.alreadyAnsweredTitle')}</h2>
+            <p>{t('form.alreadyAnswered')}</p>
+            <div className="question-navigation">
+              <button onClick={() => navigate(`/results/${id}`)} className="btn btn-primary">
+                {t('dashboard.viewResults')}
+              </button>
+              <button onClick={() => navigate('/surveys')} className="btn btn-secondary">
+                {t('form.back')}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (survey?.status === 'completed') {
+    return (
+      <div className="survey-form">
+        <div className="container">
+          <div className="error-message">
+            <AlertCircle size={64} />
+            <h2>{t('surveysPage.closedNotice')}</h2>
+            <p>{t('form.surveyClosed')}</p>
+            <div className="question-navigation">
+              <button onClick={() => navigate(`/results/${id}`)} className="btn btn-primary">
+                {t('dashboard.viewResults')}
+              </button>
+              <button onClick={() => navigate('/surveys')} className="btn btn-secondary">
+                {t('form.back')}
+              </button>
+            </div>
           </div>
         </div>
       </div>
