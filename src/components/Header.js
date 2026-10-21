@@ -9,7 +9,6 @@ import {
   Settings,
   LogOut,
   ChevronDown,
-  RefreshCw,
   ShieldCheck,
   GraduationCap,
   Menu,
@@ -288,14 +287,6 @@ const Header = () => {
                   <div className="dropdown-divider"></div>
                   
                   <div className="dropdown-items">
-                    <Link 
-                      to="/login" 
-                      className="dropdown-item"
-                      onClick={() => setIsDropdownOpen(false)}
-                    >
-                      <RefreshCw size={18} />
-                      <span>{t('header.switchAccount')}</span>
-                    </Link>
                     <button
                       className="dropdown-item logout"
                       onClick={() => {
