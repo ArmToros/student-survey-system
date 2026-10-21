@@ -44,6 +44,10 @@ const Admin = () => {
   const [editingUser, setEditingUser] = useState(null);
   const [userBusy, setUserBusy] = useState(false);
   const [userError, setUserError] = useState(null);
+  const [broadcast, setBroadcast] = useState({ title: '', content: '', audience: [] });
+  const [broadcastBusy, setBroadcastBusy] = useState(false);
+  const [broadcastResult, setBroadcastResult] = useState(null);
+  const [broadcastError, setBroadcastError] = useState(null);
   const [passwordFor, setPasswordFor] = useState(null);
   const [newPassword, setNewPassword] = useState('');
   const [passwordDone, setPasswordDone] = useState(null);
@@ -128,6 +132,48 @@ const Admin = () => {
       icon: HelpCircle
     },
   ];
+
+  // A broadcast goes to real mailboxes and cannot be unsent, so it asks first
+  // and says plainly how many addresses it is about to reach.
+  const sendBroadcast = async () => {
+    if (!broadcast.title.trim() || !broadcast.content.trim()) {
+      return;
+    }
+
+    const who = broadcast.audience.length > 0
+      ? broadcast.audience.map(role => t(`header.roleLabels.${role.toLowerCase()}`)).join(', ')
+      : t('adminPage.quickActions.broadcast.allUsers');
+
+    if (!window.confirm(t('adminPage.quickActions.broadcast.confirm').replace('{who}', who))) {
+      return;
+    }
+
+    setBroadcastBusy(true);
+    setBroadcastError(null);
+    setBroadcastResult(null);
+    try {
+      const response = await apiFetch('/api/broadcast', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(broadcast)
+      });
+
+      const data = await response.json().catch(() => null);
+      if (!response.ok) {
+        throw new Error(data?.message || 'BROADCAST_FAILED');
+      }
+
+      setBroadcastResult(data);
+      setBroadcast({ title: '', content: '', audience: [] });
+    } catch (failure) {
+      console.error(failure);
+      setBroadcastError(failure.message === 'BROADCAST_FAILED'
+        ? t('adminPage.quickActions.broadcast.failed')
+        : failure.message);
+    } finally {
+      setBroadcastBusy(false);
+    }
+  };
 
   const setUserPassword = async () => {
     if (!passwordFor || newPassword.trim().length < 8) {
@@ -485,12 +531,6 @@ const Admin = () => {
     }
   };
 
-  const UnavailableNotice = ({ children }) => (
-    <p className="feature-unavailable">
-      <Info size={18} />
-      <span>{children}</span>
-    </p>
-  );
 
   return (
     <div className="admin-page">
@@ -576,44 +616,69 @@ const Admin = () => {
             <div className="content-section">
               <h2>{t('adminPage.quickActions.broadcast.broadcast')}</h2>
               <p>{t('adminPage.quickActions.broadcast.send')}</p>
-              <UnavailableNotice>
-                {t('adminPage.quickActions.broadcast.unavailable')}
-              </UnavailableNotice>
-              {/* Nothing delivers these messages, so the form is switched off and
-                  the submit is swallowed rather than reloading the page. */}
-              <form className="broadcast-form is-disabled" onSubmit={(event) => event.preventDefault()}>
-                <fieldset disabled>
-                  <div className="form-group">
-                    <label>{t('adminPage.quickActions.broadcast.messageTitle')}</label>
-                    <input type="text" placeholder={t('adminPage.quickActions.broadcast.enterTitle')} className="form-input" />
+
+              {broadcastResult && (
+                <p className="bot-name-saved">
+                  {t('adminPage.quickActions.broadcast.sent')
+                    .replace('{sent}', broadcastResult.sent)
+                    .replace('{total}', broadcastResult.total)}
+                  {broadcastResult.failed > 0 && ' ' + t('adminPage.quickActions.broadcast.someFailed')
+                    .replace('{failed}', broadcastResult.failed)}
+                </p>
+              )}
+              {broadcastError && <p className="surveys-error">{broadcastError}</p>}
+
+              <form className="broadcast-form" onSubmit={(event) => { event.preventDefault(); sendBroadcast(); }}>
+                <div className="form-group">
+                  <label>{t('adminPage.quickActions.broadcast.messageTitle')}</label>
+                  <input
+                    type="text"
+                    placeholder={t('adminPage.quickActions.broadcast.enterTitle')}
+                    className="form-input"
+                    value={broadcast.title}
+                    onChange={(event) => setBroadcast({ ...broadcast, title: event.target.value })}
+                  />
+                </div>
+                <div className="form-group">
+                  <label>{t('adminPage.quickActions.broadcast.messageContent')}</label>
+                  <textarea
+                    placeholder={t('adminPage.quickActions.broadcast.enterContent')}
+                    rows="6"
+                    className="form-input"
+                    value={broadcast.content}
+                    onChange={(event) => setBroadcast({ ...broadcast, content: event.target.value })}
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="audience-label">{t('adminPage.quickActions.broadcast.target')}</label>
+                  <p className="form-hint">{t('adminPage.quickActions.broadcast.targetHint')}</p>
+                  <div className="audience-options">
+                    {['Student', 'Lecturer', 'Admin'].map(role => (
+                      <label key={role} className="audience-option">
+                        <input
+                          type="checkbox"
+                          checked={broadcast.audience.includes(role)}
+                          onChange={(event) => setBroadcast({
+                            ...broadcast,
+                            audience: event.target.checked
+                              ? [...broadcast.audience, role]
+                              : broadcast.audience.filter(item => item !== role)
+                          })}
+                        />
+                        <span>{t(`header.roleLabels.${role.toLowerCase()}`)}</span>
+                      </label>
+                    ))}
                   </div>
-                  <div className="form-group">
-                    <label>{t('adminPage.quickActions.broadcast.messageContent')}</label>
-                    <textarea placeholder={t('adminPage.quickActions.broadcast.enterContent')} rows="6" className="form-input" />
-                  </div>
-                  <div className="form-group">
-                    <label>{t('adminPage.quickActions.broadcast.target')}</label>
-                    <div className="checkbox-group">
-                      <label className="checkbox-label">
-                        <input type="checkbox" />
-                        <span>{t('adminPage.quickActions.broadcast.allUsers')}</span>
-                      </label>
-                      <label className="checkbox-label">
-                        <input type="checkbox" />
-                        <span>{t('adminPage.quickActions.broadcast.admins')}</span>
-                      </label>
-                      <label className="checkbox-label">
-                        <input type="checkbox" />
-                        <span>{t('adminPage.quickActions.broadcast.lecturers')}</span>
-                      </label>
-                      <label className="checkbox-label">
-                        <input type="checkbox" />
-                        <span>{t('adminPage.quickActions.broadcast.students')}</span>
-                      </label>
-                    </div>
-                  </div>
-                  <button type="submit" className="submit-button">{t('adminPage.quickActions.broadcast.sendBroadcast')}</button>
-                </fieldset>
+                </div>
+                <button
+                  type="submit"
+                  className="submit-button"
+                  disabled={broadcastBusy || !broadcast.title.trim() || !broadcast.content.trim()}
+                >
+                  {broadcastBusy
+                    ? t('adminPage.quickActions.broadcast.sending')
+                    : t('adminPage.quickActions.broadcast.sendBroadcast')}
+                </button>
               </form>
             </div>
           )}
