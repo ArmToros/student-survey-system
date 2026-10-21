@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { ThemeProvider } from './contexts/ThemeContext';
 import Header from './components/Header';
+import IdleLogout from './components/IdleLogout';
 import ProtectedRoute from './components/ProtectedRoute';
 import Dashboard from './pages/Dashboard';
 import Surveys from './pages/Surveys';
@@ -27,6 +28,8 @@ function AppContent() {
 
   return (
     <div className="App">
+      {/* Watches the whole session, not just the Settings page. */}
+      <IdleLogout />
       {!isLoginPage && <Header />}
       <main className={isLoginPage ? "main-content no-header" : "main-content"}>
         <Routes>

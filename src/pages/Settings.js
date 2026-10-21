@@ -1,22 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { Settings as SettingsIcon, Bell, Shield, Palette, Moon, Sun, Save, RotateCcw, ArrowLeft, UserPlus } from 'lucide-react';
+import { Settings as SettingsIcon, Palette, Moon, Sun, Save, RotateCcw, ArrowLeft } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
 import './Settings.css';
-import emailjs from '@emailjs/browser';
 import { apiFetch } from '../services/api';
+import PageHero from '../components/PageHero';
 
 const Settings = () => {
   const { theme, toggleTheme } = useTheme();
     const { user } = useAuth();
   const { language, changeLanguage, t} = useLanguage();
-const [showTwoFactorModal, setShowTwoFactorModal] = useState(false);
-const [twoFactorEmail, setTwoFactorEmail] = useState('');
-const [emailError, setEmailError] = useState("");
 
 
-const [twoFactorSent, setTwoFactorSent] = useState(false);
 const [showSettingsModal, setShowSettingsModal] = useState(false);
 const [saveState, setSaveState] = useState(null);
   const [settings, setSettings] = useState({
@@ -35,13 +31,11 @@ const [saveState, setSaveState] = useState(null);
       language: language,
     },
     account: {
-      twoFactor: false,
       sessionTimeout: 15,
       autoLogout: true
     }
   });
 
-  const { logout } = useAuth();
 
   const [activeTab, setActiveTab] = useState('notifications');
 
@@ -161,7 +155,6 @@ const [saveState, setSaveState] = useState(null);
           language: 'am',
         },
         account: {
-          twoFactor: false,
           sessionTimeout: 15,
           autoLogout: true
         }
@@ -170,147 +163,14 @@ const [saveState, setSaveState] = useState(null);
     }
   };
 
-  useEffect(() => {
-    if (!settings.account.autoLogout) return;
-    let timer;
-    const activityEvents = ['mousemove', 'keydown', 'mousedown', 'touchstart'];
-    const resetTimer = () => {
-      if (timer) clearTimeout(timer);
-      timer = setTimeout(() => {
-        logout();
-        alert('You have been logged out due to inactivity.');
-      }, (settings.account.sessionTimeout || 30) * 60 * 1000);
-    };
-    activityEvents.forEach(e => window.addEventListener(e, resetTimer));
-    resetTimer();
-    return () => {
-      if (timer) clearTimeout(timer);
-      activityEvents.forEach(e => window.removeEventListener(e, resetTimer));
-    };
-  }, [settings.account.autoLogout, settings.account.sessionTimeout, logout]);
+
 
   const tabs = [
-    { id: 'notifications', label: t('tabs.notifications'), icon: Bell },
-    { id: 'privacy', label: t('tabs.privacy'), icon: Shield },
     { id: 'appearance', label: t('tabs.appearance'), icon: Palette },
-    { id: 'account', label: t('tabs.account'), icon: SettingsIcon },
-    { id: 'invite', label: 'Invite Friends', icon: UserPlus }
+    { id: 'account', label: t('tabs.account'), icon: SettingsIcon }
   ];
   const renderSettingsContent = () => (
     <div className="settings-panel">
-              {activeTab === 'notifications' && (
-                <div className="settings-section">
-                  <h2>{t('notifications.title')}</h2>
-                  <p className="section-description">{t('notifications.subtitle')}</p>
-
-                  <div className="settings-group">
-                    <h3>{t('notifications.methods')}</h3>
-                    <div className="setting-item">
-                      <div className="setting-info">
-                        <label className="setting-label">{t('notifications.email')}</label>
-                        <p className="setting-description">{t('notifications.emailDesc')}</p>
-                      </div>
-                      <label className="toggle">
-                        <input
-                          type="checkbox"
-                          checked={settings.notifications.email}
-                          onChange={(e) => handleSettingChange('notifications', 'email', e.target.checked)}
-                        />
-                        <span className="toggle-slider"></span>
-                      </label>
-                    </div>
-
-                    <div className="setting-item">
-                      <div className="setting-info">
-                        <label className="setting-label">{t('notifications.push')}</label>
-                        <p className="setting-description">{t('notifications.pushDesc')}</p>
-                      </div>
-                      <label className="toggle">
-                        <input
-                          type="checkbox"
-                          checked={settings.notifications.push}
-                          onChange={(e) => handleSettingChange('notifications', 'push', e.target.checked)}
-                        />
-                        <span className="toggle-slider"></span>
-                      </label>
-                    </div>
-                  </div>
-
-                  <div className="settings-group">
-                    <h3>{t('notifications.types')}</h3>
-                    <div className="setting-item">
-                      <div className="setting-info">
-                        <label className="setting-label">{t('notifications.surveys')}</label>
-                        <p className="setting-description">{t('notifications.surveysDesc')}</p>
-                      </div>
-                      <label className="toggle">
-                        <input
-                          type="checkbox"
-                          checked={settings.notifications.surveys}
-                          onChange={(e) => handleSettingChange('notifications', 'surveys', e.target.checked)}
-                        />
-                        <span className="toggle-slider"></span>
-                      </label>
-                    </div>
-
-                    <div className="setting-item">
-                      <div className="setting-info">
-                        <label className="setting-label">{t('notifications.news')}</label>
-                        <p className="setting-description">{t('notifications.newsDesc')}</p>
-                      </div>
-                      <label className="toggle">
-                        <input
-                          type="checkbox"
-                          checked={settings.notifications.news}
-                          onChange={(e) => handleSettingChange('notifications', 'news', e.target.checked)}
-                        />
-                        <span className="toggle-slider"></span>
-                      </label>
-                    </div>
-
-                    <div className="setting-item">
-                      <div className="setting-info">
-                        <label className="setting-label">{t('notifications.chat')}</label>
-                        <p className="setting-description">{t('notifications.chatDesc')}</p>
-                      </div>
-                      <label className="toggle">
-                        <input
-                          type="checkbox"
-                          checked={settings.notifications.chat}
-                          onChange={(e) => handleSettingChange('notifications', 'chat', e.target.checked)}
-                        />
-                        <span className="toggle-slider"></span>
-                      </label>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {activeTab === 'privacy' && (
-                <div className="settings-section">
-                  <h2>{t('privacy.title')}</h2>
-                  <p className="section-description">{t('privacy.subtitle')}</p>
-
-                  <div className="settings-group">
-
-                    <div className="setting-item">
-                      <div className="setting-info">
-                        <label className="setting-label">{t('privacy.showEmail')}</label>
-                        <p className="setting-description">{t('privacy.showEmailDesc')}</p>
-                      </div>
-                      <label className="toggle">
-                        <input
-                          type="checkbox"
-                          checked={settings.privacy.showEmail}
-                          onChange={(e) => handleSettingChange('privacy', 'showEmail', e.target.checked)}
-                        />
-                        <span className="toggle-slider"></span>
-                      </label>
-                    </div>
-                  </div>
-                </div>
-              )}
-
               {activeTab === 'appearance' && (
                 <div className="settings-section">
                   <h2>{t('appearance.title')}</h2>
@@ -382,94 +242,6 @@ const [saveState, setSaveState] = useState(null);
       <h3>{t('account.security')}</h3>
       <div className="setting-item">
         <div className="setting-info">
-          <label className="setting-label">{t('account.twoFactor')}</label>
-          <p className="setting-description">{t('account.twoFactorDesc')}</p>
-        </div>
-        <label className="toggle">
-          <input
-            type="checkbox"
-            checked={settings.account.twoFactor}
-            onChange={(e) => {
-              handleSettingChange('account', 'twoFactor', e.target.checked);
-              setShowTwoFactorModal(e.target.checked);
-              setTwoFactorSent(false);
-            }}
-          />
-          <span className="toggle-slider"></span>
-        </label>
-      </div>
-
-      {/* INLINE FORM */}
-      {showTwoFactorModal && (
-        <div className="twofactor-inline-form">
-
-          {!twoFactorSent ? (
-            <>
-              <input className='enterTwoEmail'
-                type="email"
-                placeholder={t('settings.enterEmail')}
-                value={twoFactorEmail}
-                onChange={(e) => {
-                  setTwoFactorEmail(e.target.value);
-                  setEmailError("");
-                }}
-              />
-
-              {/* Error message */}
-              {emailError && (
-                <p style={{ color: "red", marginTop: 5 }}>
-                  {emailError}
-                </p>
-              )}
-
-              <button
-                className='send-button'
-                onClick={() => {
-                  if (twoFactorEmail.trim() !== user.email.trim()) {
-                    setEmailError(t('settings.notMatch'));
-                    return;
-                  }
-                 const code = Math.floor(1000 + Math.random() * 9000);
-    
-                  const templateParams = {
-                    to_email: twoFactorEmail,
-                    message: `Your 2FA code is: ${code}`,
-                  };
-
-                  emailjs
-                    .send(
-                      "service_bzm077b",
-                      "template_gomqa6h",
-                      templateParams,
-                      "cdiLKm1nFLt0BfCH5"
-                    )
-                    .then(() => {
-                      setTwoFactorSent(true);
-
-                      setTimeout(() => {
-                        setShowTwoFactorModal(false);
-                        setTwoFactorEmail('');
-                        setTwoFactorSent(false);
-                      }, 2000);
-                    })
-                    .catch((err) => {
-                      setEmailError(t('register.errors.failedSend'));
-                    });
-                }}
-              >
-                {t('settings.sendCode')}
-              </button>
-            </>
-          ) : (
-            <p className="twofactor-success">
-              {t('settings.codeSend') }
-            </p>
-          )}
-        </div>
-      )}
-
-      <div className="setting-item">
-        <div className="setting-info">
           <label className="setting-label">{t('account.sessionTimeout')}</label>
           <p className="setting-description">{t('account.sessionTimeoutDesc')}</p>
         </div>
@@ -503,34 +275,7 @@ const [saveState, setSaveState] = useState(null);
   </div>
 )}
 
-              {activeTab === 'invite' && (
-                <div className="settings-section">
-                  <h2>Invite Friends</h2>
-                  <p className="section-description">Share your referral code or QR code with friends to invite them to join.</p>
-
-                  <div className="settings-group">
-                    <div className="invite-section">
-                      <div className="qr-code-container">
-                        <h3>Scan to Join</h3>
-                        <div className="qr-code-wrapper">
-                          <img 
-                            src="/logo/qr-code.png" 
-                            alt="QR Code" 
-                            className="qr-code-image"
-                          />
-                        </div>
-                        <p className="qr-code-description">
-                          Ask your friends to scan this QR code to join the platform
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-
-              {activeTab !== 'invite' && (
-                <div className="settings-actions">
+              <div className="settings-actions">
                   <button onClick={handleReset} className="btn btn-secondary">
                     <RotateCcw size={16} />
                     {t('settings.reset')}
@@ -550,17 +295,17 @@ const [saveState, setSaveState] = useState(null);
                     <span className="settings-save-error">{t('settings.saveFailed')}</span>
                   )}
                 </div>
-              )}
     </div>
   );
 
   return (
     <div className="settings">
       <div className="container">
-        <div className="page-header">
-          <h1>{t('settings.title')}</h1>
-          <p>{t('settings.subtitle')}</p>
-        </div>
+        <PageHero
+          eyebrow={t('settings.eyebrow')}
+          title={t('settings.title')}
+          subtitle={t('settings.subtitle')}
+        />
 
         <div className="settings-content">
           {/* Settings Nav - Full screen on mobile/tablet */}

@@ -1,6 +1,7 @@
 export const translations = {
   en: {
     settings: {
+      eyebrow: 'Preferences',
       title: 'Settings',
       subtitle: 'Customize your experience and manage your preferences',
       save: 'Save Changes',
@@ -802,6 +803,7 @@ register:{
 },
   ru: {
     settings: {
+      eyebrow: 'Предпочтения',
       title: 'Настройки',
       subtitle: 'Настройте свой опыт и управляйте своими предпочтениями',
       save: 'Сохранить изменения',
@@ -1602,6 +1604,7 @@ register: {
  },
   am: {
     settings: {
+      eyebrow: 'Նախընտրություններ',
       title: 'Կարգավորումներ',
       subtitle: 'Հարմարեցրեք ձեր փորձը և կառավարեք ձեր նախընտրությունները',
       save: 'Պահպանել փոփոխությունները',

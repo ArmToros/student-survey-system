@@ -28,5 +28,34 @@ WHERE Preferences IS NOT NULL
   AND JSON_VALUE(Preferences, '$.privacy.showPhone') IS NOT NULL;
 GO
 
+/*
+    The rest of the settings that did nothing, removed with the same reasoning:
+    the notification toggles were never consulted before sending anything, and
+    "Show my email address" was never consulted before returning one. Only the
+    whole notifications and privacy groups are dropped, not individual keys,
+    because nothing is left in either.
+*/
+
+UPDATE dbo.UserAccount
+SET Preferences = JSON_MODIFY(Preferences, '$.notifications', NULL)
+WHERE Preferences IS NOT NULL
+  AND ISJSON(Preferences) = 1
+  AND JSON_QUERY(Preferences, '$.notifications') IS NOT NULL;
+GO
+
+UPDATE dbo.UserAccount
+SET Preferences = JSON_MODIFY(Preferences, '$.privacy', NULL)
+WHERE Preferences IS NOT NULL
+  AND ISJSON(Preferences) = 1
+  AND JSON_QUERY(Preferences, '$.privacy') IS NOT NULL;
+GO
+
+UPDATE dbo.UserAccount
+SET Preferences = JSON_MODIFY(Preferences, '$.account.twoFactor', NULL)
+WHERE Preferences IS NOT NULL
+  AND ISJSON(Preferences) = 1
+  AND JSON_VALUE(Preferences, '$.account.twoFactor') IS NOT NULL;
+GO
+
 PRINT 'Retired settings cleared from saved preferences.';
 GO
