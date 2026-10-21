@@ -23,14 +23,12 @@ const [saveState, setSaveState] = useState(null);
     notifications: {
       email: true,
       push: true,
-      sms: false,
       surveys: true,
       news: true,
       chat: true
     },
     privacy: {
       showEmail: false,
-      showPhone: false,
     },
     appearance: {
       theme: theme,
@@ -151,14 +149,12 @@ const [saveState, setSaveState] = useState(null);
         notifications: {
           email: true,
           push: true,
-          sms: false,
           surveys: true,
           news: true,
           chat: true
         },
         privacy: {
           showEmail: false,
-          showPhone: false,
         },
         appearance: {
           theme: 'light',
@@ -238,21 +234,6 @@ const [saveState, setSaveState] = useState(null);
                         <span className="toggle-slider"></span>
                       </label>
                     </div>
-
-                    <div className="setting-item">
-                      <div className="setting-info">
-                        <label className="setting-label">{t('notifications.sms')}</label>
-                        <p className="setting-description">{t('notifications.smsDesc')}</p>
-                      </div>
-                      <label className="toggle">
-                        <input
-                          type="checkbox"
-                          checked={settings.notifications.sms}
-                          onChange={(e) => handleSettingChange('notifications', 'sms', e.target.checked)}
-                        />
-                        <span className="toggle-slider"></span>
-                      </label>
-                    </div>
                   </div>
 
                   <div className="settings-group">
@@ -322,21 +303,6 @@ const [saveState, setSaveState] = useState(null);
                           type="checkbox"
                           checked={settings.privacy.showEmail}
                           onChange={(e) => handleSettingChange('privacy', 'showEmail', e.target.checked)}
-                        />
-                        <span className="toggle-slider"></span>
-                      </label>
-                    </div>
-
-                    <div className="setting-item">
-                      <div className="setting-info">
-                        <label className="setting-label">{t('privacy.showPhone')}</label>
-                        <p className="setting-description">{t('privacy.showPhoneDesc')}</p>
-                      </div>
-                      <label className="toggle">
-                        <input
-                          type="checkbox"
-                          checked={settings.privacy.showPhone}
-                          onChange={(e) => handleSettingChange('privacy', 'showPhone', e.target.checked)}
                         />
                         <span className="toggle-slider"></span>
                       </label>

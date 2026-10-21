@@ -82,6 +82,7 @@ if [ "$mode" = restore ]; then
     run_sql "$SCRIPTS_DIR/schema-student-profile.sql"
     run_sql "$SCRIPTS_DIR/schema-survey-audience.sql"
 run_sql "$SCRIPTS_DIR/schema-survey-deadline.sql"
+run_sql "$SCRIPTS_DIR/data-drop-retired-settings.sql"
     run_sql "$SCRIPTS_DIR/data-news-categories.sql"
 else
     echo "Seeding database SSS with the synthetic sample data..."
