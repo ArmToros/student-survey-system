@@ -86,6 +86,7 @@ export const translations = {
       hours2: '2 hours'
     },
     accountPage: {
+      eyebrow: 'Your account',
   title: "My Account",
   subtitle: "Manage your personal information and account settings",
 
@@ -141,6 +142,7 @@ export const translations = {
   
 },
 dashboard: {
+  eyebrow: 'Overview',
       title: 'Dashboard',
       subtitle: 'Welcome to the Student Survey and Feedback System',
       stats: {
@@ -181,6 +183,15 @@ dashboard: {
       closeFailed: 'Could not change that survey.',
       closedNotice: 'Closed - results only',
       answered: 'You answered this',
+      notAnswered: 'Not yet',
+      closesOn: 'Closes {date}',
+      participation: 'Who has answered',
+      participationSummary: '{answered} of {total} have answered.',
+      participationFailed: 'Could not load who has answered.',
+      close: 'Close',
+      eyebrow: 'Your surveys',
+      countChip: '{count} in total',
+      answeredChip: '{count} answered by you',
       title: 'All Surveys',
       subtitle: 'Every survey in the system, newest first',
       loading: 'Loading surveys...',
@@ -193,6 +204,7 @@ dashboard: {
     },
 
 courses: {
+  eyebrow: 'Extra classes',
   title: 'Courses',
   subtitle: 'Extra classes run by lecturers. Join the ones you want to attend.',
   loading: 'Loading courses...',
@@ -208,6 +220,7 @@ courses: {
   leaveFailed: 'Could not leave this course.'
 },
     news: {
+      eyebrow: 'Campus news',
       title: 'University News',
       subtitle: 'Stay updated with the latest news and announcements',
       filters: {
@@ -340,6 +353,8 @@ chat: {
 },
 createSurvey: {
       audience: 'Who is this survey for',
+      deadline: 'Closing date',
+      deadlineHint: 'Optional. After this day the survey closes itself and stops taking answers.',
       audienceHint: 'Leave all unticked and everyone can take it.',
   pageTitle: "Create New Survey",
   pageDescription: "Design and configure your survey questions",
@@ -876,6 +891,7 @@ sendCode: 'Отправить код подтверждения',
       hours2: '2 часа'
     },
     accountPage: {
+      eyebrow: 'Ваш аккаунт',
   title: "Мой профиль",
   subtitle: "Управляйте личной информацией и настройками аккаунта",
 
@@ -925,6 +941,7 @@ sendCode: 'Отправить код подтверждения',
   }
 },
 dashboard: {
+  eyebrow: 'Обзор',
       title: 'Панель управления',
       subtitle: 'Добро пожаловать в систему опросов студентов',
       stats: {
@@ -964,6 +981,15 @@ dashboard: {
       closeFailed: 'Не удалось изменить этот опрос.',
       closedNotice: 'Закрыт - только результаты',
       answered: 'Вы прошли этот опрос',
+      notAnswered: 'Ещё нет',
+      closesOn: 'Закрывается {date}',
+      participation: 'Кто уже прошёл',
+      participationSummary: 'Прошли {answered} из {total}.',
+      participationFailed: 'Не удалось загрузить список.',
+      close: 'Закрыть',
+      eyebrow: 'Ваши опросы',
+      countChip: 'Всего {count}',
+      answeredChip: 'Вы прошли {count}',
       title: 'Все опросы',
       subtitle: 'Все опросы системы, начиная с новых',
       loading: 'Загрузка опросов...',
@@ -976,6 +1002,7 @@ dashboard: {
     },
 
 courses: {
+  eyebrow: 'Дополнительные занятия',
   title: 'Курсы',
   subtitle: 'Дополнительные занятия от преподавателей. Запишитесь на те, которые хотите посещать.',
   loading: 'Загрузка курсов...',
@@ -991,6 +1018,7 @@ courses: {
   leaveFailed: 'Не удалось отписаться от курса.'
 },
     news: {
+      eyebrow: 'Новости кампуса',
       title: 'Новости университета',
       subtitle: 'Будьте в курсе последних новостей и объявлений',
       filters: {
@@ -1123,6 +1151,8 @@ chat: {
 },
 createSurvey: {
       audience: 'Для кого этот опрос',
+      deadline: 'Дата закрытия',
+      deadlineHint: 'Необязательно. После этого дня опрос закроется сам и перестанет принимать ответы.',
       audienceHint: 'Если ничего не отмечено, опрос доступен всем.',
         pageTitle: "Создать новый опрос",
         pageDescription: "Создайте и настройте вопросы вашего опроса",
@@ -1665,6 +1695,7 @@ sendCode: 'Ուղարկել վավերացման կոդը',
       hours2: '2 ժամ'
     },
   accountPage: {
+    eyebrow: 'Ձեր հաշիվը',
   title: "Իմ հաշիվը",
   subtitle: "Կառավարեք ձեր անձնական տվյալներն ու հաշվի կարգավորումները",
 
@@ -1715,6 +1746,7 @@ sendCode: 'Ուղարկել վավերացման կոդը',
 },
 
 dashboard: {
+  eyebrow: 'Ընդհանուր պատկեր',
       title: 'Վահանակ',
       subtitle: 'Բարի գալուստ Ուսանողների հարցումների և արձագանքների համակարգ',
       stats: {
@@ -1755,6 +1787,15 @@ dashboard: {
       closeFailed: 'Չհաջողվեց փոխել այս հարցումը։',
       closedNotice: 'Փակված - միայն արդյունքները',
       answered: 'Դուք պատասխանել եք',
+      notAnswered: 'Դեռ ոչ',
+      closesOn: 'Փակվում է {date}',
+      participation: 'Ովքեր են պատասխանել',
+      participationSummary: '{total}-ից {answered}-ը պատասխանել են։',
+      participationFailed: 'Չհաջողվեց բեռնել ցանկը։',
+      close: 'Փակել',
+      eyebrow: 'Ձեր հարցումները',
+      countChip: 'Ընդամենը {count}',
+      answeredChip: 'Դուք պատասխանել եք {count}-ին',
       title: 'Բոլոր հարցումները',
       subtitle: 'Համակարգի բոլոր հարցումները՝ նորերից սկսած',
       loading: 'Հարցումները բեռնվում են...',
@@ -1767,6 +1808,7 @@ dashboard: {
     },
 
 courses: {
+  eyebrow: 'Լրացուցիչ դասընթացներ',
   title: 'Դասընթացներ',
   subtitle: 'Դասախոսների լրացուցիչ պարապմունքները։ Միացեք նրանց, որոնց ցանկանում եք մասնակցել։',
   loading: 'Դասընթացները բեռնվում են...',
@@ -1782,6 +1824,7 @@ courses: {
   leaveFailed: 'Չհաջողվեց լքել դասընթացը։'
 },
     news: {
+      eyebrow: 'Համալսարանի նորություններ',
       title: 'Նորություններ',
       subtitle: 'Մնացեք տեղեկացված վերջին նորությունների և հայտարարությունների մասին',
       filters: {
@@ -1914,6 +1957,8 @@ chat: {
 },
 createSurvey: {
       audience: 'Ում համար է այս հարցումը',
+      deadline: 'Փակման ամսաթիվ',
+      deadlineHint: 'Ըստ ցանկության։ Այդ օրից հետո հարցումը ինքն իրեն կփակվի և այլևս պատասխաններ չի ընդունի։',
       audienceHint: 'Ոչինչ չնշելու դեպքում հասանելի է բոլորին։',
         pageTitle: "Ստեղծել Նոր Հարցում",
         pageDescription: "Նախագծեք և կարգավորեք ձեր հարցումների հարցերը",

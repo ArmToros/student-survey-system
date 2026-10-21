@@ -5,6 +5,7 @@ import './Dashboard.css';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
 import { apiFetch } from '../services/api';
+import PageHero from '../components/PageHero';
 
 const Dashboard = () => {
   const {t} = useLanguage();
@@ -101,10 +102,11 @@ const Dashboard = () => {
   return (
     <div className="dashboard">
       <div className="container">
-        <div className="dashboard-header">
-          <h1>{t('dashboard.title')}</h1>
-          <p>{t('dashboard.subtitle')}</p>
-        </div>
+<PageHero
+          eyebrow={t('dashboard.eyebrow')}
+          title={t('dashboard.title')}
+          subtitle={t('dashboard.subtitle')}
+        />
 
         <div className="stats-grid">
           <StatCard

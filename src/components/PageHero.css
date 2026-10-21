@@ -1,0 +1,114 @@
+/*
+    The shared page header. These values are the admin console's hero, moved
+    here so every page wears the same band instead of the console looking like
+    a different product from the rest of the app.
+*/
+
+.page-hero {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 20px;
+  padding: 32px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 32px;
+  box-shadow: var(--shadow);
+  margin-bottom: 32px;
+}
+
+.page-hero-text {
+  flex: 1 1 280px;
+  min-width: 0;
+}
+
+.page-hero-label {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--accent);
+  font-weight: 600;
+  margin: 0 0 8px;
+}
+
+.page-hero h1 {
+  margin: 0 0 12px;
+  font-size: 2rem;
+  color: var(--text-primary);
+  overflow-wrap: anywhere;
+}
+
+.page-hero-subtitle {
+  margin: 0;
+  color: var(--text-secondary);
+}
+
+.page-hero-meta {
+  margin-top: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.page-hero-chip {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 999px;
+  padding: 8px 16px;
+  font-size: 0.9rem;
+  color: var(--text-primary);
+}
+
+.page-hero-profile {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex: 0 1 auto;
+  min-width: 0;
+}
+
+.page-hero-avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 16px;
+  object-fit: cover;
+  border: 3px solid var(--accent);
+  flex-shrink: 0;
+}
+
+.page-hero-identity {
+  min-width: 0;
+}
+
+.page-hero-name {
+  font-size: 1.2rem;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.page-hero-role {
+  color: var(--accent);
+  font-weight: 500;
+}
+
+.page-hero-id {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  overflow-wrap: anywhere;
+}
+
+/* On a phone the identity block sits under the title rather than beside it. */
+@media (max-width: 640px) {
+  .page-hero {
+    padding: 24px;
+    gap: 20px;
+  }
+
+  .page-hero h1 {
+    font-size: 1.6rem;
+  }
+
+  .page-hero-profile {
+    flex: 1 1 100%;
+  }
+}

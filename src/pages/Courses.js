@@ -4,6 +4,7 @@ import './Courses.css';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
 import { apiFetch } from '../services/api';
+import PageHero from '../components/PageHero';
 
 /**
  * The extra classes lecturers run, and the place students join them.
@@ -90,10 +91,11 @@ const Courses = () => {
   return (
     <div className="courses">
       <div className="container">
-        <div className="page-header">
-          <h1>{t('courses.title')}</h1>
-          <p>{t('courses.subtitle')}</p>
-        </div>
+<PageHero
+          eyebrow={t('courses.eyebrow')}
+          title={t('courses.title')}
+          subtitle={t('courses.subtitle')}
+        />
 
         {error && <p className="courses-error">{error}</p>}
 

@@ -5,6 +5,7 @@ import './Account.css';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
 import { apiFetch } from '../services/api';
+import PageHero from '../components/PageHero';
 
 
 const Account = () => {
@@ -209,10 +210,11 @@ const Account = () => {
   return (
     <div className="account">
       <div className="container">
-        <div className="page-header">
-          <h1>{t('accountPage.title')}</h1>
-          <p>{t('accountPage.subtitle')}</p>
-        </div>
+<PageHero
+          eyebrow={t('accountPage.eyebrow')}
+          title={t('accountPage.title')}
+          subtitle={t('accountPage.subtitle')}
+        />
 
         <div className="account-content">
           <div className="profile-section">

@@ -4,6 +4,7 @@ import './News.css';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
 import { apiFetch } from '../services/api';
+import PageHero from '../components/PageHero';
 
 const News = () => {
   const { t } = useLanguage();
@@ -103,10 +104,11 @@ const News = () => {
       <div className="container">
         
         {/* HEADER */}
-        <div className="page-header">
-          <h1>{t('news.title')}</h1>
-          <p>{t('news.subtitle')}</p>
-        </div>
+<PageHero
+          eyebrow={t('news.eyebrow')}
+          title={t('news.title')}
+          subtitle={t('news.subtitle')}
+        />
 
         {/* FILTERS */}
         <div className="news-filters">

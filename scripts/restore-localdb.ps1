@@ -66,6 +66,7 @@ $followUpScripts = @(
     'schema-support-chat.sql',          # preset questions and per-side hiding
     'schema-student-profile.sql',       # start year and degree, for the academic year
     'schema-survey-audience.sql',       # which roles a survey is aimed at
+    'schema-survey-deadline.sql',       # when a survey stops taking answers
     'data-news-categories.sql'          # the four news categories the UI offers
 )
 

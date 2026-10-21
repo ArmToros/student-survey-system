@@ -13,6 +13,7 @@ const CreateSurvey = () =>{
     title: '',
     description: '',
     category: 'Academic',
+    deadline: '',
     // Empty means everyone, matching how the API reads a survey with no
     // audience rows.
     audience: [],
@@ -24,8 +25,7 @@ const CreateSurvey = () =>{
     { value: 'single-choice', label: t('createSurvey.single') },
     { value: 'multiple-choice', label: t('createSurvey.multiple') },
     { value: 'text', label: t('createSurvey.textInput') },
-    { value: 'rating', label: t('createSurvey.ratingScale')  },
-    { value: 'checkbox', label: t('createSurvey.checkBox')  }
+    { value: 'rating', label: t('createSurvey.ratingScale')  }
   ];
 
   const addQuestion = () => {
@@ -125,6 +125,11 @@ const CreateSurvey = () =>{
           description: survey.description,
           category: survey.category,
           audience: survey.audience,
+          // A date box gives a local date with no time; send the end of that
+          // day in UTC, so "closes on the 30th" means the 30th is still usable.
+          deadline: survey.deadline
+            ? new Date(`${survey.deadline}T23:59:59`).toISOString()
+            : null,
           createdBy: user?.dbId,
           assignedAdmin: user?.role === 'admin' ? user?.dbId : undefined,
           // The question id here is only a local React key. The server assigns the
@@ -280,6 +285,18 @@ const CreateSurvey = () =>{
                   <option value="Infrastructure">{t('createSurvey.infrastructure')}</option>
                   <option value="Student Life">{t('createSurvey.studentLife')}</option>
                 </select>
+              </div>
+
+              <div className="form-group">
+                <label>{t('createSurvey.deadline')}</label>
+                <p className="form-hint">{t('createSurvey.deadlineHint')}</p>
+                <input
+                  type="date"
+                  className="form-input"
+                  value={survey.deadline}
+                  min={new Date().toISOString().slice(0, 10)}
+                  onChange={(e) => setSurvey(prev => ({ ...prev, deadline: e.target.value }))}
+                />
               </div>
 
               <div className="form-group">

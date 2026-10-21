@@ -6,8 +6,9 @@ namespace backend.Models;
 /// <summary>
 /// A survey in the SSS database: dbo.Survey.
 /// Category, CreatedAt, ClosedAt and IsClosed were added by
-/// scripts/schema-authoring.sql; surveys restored from the backup have the dates
-/// null and IsClosed false.
+/// scripts/schema-authoring.sql, and Deadline by
+/// scripts/schema-survey-deadline.sql; surveys restored from the backup have
+/// the dates null and IsClosed false.
 /// </summary>
 public partial class Survey
 {
@@ -22,6 +23,13 @@ public partial class Survey
     public DateTime? CreatedAt { get; set; }
 
     public DateTime? ClosedAt { get; set; }
+
+    /// <summary>
+    /// When the survey stops taking answers, or null for "until somebody closes
+    /// it". Added by scripts/schema-survey-deadline.sql; surveys restored from
+    /// the backup have none.
+    /// </summary>
+    public DateTime? Deadline { get; set; }
 
     public bool IsClosed { get; set; }
 
