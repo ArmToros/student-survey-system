@@ -21,6 +21,9 @@ namespace backend.Controllers
         private int? CallerId =>
             int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var id) ? id : null;
 
+        /// <summary>The caller's role from the token, never from the request.</summary>
+        private string CallerRole => User.FindFirstValue(ClaimTypes.Role) ?? "student";
+
         /// <summary>The roles an item may be aimed at, in the stored capitalisation.</summary>
         private static readonly string[] KnownRoles = { "Admin", "Lecturer", "Student" };
 
@@ -39,7 +42,7 @@ namespace backend.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult> GetAll([FromQuery] string? role)
+        public async Task<ActionResult> GetAll()
         {
             var query = _context.News
                 .Include(item => item.NewsType)
@@ -47,9 +50,23 @@ namespace backend.Controllers
                 .Include(item => item.NewsTargetRoles)
                 .AsQueryable();
 
-            if (!string.IsNullOrWhiteSpace(role))
+            // Admins see every article whoever it was aimed at: they write the
+            // news and answer for it, so a piece they cannot see is a piece they
+            // cannot correct.
+            //
+            // The role comes from the token rather than a query parameter. It
+            // used to be passed in by the caller, so anyone could ask for
+            // "?role=admin" and read news written for admins only.
+            var role = CallerRole;
+            if (!string.Equals(role, "admin", StringComparison.OrdinalIgnoreCase))
             {
-                query = query.Where(item => !item.NewsTargetRoles.Any() || item.NewsTargetRoles.Any(target => target.Role == role));
+                var stored = role.Length > 0
+                    ? char.ToUpperInvariant(role[0]) + role.Substring(1).ToLowerInvariant()
+                    : role;
+
+                query = query.Where(item =>
+                    !item.NewsTargetRoles.Any() ||
+                    item.NewsTargetRoles.Any(target => target.Role == stored));
             }
 
             var news = await query

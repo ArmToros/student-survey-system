@@ -18,7 +18,7 @@ const News = () => {
   useEffect(() => {
     const loadNews = async () => {
       try {
-        const response = await apiFetch(`/api/news?role=${encodeURIComponent(user?.role || '')}`);
+        const response = await apiFetch(`/api/news`);
 
         if (!response.ok) {
           throw new Error('NEWS_API_FAILED');
