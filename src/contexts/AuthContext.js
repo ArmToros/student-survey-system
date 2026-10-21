@@ -3,40 +3,6 @@ import { AUTH_EXPIRED_EVENT, apiFetch, getAuthToken, setAuthToken } from '../ser
 
 const STORAGE_KEY = 'sss-auth-user';
 
-// Accounts that exist in the restored SSS database, offered on the login page
-// so the app can be tried without hunting for a login.
-//
-// The passwords below are the placeholders the backup ships with. They only
-// work on a database that has not had "npm run db:set-passwords" run against
-// it; once it has, these open nothing, which is why the hints are shown on
-// localhost alone.
-const DEMO_ACCOUNTS = [
-  {
-    role: 'admin',
-    roleLabel: 'Administrator',
-    firstName: 'Arman',
-    lastName: 'Sargsyan',
-    email: 'arman.sargsyan@uni.am',
-    password: 'hash_admin_1'
-  },
-  {
-    role: 'lecturer',
-    roleLabel: 'Lecturer',
-    firstName: 'Gevorg',
-    lastName: 'Harutyunyan',
-    email: 'gevorg.h@uni.am',
-    password: 'hash_lect_1'
-  },
-  {
-    role: 'student',
-    roleLabel: 'Student',
-    firstName: 'Davit',
-    lastName: 'Hovhannisyan',
-    email: 'davit.h@student.uni.am',
-    password: 'hash_stud_1'
-  }
-];
-
 const loadPersistedUser = () => {
   if (typeof window === 'undefined') {
     return null;
@@ -79,23 +45,6 @@ export const AuthProvider = ({ children }) => {
   // real accounts on a page anyone can open, so it is withheld. The passwords it
   // lists are the placeholders from the backup and stop working as soon as
   // "npm run db:set-passwords" has been run.
-  const credentialHints = useMemo(
-    () => {
-      const hostname = typeof window === 'undefined' ? '' : window.location.hostname;
-      if (hostname !== 'localhost' && hostname !== '127.0.0.1') {
-        return [];
-      }
-
-      return DEMO_ACCOUNTS.map(({ role, roleLabel, email, password, firstName, lastName }) => ({
-        role,
-        roleLabel,
-        email,
-        password,
-        name: `${firstName} ${lastName}`
-      }));
-    },
-    []
-  );
 
   const login = async (email, password) => {
     const normalizedEmail = email.toLowerCase().trim();
@@ -234,7 +183,6 @@ export const AuthProvider = ({ children }) => {
     requestPasswordReset,
     confirmPasswordReset,
     hasRole,
-    credentialHints,
     roles: {
       ADMIN: 'admin',
       LECTURER: 'lecturer',

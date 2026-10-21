@@ -9,7 +9,7 @@ const Login = () => {
   const { t } = useLanguage();
   const navigate = useNavigate();
   const location = useLocation();
-  const { login, credentialHints, requestPasswordReset } = useAuth();
+  const { login, requestPasswordReset } = useAuth();
   const [formData, setFormData] = useState({
     email: '',
     password: ''
@@ -96,10 +96,6 @@ const handleRecoverySubmit = async (e) => {
     }
   };
 
-  const autofillCredentials = (email, password) => {
-    setFormData({ email, password });
-    setError('');
-  };
   return (
     <div className="login">
       <div className="login-container">
@@ -181,32 +177,6 @@ const handleRecoverySubmit = async (e) => {
               {isLoading ? t('login.loggingIn') : t('login.loginButton')}
             </button>
           </form>
-
-          {credentialHints.length > 0 && (
-          <div className="quick-access">
-            <div className="quick-access-header">
-              <h3>{t('login.quickAccessTitle')}</h3>
-              <p>{t('login.quickAccessSubtitle')}</p>
-            </div>
-            <div className="quick-access-grid">
-              {credentialHints.map((item) => (
-                <button
-                  key={item.role}
-                  type="button"
-                  className="quick-access-card"
-                  onClick={() => autofillCredentials(item.email, item.password)}
-                >
-                  <div className="quick-access-role">{t(`header.roleLabels.${item.role}`)}</div>
-                  <div className="quick-access-name">{item.name}</div>
-                  <div className="quick-access-credentials">
-                    <span>{item.email}</span>
-                    <span>{item.password}</span>
-                  </div>
-                </button>
-              ))}
-            </div>
-          </div>
-          )}
 
           {isRecoveryMode && (
             <div className="password-recovery" ref={recoveryRef}>
