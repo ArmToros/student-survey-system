@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   ShieldCheck,
   Users,
@@ -9,6 +9,9 @@ import {
   HelpCircle,
   UserCog,
   Newspaper,
+  Search,
+  Paperclip,
+  X,
   KeyRound,
   Pencil,
   Trash2
@@ -45,9 +48,13 @@ const Admin = () => {
   const [userBusy, setUserBusy] = useState(false);
   const [userError, setUserError] = useState(null);
   const [broadcast, setBroadcast] = useState({ title: '', content: '', audience: [] });
+  const [broadcastFile, setBroadcastFile] = useState(null);
   const [broadcastBusy, setBroadcastBusy] = useState(false);
   const [broadcastResult, setBroadcastResult] = useState(null);
   const [broadcastError, setBroadcastError] = useState(null);
+  const [userSearch, setUserSearch] = useState('');
+  const [userRoleFilter, setUserRoleFilter] = useState('All');
+  const [userSort, setUserSort] = useState('name');
   const [passwordFor, setPasswordFor] = useState(null);
   const [newPassword, setNewPassword] = useState('');
   const [passwordDone, setPasswordDone] = useState(null);
@@ -144,7 +151,13 @@ const Admin = () => {
       ? broadcast.audience.map(role => t(`header.roleLabels.${role.toLowerCase()}`)).join(', ')
       : t('adminPage.quickActions.broadcast.allUsers');
 
-    if (!window.confirm(t('adminPage.quickActions.broadcast.confirm').replace('{who}', who))) {
+    const question = broadcastFile
+      ? t('adminPage.quickActions.broadcast.confirmWithFile')
+          .replace('{who}', who)
+          .replace('{file}', broadcastFile.name)
+      : t('adminPage.quickActions.broadcast.confirm').replace('{who}', who);
+
+    if (!window.confirm(question)) {
       return;
     }
 
@@ -152,10 +165,20 @@ const Admin = () => {
     setBroadcastError(null);
     setBroadcastResult(null);
     try {
+      // Multipart rather than JSON, so the message and the file travel
+      // together. No Content-Type here on purpose: the browser has to set it,
+      // because only it knows the boundary string.
+      const payload = new FormData();
+      payload.append('Title', broadcast.title);
+      payload.append('Content', broadcast.content);
+      broadcast.audience.forEach(role => payload.append('Audience', role));
+      if (broadcastFile) {
+        payload.append('Attachment', broadcastFile);
+      }
+
       const response = await apiFetch('/api/broadcast', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(broadcast)
+        body: payload
       });
 
       const data = await response.json().catch(() => null);
@@ -165,6 +188,7 @@ const Admin = () => {
 
       setBroadcastResult(data);
       setBroadcast({ title: '', content: '', audience: [] });
+      setBroadcastFile(null);
     } catch (failure) {
       console.error(failure);
       setBroadcastError(failure.message === 'BROADCAST_FAILED'
@@ -207,6 +231,52 @@ const Admin = () => {
       setUserBusy(false);
     }
   };
+
+  // What the Accounts list actually shows: the search, the role filter and the
+  // sort applied in that order. Nineteen rows already need this; a real intake
+  // would be unusable without it.
+  const visibleUsers = useMemo(() => {
+    const needle = userSearch.trim().toLowerCase();
+
+    const matches = users.filter(account => {
+      if (userRoleFilter !== 'All' && account.roleLabel !== userRoleFilter && account.role !== userRoleFilter.toLowerCase()) {
+        return false;
+      }
+
+      if (!needle) {
+        return true;
+      }
+
+      return [
+        account.firstName,
+        account.lastName,
+        `${account.firstName} ${account.lastName}`,
+        account.email,
+        account.studentId,
+        account.major,
+        account.department,
+        account.degree
+      ].some(field => (field || '').toString().toLowerCase().includes(needle));
+    });
+
+    const byName = (a, b) =>
+      `${a.firstName} ${a.lastName}`.localeCompare(`${b.firstName} ${b.lastName}`);
+
+    const sorted = [...matches];
+    if (userSort === 'name') {
+      sorted.sort(byName);
+    } else if (userSort === 'email') {
+      sorted.sort((a, b) => (a.email || '').localeCompare(b.email || ''));
+    } else if (userSort === 'role') {
+      // Admins first, then lecturers, then students; alphabetical inside each.
+      const rank = { admin: 0, lecturer: 1, student: 2 };
+      sorted.sort((a, b) => (rank[a.role] ?? 9) - (rank[b.role] ?? 9) || byName(a, b));
+    } else if (userSort === 'newest') {
+      sorted.sort((a, b) => (b.dbId || 0) - (a.dbId || 0));
+    }
+
+    return sorted;
+  }, [users, userSearch, userRoleFilter, userSort]);
 
   const loadNews = async () => {
     try {
@@ -315,6 +385,20 @@ const Admin = () => {
   };
 
   const saveUser = async () => {
+    // Creating an account sends somebody a way into the system, and editing one
+    // changes details the person cannot change back themselves. Both are a
+    // click away from a misclick, so both ask.
+    const name = `${userForm.firstName} ${userForm.lastName}`.trim() || userForm.email;
+    const question = editingUser
+      ? t('adminPage.quickActions.users.saveConfirm').replace('{name}', name)
+      : t('adminPage.quickActions.users.createConfirm')
+          .replace('{name}', name)
+          .replace('{role}', t(`header.roleLabels.${userForm.role.toLowerCase()}`));
+
+    if (!window.confirm(question)) {
+      return;
+    }
+
     setUserBusy(true);
     setUserError(null);
     try {
@@ -534,6 +618,7 @@ const Admin = () => {
 
   return (
     <div className="admin-page">
+      <div className="container">
       <section className="admin-hero">
         <div className="admin-hero-text">
           <p className="admin-hero-label">{t('adminPage.eyebrow')}</p>
@@ -648,6 +733,33 @@ const Admin = () => {
                     value={broadcast.content}
                     onChange={(event) => setBroadcast({ ...broadcast, content: event.target.value })}
                   />
+                </div>
+                <div className="form-group">
+                  <label>{t('adminPage.quickActions.broadcast.attachment')}</label>
+                  <p className="form-hint">{t('adminPage.quickActions.broadcast.attachmentHint')}</p>
+                  {broadcastFile ? (
+                    <div className="attachment-chosen">
+                      <Paperclip size={16} />
+                      <span className="attachment-name">{broadcastFile.name}</span>
+                      <span className="attachment-size">
+                        {(broadcastFile.size / 1024).toFixed(0)} KB
+                      </span>
+                      <button
+                        type="button"
+                        className="attachment-remove"
+                        onClick={() => setBroadcastFile(null)}
+                        title={t('adminPage.quickActions.broadcast.removeFile')}
+                      >
+                        <X size={14} />
+                      </button>
+                    </div>
+                  ) : (
+                    <input
+                      type="file"
+                      className="form-input"
+                      onChange={(event) => setBroadcastFile(event.target.files?.[0] || null)}
+                    />
+                  )}
                 </div>
                 <div className="form-group">
                   <label className="audience-label">{t('adminPage.quickActions.broadcast.target')}</label>
@@ -903,8 +1015,51 @@ const Admin = () => {
                 </div>
               )}
 
+              <div className="user-toolbar">
+                <div className="user-search">
+                  <Search size={16} />
+                  <input
+                    type="search"
+                    className="form-input"
+                    placeholder={t('adminPage.quickActions.users.searchPlaceholder')}
+                    value={userSearch}
+                    onChange={(event) => setUserSearch(event.target.value)}
+                  />
+                </div>
+
+                <select
+                  className="form-input"
+                  value={userRoleFilter}
+                  onChange={(event) => setUserRoleFilter(event.target.value)}
+                  aria-label={t('adminPage.quickActions.users.filterByRole')}
+                >
+                  <option value="All">{t('adminPage.quickActions.users.allRoles')}</option>
+                  <option value="Student">{t('header.roleLabels.student')}</option>
+                  <option value="Lecturer">{t('header.roleLabels.lecturer')}</option>
+                  <option value="Admin">{t('header.roleLabels.admin')}</option>
+                </select>
+
+                <select
+                  className="form-input"
+                  value={userSort}
+                  onChange={(event) => setUserSort(event.target.value)}
+                  aria-label={t('adminPage.quickActions.users.sortBy')}
+                >
+                  <option value="name">{t('adminPage.quickActions.users.sortName')}</option>
+                  <option value="role">{t('adminPage.quickActions.users.sortRole')}</option>
+                  <option value="email">{t('adminPage.quickActions.users.sortEmail')}</option>
+                  <option value="newest">{t('adminPage.quickActions.users.sortNewest')}</option>
+                </select>
+              </div>
+
+              <p className="user-count">
+                {t('adminPage.quickActions.users.showing')
+                  .replace('{shown}', visibleUsers.length)
+                  .replace('{total}', users.length)}
+              </p>
+
               <ul className="preset-list user-list">
-                {users.map(account => (
+                {visibleUsers.map(account => (
                   <li key={account.dbId} className="preset-row">
                     <div className="preset-row-text">
                       <strong>{account.firstName} {account.lastName}</strong>
@@ -934,6 +1089,10 @@ const Admin = () => {
                   </li>
                 ))}
               </ul>
+
+              {visibleUsers.length === 0 && users.length > 0 && (
+                <p className="form-hint">{t('adminPage.quickActions.users.noMatches')}</p>
+              )}
             </div>
           )}
 
@@ -1044,6 +1203,7 @@ const Admin = () => {
 
         </div>
       )}
+      </div>
     </div>
   );
 };
