@@ -1,270 +1,154 @@
 # Known gaps
 
-What is wired up, what is not, and what should not ship as it stands. Written
-while connecting the React app and the ASP.NET backend to the `SSS` database
-restored from `new database/SSS.bak` (backup set 7).
+What is unfinished, what is deliberately absent, and what will bite you. Read
+this before trusting a screen or filing a bug — several things that look broken
+are known and recorded here.
 
-There is now a second way to get a database — `scripts/seed-dev-data.sql` builds
-the same schema from scratch with synthetic data, for machines without the backup.
-Everything below describes the restored database unless it says otherwise;
-[section 8](#8-the-seeded-database-is-not-the-real-data) lists where the seeded one
-differs.
+Last reviewed: 2026-10-22.
 
-The database schema was deliberately left untouched: no table or column was
-altered, added or dropped. The only data change is `UserAccount.PasswordHash`,
-which now holds PBKDF2 hashes instead of plain text — the passwords themselves are
-unchanged, and `npm run db:restore` reverts even that. Everything else below was
-fixed in code, or is listed as outstanding.
+---
 
-## Working end to end
+## Not tested
 
-Verified against the restored database, in the browser and over the API.
+**There are no automated tests.** Not one, frontend or backend. Everything in
+this project has been verified by hand against a running instance: calling the
+API, reading the database, and looking at the pages in a browser. That is better
+than nothing and much worse than a test suite. If you add tests you will be the
+first, and the API is the place to start — it holds the rules.
 
-- Login for all three roles, and rejection of a wrong password
-- Dashboard totals and recent surveys (18 users, 6 surveys, 16 responses)
-- Survey list, taking a survey, and the results charts
-- Submitting a response: writes one `SurveySession` and one `SurveyAnswer` per answer
-- University News, filtered by role
-- Admin Console (reachable now that roles are normalised)
-- Account profile read and update
-- AI assistant failing gracefully with a clear notice when no API key is set
-- Signing in with hashed passwords, and the full permission matrix: anonymous
-  callers blocked, students refused results and survey creation (403), a student
-  refused another user's account, a tampered token rejected (401)
+**The Docker path has never been executed.** `docker-compose.yml` and
+`scripts/db-init.sh` exist and are kept in step with the PowerShell restore, but
+Docker is not installed on the machine this was built on, so that path is
+written-but-unproven. Treat the first run as debugging, not deployment.
 
-## 1. Authentication — now implemented, with caveats
+---
 
-This was the most serious item and has been addressed.
+## Deployment
 
-- Passwords are hashed with ASP.NET Core's PBKDF2 hasher. All 18 accounts were
-  migrated in place by `npm run db:hash-passwords`, keeping the same passwords, so
-  nobody needs new credentials.
-- Login issues a signed JWT (12 hour lifetime). The React app sends it as a bearer
-  header and signs out when the API rejects it.
-- Every endpoint now requires a signed-in caller except health, login, register and
-  the password-reset check. Results and survey creation are restricted to admins
-  and lecturers; a user account can only be read or changed by its owner or an
-  admin.
-- Writes take the account id from the token, not the request body. Submitting a
-  response with `"userId": 1` from a student's token is recorded against the
-  student, not user 1 (verified).
-- CORS is limited to `CORS_ALLOWED_ORIGINS` instead of allowing any origin.
-- Login answers the same way for an unknown address and a wrong password.
-- Sign-in endpoints are rate limited to 10 requests per minute per IP, and an
-  address is locked for 15 minutes after 5 failed attempts. Attempts are counted
-  against the submitted address whether or not it exists, so the lockout leaks
-  nothing either.
-- `password-reset-check` no longer reveals whether an address is registered, and
-  no longer returns the account holder's name.
-- A real password reset exists: a single-use token, stored only as its SHA-256,
-  expiring after 30 minutes, emailed as a link and redeemed on a /reset-password
-  page. Requesting again supersedes the previous link, and a spent, expired or
-  invented token all give the same answer.
+**It runs over plain HTTP.** Sign-ins, bearer tokens and password-reset links
+all cross the network in the clear. Acceptable for coursework on a throwaway
+dataset; not acceptable for real student data. TLS is the single biggest thing
+missing before this could be used for real.
 
-What is still open:
+**The whole thing depends on one PC.** The public URL is a VPS running nginx
+that proxies over Tailscale to a developer machine, which is where both the app
+and SQL Server actually run. If that machine sleeps or drops off the tailnet,
+the site returns a gateway error. See [PERSONAL_ACCESS.md](PERSONAL_ACCESS.md).
 
-- **The token is kept in `localStorage`**, so any XSS on the page can read it. An
-  HTTP-only, SameSite cookie plus CSRF protection would be stronger. This was a
-  deliberate trade: it keeps the two dev ports simple.
-- **No revocation.** A stateless JWT stays valid until it expires, so a
-  compromised token cannot be withdrawn and signing out only clears the browser.
-  Revocation needs a server-side token store, which means a new table.
-- **No refresh tokens**: after 12 hours the user signs in again.
-- **Lockout state is in memory.** It resets when the backend restarts, and two
-  instances would each keep their own counts. A shared store (Redis, or a table)
-  is needed before running more than one instance.
-- **Rate limiting partitions on the connection's IP.** Behind a reverse proxy
-  that is the proxy, so one shared limit would apply to everyone until forwarded
-  headers are configured.
-- **No SMTP server is configured here.** With `SMTP_HOST` unset the backend logs
-  the reset link instead of sending it, which is deliberate for local work but
-  means the mail path itself has not been exercised against a real server. The
-  send uses `System.Net.Mail.SmtpClient`; if the provider needs OAuth or modern
-  TLS quirks, MailKit would be the usual replacement.
-- **Spent tokens are only purged on demand.** `PasswordResetService.PurgeExpiredAsync`
-  exists but nothing calls it on a schedule, so the table grows slowly. A nightly
-  job or a call on each request would deal with it.
-- **Changing a password does not invalidate existing sessions.** JWTs already
-  issued keep working until they expire, which matters if the reset was prompted
-  by a compromise. Fixing it properly needs the token revocation noted above, or
-  a per-user token version claim.
-- **Local traffic is plain HTTP.** A bearer token must only travel over HTTPS in
-  production.
-- **The plain-text fallback is still in `PasswordSecurity.Check`.** It exists so a
-  freshly restored database keeps working and upgrades itself at sign-in. Once no
-  environment restores an unhashed backup, delete that branch.
-- **In Development a missing `JWT_SIGNING_KEY` generates a temporary one** so a
-  fresh clone starts; tokens then break on restart. Any other environment refuses
-  to start without the key.
-- Registration still only creates Students, and there is no admin UI for managing
-  roles.
+**The sign-in rate limit is in-memory.** Ten attempts a minute per caller, held
+in the process, so two instances would each allow ten. A shared store would be
+needed before scaling out. Behind a proxy the limit keys on the proxy unless
+`TRUSTED_PROXY` names it — that is configured here, but it is easy to forget on
+a new deployment, and the symptom is that one person signing in locks everyone
+else out with a `429`.
 
-## 2. The Question table has no question text
+---
 
-`dbo.Question` is `(QuestionID, SurveyID, Answear)`. There is no column for the
-question text, the question type or the answer options, and the `Answear` values
-look like answers rather than questions — `"A"`, `"B"`, and one full sentence.
+## Email
 
-Current behaviour, since the schema is frozen:
+**Reset and broadcast email only reaches real mailboxes.** Sending works and is
+proven, but `uni.am` and `student.uni.am` have **no MX record** — they are not
+real mail domains. Mail to those addresses is accepted by Gmail and then
+bounces, so almost every seeded account can never receive anything. "Forgot
+password" on such an address shows the usual reassuring message and nothing
+arrives. Only the `gmail.com` accounts can actually be tested.
 
-- The question label shown in the UI is the `Answear` value, so questions appear
-  as "A" and "B" on the survey form and the results page.
-- Answer options are **derived** from the distinct values already recorded in
-  `dbo.SurveyAnswer` for that question. This works well for the real data (Likert
-  scales such as Strongly Agree / Agree / Neutral / Disagree) but a question with
-  no recorded answers falls back to a free-text box.
-- Creating a survey stores only the question text, into `Answear`. Type, options,
-  required and placeholder are dropped on the way in.
+**It sends as one Gmail account**, authenticated with an App Password. Gmail's
+daily send limits apply, and a broadcast sends one message per recipient, so a
+large audience is a lot of messages.
 
-`scripts/migrate-question-text.sql` adds `QuestionText`, `QuestionType` and
-`Options` as nullable columns and is **deliberately not applied**. It is additive
-and re-runnable, and leaves the misspelled `Answear` column alone.
+**Attachments are capped at 5 MB** for that reason: the same file is sent once
+per recipient, so 10 MB to 300 students is 3 GB on the wire. The right fix for
+large files is to upload once and email a link, which is not built.
 
-The seeded database puts readable question text in `Answear`, which hides this gap
-rather than fixing it — see [section 8](#8-the-seeded-database-is-not-the-real-data).
+---
 
-## 3. The Survey table has no status or dates
+## Data the backup never had
 
-`dbo.Survey` is `(SurveyID, CreatedBy, Topic)`. There is no created date, end date
-or closed flag, so:
+The database comes from a backup, and a few columns were added afterwards. They
+are correct for anything created since and empty for anything older:
 
-- Every survey reports as `active`; the dashboard always shows 0 completed.
-- Created and end dates come back as null (the results page shows a dash).
-- A survey cannot be closed or reopened, although the UI implies it can be.
+- **`Survey.CreatedAt` is null for the 12 surveys from the backup**, so the
+  "Created" figure on their results page shows a dash. The real dates are not
+  recoverable.
+- **`UserAccount.JoinDate` is null for admins and lecturers from the backup.**
+  It was backfilled from `StartYear`, which only students have. An admin can now
+  set it per account; nothing invents one, because a made-up join date is worse
+  than a blank. "Days active" is derived from it and is blank for the same
+  accounts.
+- **`sysdiagrams` is not created** by the seed path. The backup carries that
+  SSMS table; nothing in the app uses it.
 
-Closing this needs three columns: `CreatedAt`, `ClosedAt`, `IsClosed`.
+---
 
-## 4. Real data with no UI
+## Behaviour that is deliberate but surprising
 
-`Chat` (12 rows) and `ChatMessage` (26 rows) hold genuine student/admin support
-conversations — "Grade dispute CS202", "Library card not working" — with replies
-and an open/closed flag. Nothing in the app shows them. The Chat page in the UI is
-the AI assistant, which is unrelated.
+**Academic year is not capped.** It is computed from `StartYear` as
+`current intake − start year + 1`, floored at 1 but with no upper bound, so a
+student who started in 2021 reads **Year 6** in 2026. Whether that should cap at
+4, or show "Graduated", is an open question — it has not been decided, so it
+counts honestly instead of guessing.
 
-These tables were called `Survey` and `SurveyMessage` in the older backup set,
-which is why the original code mapped the survey feature onto them. They would
-make a straightforward support-ticket feature: the schema already has the author,
-the assigned admin, the thread and the closed state.
+**Surveys close on read, not on a schedule.** A survey past its `Deadline` is
+closed the next time anyone fetches it, and on submit. There is no background
+job. This is sound because a survey is only reachable through those endpoints,
+but it does mean the database can briefly hold an open survey whose deadline has
+passed, and a report run straight against SQL would see it that way.
 
-`StudentData`, `LecturerData`, `Course` (10) and `StudentCourse` (36) are mapped in
-EF but barely surface in the UI either.
+**The support bot's conversation is not stored.** The preset questions and their
+answers are, but the thread you see is built in the browser and gone on reload.
+It answers from a fixed list; it is not a conversation with anything.
 
-## 5. Pages still showing placeholder data
+**The AI assistant needs an API key** and returns `503` with a clear message
+when one is not configured. That is the normal state here.
 
-- **Lecturer** (`src/pages/Lecturer.js`) makes no API calls at all; its courses and
-  students are hardcoded. The real data for this exists in `Course`,
-  `StudentCourse` and `LecturerData`.
-- **Settings** (`src/pages/Settings.js`) makes no API calls.
-- **Dashboard** falls back to three hardcoded surveys if the API call fails, which
-  can look like real data during an outage.
-- **News**: `views` and `comments` are always 0 — no such columns exist.
-- **Admin Console**: the "Incidents" tile is wired to `totalResponses`, and
-  "Pending approvals" is always 0. The quick actions (broadcast, role templates,
-  approvals) are not implemented.
+**Nothing is paginated.** Every list endpoint returns everything — all surveys,
+all accounts, all news. Fine at this size (tens of rows), and the first thing to
+break at a real intake's scale. The admin account list has search, filter and
+sort to compensate, but it is still fetching the lot.
 
-## 6. The Timetable feature is gone
+---
 
-The old schema had a `Timetable` table and the scaffolded code had the entity. The
-current backup has no such table, so the entity was removed. Worth noting that one
-of the support conversations is a student unable to access their timetable, so the
-feature was presumably intended.
+## Settings that were removed
 
-## 7. Smaller items
+Several settings used to exist, stored a value, and changed nothing. They were
+removed rather than left looking like working controls. Recorded here so nobody
+re-adds them thinking they were lost:
 
-- No automated tests of any kind, frontend or backend.
-- `GET /api/surveys` and `/api/news` return everything with no pagination.
-- Unhandled exceptions return a full stack trace **in Development**, which is
-  still how `npm run start:api` runs. Outside Development the developer exception
-  page is off, Swagger is not mapped, and an exception handler answers with
-  `{"message":"Something went wrong. Please try again."}` while logging the
-  detail. `npm run start:app` uses that mode.
-- Registration always creates a Student; there is no way to create or change an
-  admin or lecturer through the app.
-- The Docker path (`docker compose up -d`) was not run during this work, because
-  Docker Desktop is not installed on this machine. Its scripts were updated in the
-  same way as the LocalDB ones but are unverified. This also covers
-  `scripts/db-init.sh`: its restore/seed branching was exercised with a stubbed
-  `sqlcmd`, and the SQL it runs was verified against SQL Server, but no container
-  was ever started.
-- Only backup set 7 is ever restored. Sets 1-6 are older, and set 1 is empty.
+| Setting | Why it went |
+| --- | --- |
+| Email / push / survey / news / chat notifications | Nothing consulted them before sending anything |
+| Show my email address | No endpoint consulted it; the address was returned either way |
+| Show my phone number | The same, for the phone number |
+| Notify me by SMS | There is no SMS gateway and never was |
+| Two-factor authentication | The code was generated in the browser, emailed via a third party, and never verified by anything. Worse than absent, because it implied protection |
+| Auto-logout and session timeout | Removed on request. It did work, but only while the Settings page was open |
+| Invite Friends | A referral code and QR to join a system with no sign-up |
+| Switch account | A link to the login page that did not sign you out |
 
-## 8. The seeded database is not the real data
+Saved preferences are cleared of these keys by
+`scripts/data-drop-retired-settings.sql`, which runs as part of the restore
+chain because the keys are in the backup and would otherwise come back.
 
-`scripts/seed-dev-data.sql` exists so the stack can run without
-`new database/SSS.bak` — in a container, in CI, on a fresh clone. It creates `SSS`
-with the schema backup set 7 produces (verified column for column and constraint
-for constraint against a restored copy: same types, nullability, identity columns,
-defaults, collation and constraint names, including the misspelled
-`Question.Answear` and the `PK__Survey__…` names `Chat` inherited from the rename)
-and fills it with invented data of comparable shape: 18 accounts, 10 courses with
-36 enrolments, 12 news items across the 5 types with 22 target roles, 12 support
-conversations with 26 messages, and 6 surveys with 14 questions answered through
-18 sessions and 44 answers.
+What is left in Settings — theme and language — both take effect immediately.
 
-What it does **not** reproduce:
+---
 
-- **It is not the real data.** Every name, email address, phone number and body of
-  text is made up, and nothing in it reflects what real students said. It is good
-  enough to develop and review against, and useless as a data sample.
-- **Question text reads better than it should.** The real `Answear` values are
-  answer fragments (`"A"`, `"B"`), which is why the survey form shows questions
-  called "A" — see [section 2](#2-the-question-table-has-no-question-text). The
-  seeded rows hold the actual question text instead, so that gap is invisible on
-  the seeded path. Restore the backup to see how bad it really is.
-- **Every seeded question has answer options.** Options are derived from the
-  answers already recorded, so the seed makes sure each question has at least two
-  distinct answers; the script fails if it ever does not. The real data has two
-  questions with no `Answear` text at all, which fall back to a free-text box.
-- **No question ever has a single option or an empty answer set,** so the
-  free-text fallback is not exercised on the seeded path.
-- **The login page's "Quick role access" buttons do not work.** They are
-  hardcoded in `src/contexts/AuthContext.js` to the three backup accounts, which do
-  not exist in the seeded database. Typing a seeded address from README.md works;
-  the buttons return "invalid credentials". Making the panel follow the database
-  would mean fetching the accounts from the API, which is a change to the app
-  rather than to the seed.
-- **`sysdiagrams` is not created.** The backup carries that SSMS table; nothing in
-  the application reads it.
-- **One cosmetic schema difference.** `SurveySession.ID` sits at `column_id` 4 in
-  the backup, because a column was dropped from that table at some point, and at 3
-  in the seeded database. It is the third column of the table either way.
+## Smaller things
 
-Both paths store passwords as the same clear-text placeholders, so
-`npm run db:hash-passwords` behaves identically after either one.
-
-## What changed in the code
-
-For context when reviewing the diff. No database changes.
-
-- EF model rebuilt against the real schema: added `Survey`, `Question`,
-  `SurveySession`, `SurveyAnswer`; renamed the old `Survey`/`SurveyMessage`
-  entities to `Chat`/`ChatMessage`; removed `Timetable`.
-- `SurveysController` and `DashboardController` rewritten against the survey
-  tables; `AiAssistantController` updated to match.
-- `UserPresentation` added: converts the stored `"Admin"` / `"Light"` /
-  `"Armenian"` values to the `admin` / `light` / `am` the frontend expects, and
-  back again when saving. Without it `ProtectedRoute` locked admins and lecturers
-  out of their own pages.
-- Both restore scripts now pass `WITH FILE = 7`; without it SQL Server restored
-  the oldest, empty backup set.
-- The demo seed script was deleted. It targeted the old schema, failed against this
-  backup, and the restored database already has real data. `scripts/verify.sql`
-  replaces it with a table and row-count check.
-- Login's "Quick role access" now lists accounts that actually exist.
-- The backend loads `.env` at startup, so `OPENAI_API_KEY` works outside Docker.
-- Authentication added: `PasswordSecurity` (PBKDF2 with plain-text upgrade),
-  `JwtTokenService`, `PasswordMigration`, JWT bearer validation and the
-  `Staff`/`AdminOnly` policies in `Program.cs`, `[Authorize]` across the
-  controllers, and a CORS origin list.
-- The frontend sends the bearer token on every call, drops a session the API
-  rejects, hides "View Results" from students and guards the results and
-  create-survey routes.
-- The only database change in this work: `UserAccount.PasswordHash` now holds
-  hashes instead of plain text. Everything else is exactly as restored.
-- A second, separate database path was added for machines without the backup:
-  `scripts/seed-dev-data.sql` (schema plus synthetic data, including
-  `schema-password-reset-token.sql` rather than repeating it),
-  `scripts/seed-db.js` behind `npm run db:seed`, and `scripts/db-init.sh`, which
-  Compose now runs to restore when `SSS.bak` is present and seed when it is not.
-  The restore scripts themselves were not changed, beyond one stale comment in
-  `scripts/restore.sql` that pointed at a seed script deleted earlier.
+- **The admin console has no audit trail.** Creating, editing and deleting
+  accounts, closing surveys and sending broadcasts leave no record of who did
+  what. For a system where admins can change anybody's data, that is a real gap.
+- **`src/translations.js` has repeated section names.** `news`, for example,
+  appears twice per language — once for the page, once for the admin tile. An
+  edit by index rather than by context will put the wrong language in the wrong
+  place; it has happened.
+- **PWA support is registered** (`serviceWorkerRegistration`, `manifest.json`)
+  but untested on the current deployment, and service workers need a secure
+  context — so over plain HTTP it does nothing.
+- **The old PWA and dependency-fix notes** (`PWA_*.md`, `AJV_FIX_SUMMARY.md`,
+  `DEPENDENCY_FIX_SUMMARY.md`) describe one-off work and are not maintained.
+  Treat them as history, not documentation.
+- **`npm run db:restore` discards everything added since the last restore** and
+  reverts all passwords to the backup's placeholders. Run
+  `npm run db:set-passwords` afterwards, every time, or nobody can sign in.

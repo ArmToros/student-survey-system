@@ -1,3 +1,14 @@
+/**
+ * Routes and the app shell.
+ *
+ * Every route except /login and /reset-password is wrapped in ProtectedRoute,
+ * which bounces an unauthenticated visitor to the login page. A few are
+ * restricted further by role.
+ *
+ * There is no /register: accounts are created by an admin, and the university
+ * issues the addresses. The old route redirects to /login so an existing
+ * bookmark lands somewhere sensible.
+ */
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { ThemeProvider } from './contexts/ThemeContext';

@@ -1,3 +1,14 @@
+/**
+ * Writing a survey. Admins only; the route is guarded and the API checks again.
+ *
+ * Two fields matter beyond the questions. The audience limits who may answer,
+ * and leaving every role unticked means everybody - the same rule news uses.
+ * The closing date is optional, and a survey past it closes itself and stops
+ * accepting answers.
+ *
+ * Question ids here are React keys only. The server assigns the real ones, and
+ * sending a Date.now() value is how survey creation used to fail with a 400.
+ */
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Trash2, Save, Eye } from 'lucide-react';
@@ -13,6 +24,7 @@ const CreateSurvey = () =>{
     title: '',
     description: '',
     category: 'Academic',
+    deadline: '',
     // Empty means everyone, matching how the API reads a survey with no
     // audience rows.
     audience: [],
@@ -24,8 +36,7 @@ const CreateSurvey = () =>{
     { value: 'single-choice', label: t('createSurvey.single') },
     { value: 'multiple-choice', label: t('createSurvey.multiple') },
     { value: 'text', label: t('createSurvey.textInput') },
-    { value: 'rating', label: t('createSurvey.ratingScale')  },
-    { value: 'checkbox', label: t('createSurvey.checkBox')  }
+    { value: 'rating', label: t('createSurvey.ratingScale')  }
   ];
 
   const addQuestion = () => {
@@ -125,6 +136,11 @@ const CreateSurvey = () =>{
           description: survey.description,
           category: survey.category,
           audience: survey.audience,
+          // A date box gives a local date with no time; send the end of that
+          // day in UTC, so "closes on the 30th" means the 30th is still usable.
+          deadline: survey.deadline
+            ? new Date(`${survey.deadline}T23:59:59`).toISOString()
+            : null,
           createdBy: user?.dbId,
           assignedAdmin: user?.role === 'admin' ? user?.dbId : undefined,
           // The question id here is only a local React key. The server assigns the
@@ -280,6 +296,18 @@ const CreateSurvey = () =>{
                   <option value="Infrastructure">{t('createSurvey.infrastructure')}</option>
                   <option value="Student Life">{t('createSurvey.studentLife')}</option>
                 </select>
+              </div>
+
+              <div className="form-group">
+                <label>{t('createSurvey.deadline')}</label>
+                <p className="form-hint">{t('createSurvey.deadlineHint')}</p>
+                <input
+                  type="date"
+                  className="form-input"
+                  value={survey.deadline}
+                  min={new Date().toISOString().slice(0, 10)}
+                  onChange={(e) => setSurvey(prev => ({ ...prev, deadline: e.target.value }))}
+                />
               </div>
 
               <div className="form-group">

@@ -1,3 +1,13 @@
+/**
+ * The chosen language, and `t` for looking up wording.
+ *
+ * `t('a.b.c')` walks src/translations.js and returns the key itself when
+ * nothing is found, so a missing string shows as "surveysPage.eyebrow" on the
+ * page - obvious in review, which is the point.
+ *
+ * The choice is remembered in localStorage under `language` and read once on
+ * mount, so changing it elsewhere needs changeLanguage, not a direct write.
+ */
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { translations } from '../translations';
 

@@ -1,3 +1,10 @@
+/**
+ * The landing page: four figures and the five newest surveys.
+ *
+ * "Completed" is how many surveys this person has answered, not how many the
+ * university has closed - it is read as a personal count, and the admin
+ * console carries the system-wide figures.
+ */
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { BarChart3, Users, CheckCircle, Clock, Plus } from 'lucide-react';
@@ -5,6 +12,7 @@ import './Dashboard.css';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
 import { apiFetch } from '../services/api';
+import PageHero from '../components/PageHero';
 
 const Dashboard = () => {
   const {t} = useLanguage();
@@ -101,10 +109,11 @@ const Dashboard = () => {
   return (
     <div className="dashboard">
       <div className="container">
-        <div className="dashboard-header">
-          <h1>{t('dashboard.title')}</h1>
-          <p>{t('dashboard.subtitle')}</p>
-        </div>
+<PageHero
+          eyebrow={t('dashboard.eyebrow')}
+          title={t('dashboard.title')}
+          subtitle={t('dashboard.subtitle')}
+        />
 
         <div className="stats-grid">
           <StatCard

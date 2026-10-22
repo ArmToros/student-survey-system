@@ -1,9 +1,18 @@
+/**
+ * Articles, filtered by category, with a reader for the full text.
+ *
+ * The API decides who sees what: an article may be aimed at particular roles,
+ * and admins see every one of them whoever it was for. The page no longer
+ * passes a role - it used to, which meant the browser was deciding what it was
+ * allowed to read.
+ */
 import React, { useState, useEffect } from 'react';
-import { Calendar, User, Share2, BookOpen, X, Check } from 'lucide-react';
+import { Calendar, User, BookOpen, X } from 'lucide-react';
 import './News.css';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
 import { apiFetch } from '../services/api';
+import PageHero from '../components/PageHero';
 
 const News = () => {
   const { t } = useLanguage();
@@ -13,12 +22,11 @@ const News = () => {
 
   const [selectedCategory, setSelectedCategory] = useState("news.filters.all");
   const [openArticle, setOpenArticle] = useState(null);
-  const [sharedId, setSharedId] = useState(null);
 
   useEffect(() => {
     const loadNews = async () => {
       try {
-        const response = await apiFetch(`/api/news?role=${encodeURIComponent(user?.role || '')}`);
+        const response = await apiFetch(`/api/news`);
 
         if (!response.ok) {
           throw new Error('NEWS_API_FAILED');
@@ -79,63 +87,6 @@ const News = () => {
   // The API returns the whole body, so "Read More" opens it in place.
   const openReader = (article) => setOpenArticle(article);
 
-  /**
-   * Copies the link to the article.
-   *
-   * navigator.share and navigator.clipboard only exist in a secure context, so
-   * over plain HTTP - which is how this is published - both are undefined and
-   * the button did nothing at all. The hidden textarea with execCommand is the
-   * old way, and it is the one that still works there. The modern APIs are
-   * tried first for when this is served over HTTPS or opened on localhost.
-   */
-  const shareArticle = async (article) => {
-    const link = `${window.location.origin}/news#article-${article.id}`;
-
-    const flash = () => {
-      setSharedId(article.id);
-      setTimeout(() => setSharedId(current => (current === article.id ? null : current)), 2000);
-    };
-
-    try {
-      if (navigator.share) {
-        await navigator.share({ title: article.title, text: article.excerpt, url: link });
-        return;
-      }
-
-      if (navigator.clipboard?.writeText) {
-        await navigator.clipboard.writeText(link);
-        flash();
-        return;
-      }
-    } catch (error) {
-      // A cancelled share sheet is not a failure worth reporting; fall through
-      // to the copy below.
-      console.warn('Share sheet unavailable, copying instead', error);
-    }
-
-    try {
-      const field = document.createElement('textarea');
-      field.value = link;
-      field.setAttribute('readonly', '');
-      field.style.position = 'fixed';
-      field.style.opacity = '0';
-      document.body.appendChild(field);
-      field.select();
-      const copied = document.execCommand('copy');
-      document.body.removeChild(field);
-
-      if (copied) {
-        flash();
-        return;
-      }
-
-      window.prompt(t('news.copyLink'), link);
-    } catch (error) {
-      console.warn('Unable to copy the link', error);
-      window.prompt(t('news.copyLink'), link);
-    }
-  };
-
   const formatDate = (dateString) =>
     new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -161,10 +112,11 @@ const News = () => {
       <div className="container">
         
         {/* HEADER */}
-        <div className="page-header">
-          <h1>{t('news.title')}</h1>
-          <p>{t('news.subtitle')}</p>
-        </div>
+<PageHero
+          eyebrow={t('news.eyebrow')}
+          title={t('news.title')}
+          subtitle={t('news.subtitle')}
+        />
 
         {/* FILTERS */}
         <div className="news-filters">
@@ -207,13 +159,6 @@ const News = () => {
                       <button className="btn btn-primary" onClick={() => openReader(article)}>
                         {t('news.readMore')}
                       </button>
-                      <button
-                        className="btn btn-secondary"
-                        onClick={() => shareArticle(article)}
-                        title={t('news.share')}
-                      >
-                        {sharedId === article.id ? <Check size={16}/> : <Share2 size={16}/>}
-                      </button>
                     </div>
                   </div>
                 </div>
@@ -252,13 +197,6 @@ const News = () => {
                   <div className="card-actions">
                     <button className="btn btn-outline" onClick={() => openReader(article)}>
                       {t('news.readMore')}
-                    </button>
-                    <button
-                      className="btn btn-outline"
-                      onClick={() => shareArticle(article)}
-                      title={t('news.share')}
-                    >
-                      {sharedId === article.id ? <Check size={14}/> : <Share2 size={14}/>}
                     </button>
                   </div>
                 </div>

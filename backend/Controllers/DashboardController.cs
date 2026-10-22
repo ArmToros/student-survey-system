@@ -2,6 +2,7 @@ using backend.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace backend.Controllers
 {
@@ -16,6 +17,9 @@ namespace backend.Controllers
         {
             _context = context;
         }
+
+        private int? CallerId =>
+            int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var id) ? id : null;
 
         [HttpGet]
         public async Task<ActionResult> Get()
@@ -39,6 +43,20 @@ namespace backend.Controllers
             // One session is one completed run through a survey, so sessions are responses.
             var totalResponses = await _context.SurveySessions.CountAsync();
 
+            // "Completed" is read on your own dashboard as "how many have I done",
+            // not "how many has the university closed" - the admin console is
+            // where the system-wide figures belong. Counting distinct surveys
+            // rather than sessions, because the backup holds people who answered
+            // the same survey twice.
+            var callerId = CallerId;
+            var myCompleted = callerId == null
+                ? 0
+                : await _context.SurveySessions
+                    .Where(session => session.UserId == callerId.Value)
+                    .Select(session => session.SurveyId)
+                    .Distinct()
+                    .CountAsync();
+
             return Ok(new
             {
                 stats = new
@@ -46,7 +64,8 @@ namespace backend.Controllers
                     totalUsers = await _context.UserAccounts.CountAsync(),
                     totalSurveys,
                     activeSurveys = totalSurveys - closedSurveys,
-                    completedSurveys = closedSurveys,
+                    completedSurveys = myCompleted,
+                    closedSurveys,
                     totalResponses
                 },
                 recentSurveys

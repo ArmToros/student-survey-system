@@ -1,3 +1,7 @@
+/**
+ * Light or dark, remembered between visits and applied to the document root so
+ * the CSS variables in index.css switch with it.
+ */
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
 const ThemeContext = createContext();

@@ -56,6 +56,12 @@ namespace backend.Controllers
 
         public class CreateSurveyRequest
         {
+            /// <summary>
+            /// When it stops taking answers. Null means it stays open until an
+            /// admin closes it, which is how every survey behaved before.
+            /// </summary>
+            public DateTime? Deadline { get; set; }
+
             public string Title { get; set; } = "";
             public string? Description { get; set; }
             public string? Category { get; set; }
@@ -89,10 +95,59 @@ namespace backend.Controllers
             public Dictionary<string, JsonElement> Responses { get; set; } = new();
         }
 
+        /// <summary>
+        /// Closes anything whose deadline has passed, and reports how many.
+        ///
+        /// There is no scheduler in this app, so the closing happens the next
+        /// time somebody looks. That is enough: a survey is only reachable
+        /// through these endpoints, and every one of them calls this first, so
+        /// a survey past its deadline is never offered or accepted. Writing it
+        /// down rather than deciding on the fly keeps ClosedAt honest and means
+        /// the results page agrees with the list.
+        /// </summary>
+        private async Task<int> CloseSurveysPastTheirDeadlineAsync()
+        {
+            var now = DateTime.UtcNow;
+
+            var due = await _context.Surveys
+                .Where(survey => !survey.IsClosed
+                                 && survey.Deadline != null
+                                 && survey.Deadline <= now)
+                .ToListAsync();
+
+            if (due.Count == 0)
+            {
+                return 0;
+            }
+
+            foreach (var survey in due)
+            {
+                survey.IsClosed = true;
+                survey.ClosedAt = survey.Deadline;
+            }
+
+            await _context.SaveChangesAsync();
+            return due.Count;
+        }
+
         [HttpGet]
         public async Task<ActionResult> GetAll()
         {
+            await CloseSurveysPastTheirDeadlineAsync();
+
             var role = CallerRole;
+            var callerId = CallerId;
+
+            // Which of these the caller has already answered. Without this the
+            // page can only find out by letting them fill the survey in and
+            // refusing the submission, which wastes the work they just did.
+            var answered = callerId == null
+                ? new List<int>()
+                : await _context.SurveySessions
+                    .Where(session => session.UserId == callerId.Value)
+                    .Select(session => session.SurveyId)
+                    .Distinct()
+                    .ToListAsync();
 
             var surveys = await _context.Surveys
                 // No audience rows means the survey is for everyone, which keeps
@@ -110,7 +165,9 @@ namespace backend.Controllers
                     status = survey.IsClosed ? "completed" : "active",
                     createdDate = survey.CreatedAt,
                     closedDate = survey.ClosedAt,
-                    audience = survey.TargetRoles.Select(target => target.Role).ToList()
+                    deadline = survey.Deadline,
+                    audience = survey.TargetRoles.Select(target => target.Role).ToList(),
+                    alreadyAnswered = answered.Contains(survey.SurveyId)
                 })
                 .ToListAsync();
 
@@ -120,6 +177,8 @@ namespace backend.Controllers
         [HttpGet("{id:int}")]
         public async Task<ActionResult> GetById(int id)
         {
+            await CloseSurveysPastTheirDeadlineAsync();
+
             var survey = await _context.Surveys
                 .Include(item => item.Questions)
                 .Include(item => item.TargetRoles)
@@ -132,15 +191,21 @@ namespace backend.Controllers
 
             var questions = await BuildQuestionsAsync(survey);
 
+            var callerId = CallerId;
+            var alreadyAnswered = callerId != null && await _context.SurveySessions
+                .AnyAsync(session => session.SurveyId == id && session.UserId == callerId.Value);
+
             return Ok(new
             {
                 id = survey.SurveyId,
                 title = survey.Topic ?? ("Survey " + survey.SurveyId),
                 description = "",
+                alreadyAnswered,
                 category = survey.Category,
                 status = survey.IsClosed ? "completed" : "active",
                 createdDate = survey.CreatedAt,
                 closedDate = survey.ClosedAt,
+                deadline = survey.Deadline,
                 audience = survey.TargetRoles.Select(target => target.Role).ToList(),
                 questions
             });
@@ -234,6 +299,85 @@ namespace backend.Controllers
             });
         }
 
+        /// <summary>
+        /// Who the survey was for, and whether each of them has answered.
+        ///
+        /// Staff only: it names individuals, which the results deliberately do
+        /// not. It answers "who still has to do this", and after the deadline,
+        /// "who never did" - without exposing what anybody answered.
+        /// </summary>
+        [HttpGet("{id:int}/participation")]
+        [Authorize(Policy = "Staff")]
+        public async Task<ActionResult> GetParticipation(int id)
+        {
+            await CloseSurveysPastTheirDeadlineAsync();
+
+            var survey = await _context.Surveys
+                .Include(item => item.TargetRoles)
+                .FirstOrDefaultAsync(item => item.SurveyId == id);
+
+            if (survey == null)
+            {
+                return NotFound(new { message = "Survey not found" });
+            }
+
+            // No audience rows means everybody, the same rule the list uses.
+            var roles = survey.TargetRoles.Select(target => target.Role).ToList();
+
+            var audience = _context.UserAccounts.AsQueryable();
+            if (roles.Count > 0)
+            {
+                var stored = roles
+                    .Select(role => role.Length > 0
+                        ? char.ToUpperInvariant(role[0]) + role.Substring(1).ToLowerInvariant()
+                        : role)
+                    .ToList();
+
+                audience = audience.Where(user => stored.Contains(user.Role));
+            }
+
+            var answered = await _context.SurveySessions
+                .Where(session => session.SurveyId == id)
+                .Select(session => session.UserId)
+                .Distinct()
+                .ToListAsync();
+
+            var people = await audience
+                .OrderBy(user => user.FirstName)
+                .ThenBy(user => user.LastName)
+                .Select(user => new
+                {
+                    id = user.Id,
+                    name = (user.FirstName ?? "") + " " + (user.LastName ?? ""),
+                    email = user.Email,
+                    role = user.Role
+                })
+                .ToListAsync();
+
+            var withStatus = people
+                .Select(person => new
+                {
+                    person.id,
+                    name = person.name.Trim(),
+                    person.email,
+                    person.role,
+                    answered = answered.Contains(person.id)
+                })
+                .ToList();
+
+            return Ok(new
+            {
+                surveyId = id,
+                title = survey.Topic ?? ("Survey " + id),
+                deadline = survey.Deadline,
+                isClosed = survey.IsClosed,
+                total = withStatus.Count,
+                answeredCount = withStatus.Count(person => person.answered),
+                pendingCount = withStatus.Count(person => !person.answered),
+                people = withStatus
+            });
+        }
+
         /// <summary>Only admins author surveys.</summary>
         [HttpPost]
         [Authorize(Policy = "AdminOnly")]
@@ -253,6 +397,11 @@ namespace backend.Controllers
                 return BadRequest(new { message = "At least one question is required" });
             }
 
+            if (request.Deadline != null && request.Deadline <= DateTime.UtcNow)
+            {
+                return BadRequest(new { message = "The deadline has already passed." });
+            }
+
             var creatorId = CallerId ?? await GetFallbackUserIdAsync("lecturer");
             if (creatorId == null)
             {
@@ -266,6 +415,9 @@ namespace backend.Controllers
                 CreatedBy = creatorId.Value,
                 Category = Truncate(request.Category?.Trim(), 50),
                 CreatedAt = DateTime.UtcNow,
+                // A deadline already in the past would create a survey nobody
+                // can answer, so it is refused above rather than stored.
+                Deadline = request.Deadline,
                 IsClosed = false
             };
 
@@ -412,9 +564,17 @@ namespace backend.Controllers
                 .Where(question => question.SurveyId == id)
                 .ToListAsync();
 
+            // The audience rows point at Survey too, and were missed when
+            // audiences were added: deleting a survey aimed at a role failed on
+            // the foreign key with a 500, while an untargeted one deleted fine.
+            var targetRoles = await _context.SurveyTargetRoles
+                .Where(target => target.SurveyId == id)
+                .ToListAsync();
+
             _context.SurveyAnswers.RemoveRange(answers);
             _context.SurveySessions.RemoveRange(sessions);
             _context.Questions.RemoveRange(questions);
+            _context.SurveyTargetRoles.RemoveRange(targetRoles);
             _context.Surveys.Remove(survey);
 
             await _context.SaveChangesAsync();
@@ -446,6 +606,14 @@ namespace backend.Controllers
             if (survey.TargetRoles.Count > 0 && survey.TargetRoles.All(target => target.Role != role))
             {
                 return StatusCode(403, new { message = "This survey is not open to your role." });
+            }
+
+            // The deadline may have passed while the form sat open in a tab.
+            if (!survey.IsClosed && survey.Deadline != null && survey.Deadline <= DateTime.UtcNow)
+            {
+                survey.IsClosed = true;
+                survey.ClosedAt = survey.Deadline;
+                await _context.SaveChangesAsync();
             }
 
             if (survey.IsClosed)

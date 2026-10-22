@@ -1,3 +1,10 @@
+/**
+ * Signing in, and asking for a password reset.
+ *
+ * There is no sign-up here: an admin creates every account. "Forgot password"
+ * posts to the reset endpoint, which answers the same whether or not the
+ * address exists, so the form cannot be used to find out who has an account.
+ */
 import React, { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { LogIn, Mail, Lock, Eye, EyeOff, CheckCircle, AlertTriangle, UserPlus } from 'lucide-react';

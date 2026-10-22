@@ -1,3 +1,14 @@
+/**
+ * Who is signed in, and the calls that change that.
+ *
+ * The token lives in localStorage under `sss-auth-token` and the user object
+ * under `sss-auth-user`. A remembered user with no token counts as signed out,
+ * because every request needs the token - restoring one without the other
+ * would show a signed-in shell that cannot load anything.
+ *
+ * apiFetch raises AUTH_EXPIRED_EVENT when the API rejects a token, which ends
+ * the session here rather than leaving the app in that same broken state.
+ */
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { AUTH_EXPIRED_EVENT, apiFetch, getAuthToken, setAuthToken } from '../services/api';
 

@@ -1,6 +1,7 @@
 export const translations = {
   en: {
     settings: {
+      eyebrow: 'Preferences',
       title: 'Settings',
       subtitle: 'Customize your experience and manage your preferences',
       save: 'Save Changes',
@@ -29,8 +30,6 @@ export const translations = {
       emailDesc: 'Receive notifications via email',
       push: 'Push Notifications',
       pushDesc: 'Receive push notifications in your browser',
-      sms: 'SMS Notifications',
-      smsDesc: 'Receive notifications via text message',
       surveys: 'Survey Updates',
       surveysDesc: 'Get notified about new surveys and survey results',
       news: 'News Updates',
@@ -49,8 +48,6 @@ export const translations = {
       private: 'Private',
       showEmail: 'Show Email Address',
       showEmailDesc: 'Display your email address on your profile',
-      showPhone: 'Show Phone Number',
-      showPhoneDesc: 'Display your phone number on your profile',
       dataSharing: 'Data Sharing',
       dataSharingDesc: 'Allow anonymous data sharing for research purposes'
     },
@@ -86,6 +83,7 @@ export const translations = {
       hours2: '2 hours'
     },
     accountPage: {
+      eyebrow: 'Your account',
   title: "My Account",
   subtitle: "Manage your personal information and account settings",
 
@@ -141,6 +139,7 @@ export const translations = {
   
 },
 dashboard: {
+  eyebrow: 'Overview',
       title: 'Dashboard',
       subtitle: 'Welcome to the Student Survey and Feedback System',
       stats: {
@@ -180,6 +179,16 @@ dashboard: {
       reopenConfirm: 'Open this survey again so people can answer it?',
       closeFailed: 'Could not change that survey.',
       closedNotice: 'Closed - results only',
+      answered: 'You answered this',
+      notAnswered: 'Not yet',
+      closesOn: 'Closes {date}',
+      participation: 'Who has answered',
+      participationSummary: '{answered} of {total} have answered.',
+      participationFailed: 'Could not load who has answered.',
+      close: 'Close',
+      eyebrow: 'Your surveys',
+      countChip: '{count} in total',
+      answeredChip: '{count} answered by you',
       title: 'All Surveys',
       subtitle: 'Every survey in the system, newest first',
       loading: 'Loading surveys...',
@@ -192,6 +201,7 @@ dashboard: {
     },
 
 courses: {
+  eyebrow: 'Extra classes',
   title: 'Courses',
   subtitle: 'Extra classes run by lecturers. Join the ones you want to attend.',
   loading: 'Loading courses...',
@@ -207,6 +217,7 @@ courses: {
   leaveFailed: 'Could not leave this course.'
 },
     news: {
+      eyebrow: 'Campus news',
       title: 'University News',
       subtitle: 'Stay updated with the latest news and announcements',
       filters: {
@@ -339,6 +350,8 @@ chat: {
 },
 createSurvey: {
       audience: 'Who is this survey for',
+      deadline: 'Closing date',
+      deadlineHint: 'Optional. After this day the survey closes itself and stops taking answers.',
       audienceHint: 'Leave all unticked and everyone can take it.',
   pageTitle: "Create New Survey",
   pageDescription: "Design and configure your survey questions",
@@ -426,7 +439,9 @@ createSurvey: {
     totalResponses:"Total Responses",
     endDate:"End Date",
     export:"Export Results",
-      alreadyAnswered: 'You have already answered this survey.',
+      alreadyAnswered: 'You have already answered this survey. Your answers are counted in the results.',
+      alreadyAnsweredTitle: 'Already answered',
+      surveyClosed: 'This survey is closed, so it can no longer be answered. The results are still here.',
       notYourSurvey: 'This survey is not open to your role.',
       submitFailed: 'Could not submit your answers. Please try again.',
     responses:"responses",
@@ -501,6 +516,7 @@ student:"Student"
           addUser: 'Add account',
           setPassword: 'Set password',
           setPasswordFor: 'Set a new password for {name}',
+          joinDate: 'Join date',
           searchPlaceholder: 'Search by name, email, student ID, course...',
           filterByRole: 'Filter by role',
           allRoles: 'All roles',
@@ -787,6 +803,7 @@ register:{
 },
   ru: {
     settings: {
+      eyebrow: 'Предпочтения',
       title: 'Настройки',
       subtitle: 'Настройте свой опыт и управляйте своими предпочтениями',
       save: 'Сохранить изменения',
@@ -815,8 +832,6 @@ sendCode: 'Отправить код подтверждения',
       emailDesc: 'Получать уведомления по электронной почте',
       push: 'Push уведомления',
       pushDesc: 'Получать push-уведомления в браузере',
-      sms: 'SMS уведомления',
-      smsDesc: 'Получать уведомления через текстовые сообщения',
       surveys: 'Обновления опросов',
       surveysDesc: 'Получать уведомления о новых опросах и результатах',
       news: 'Новости',
@@ -835,8 +850,6 @@ sendCode: 'Отправить код подтверждения',
       private: 'Приватный',
       showEmail: 'Показать email адрес',
       showEmailDesc: 'Отображать ваш email адрес в профиле',
-      showPhone: 'Показать номер телефона',
-      showPhoneDesc: 'Отображать ваш номер телефона в профиле',
       dataSharing: 'Обмен данными',
       dataSharingDesc: 'Разрешить анонимный обмен данными в исследовательских целях'
     },
@@ -872,6 +885,7 @@ sendCode: 'Отправить код подтверждения',
       hours2: '2 часа'
     },
     accountPage: {
+      eyebrow: 'Ваш аккаунт',
   title: "Мой профиль",
   subtitle: "Управляйте личной информацией и настройками аккаунта",
 
@@ -921,6 +935,7 @@ sendCode: 'Отправить код подтверждения',
   }
 },
 dashboard: {
+  eyebrow: 'Обзор',
       title: 'Панель управления',
       subtitle: 'Добро пожаловать в систему опросов студентов',
       stats: {
@@ -959,6 +974,16 @@ dashboard: {
       reopenConfirm: 'Открыть этот опрос снова, чтобы на него можно было отвечать?',
       closeFailed: 'Не удалось изменить этот опрос.',
       closedNotice: 'Закрыт - только результаты',
+      answered: 'Вы прошли этот опрос',
+      notAnswered: 'Ещё нет',
+      closesOn: 'Закрывается {date}',
+      participation: 'Кто уже прошёл',
+      participationSummary: 'Прошли {answered} из {total}.',
+      participationFailed: 'Не удалось загрузить список.',
+      close: 'Закрыть',
+      eyebrow: 'Ваши опросы',
+      countChip: 'Всего {count}',
+      answeredChip: 'Вы прошли {count}',
       title: 'Все опросы',
       subtitle: 'Все опросы системы, начиная с новых',
       loading: 'Загрузка опросов...',
@@ -971,6 +996,7 @@ dashboard: {
     },
 
 courses: {
+  eyebrow: 'Дополнительные занятия',
   title: 'Курсы',
   subtitle: 'Дополнительные занятия от преподавателей. Запишитесь на те, которые хотите посещать.',
   loading: 'Загрузка курсов...',
@@ -986,6 +1012,7 @@ courses: {
   leaveFailed: 'Не удалось отписаться от курса.'
 },
     news: {
+      eyebrow: 'Новости кампуса',
       title: 'Новости университета',
       subtitle: 'Будьте в курсе последних новостей и объявлений',
       filters: {
@@ -1118,6 +1145,8 @@ chat: {
 },
 createSurvey: {
       audience: 'Для кого этот опрос',
+      deadline: 'Дата закрытия',
+      deadlineHint: 'Необязательно. После этого дня опрос закроется сам и перестанет принимать ответы.',
       audienceHint: 'Если ничего не отмечено, опрос доступен всем.',
         pageTitle: "Создать новый опрос",
         pageDescription: "Создайте и настройте вопросы вашего опроса",
@@ -1205,7 +1234,9 @@ notExist: "Результаты опроса, которые вы ищете, н
 totalResponses: "Общее количество ответов",
 endDate: "Дата окончания",
 export: "Экспортировать результаты",
-      alreadyAnswered: 'Вы уже прошли этот опрос.',
+      alreadyAnswered: 'Вы уже прошли этот опрос. Ваши ответы учтены в результатах.',
+      alreadyAnsweredTitle: 'Уже пройден',
+      surveyClosed: 'Опрос закрыт, пройти его больше нельзя. Результаты по-прежнему доступны.',
       notYourSurvey: 'Этот опрос недоступен для вашей роли.',
       submitFailed: 'Не удалось отправить ответы. Попробуйте еще раз.',
 responses: "ответы",
@@ -1280,6 +1311,7 @@ improved: "Улучшенные материалы курса"
           addUser: 'Добавить запись',
           setPassword: 'Задать пароль',
           setPasswordFor: 'Новый пароль для {name}',
+          joinDate: 'Дата присоединения',
           searchPlaceholder: 'Поиск по имени, почте, номеру студента, курсу...',
           filterByRole: 'Фильтр по роли',
           allRoles: 'Все роли',
@@ -1572,6 +1604,7 @@ register: {
  },
   am: {
     settings: {
+      eyebrow: 'Նախընտրություններ',
       title: 'Կարգավորումներ',
       subtitle: 'Հարմարեցրեք ձեր փորձը և կառավարեք ձեր նախընտրությունները',
       save: 'Պահպանել փոփոխությունները',
@@ -1600,8 +1633,6 @@ sendCode: 'Ուղարկել վավերացման կոդը',
       emailDesc: 'Ստանալ ծանուցումներ էլեկտրոնային փոստով',
       push: 'Push ծանուցումներ',
       pushDesc: 'Ստանալ push ծանուցումներ ձեր զննարկիչում',
-      sms: 'SMS ծանուցումներ',
-      smsDesc: 'Ստանալ ծանուցումներ տեքստային հաղորդագրությունների միջոցով',
       surveys: 'Հարցումների թարմացումներ',
       surveysDesc: 'Ստանալ ծանուցումներ նոր հարցումների և արդյունքների մասին',
       news: 'Նորությունների թարմացումներ',
@@ -1620,8 +1651,6 @@ sendCode: 'Ուղարկել վավերացման կոդը',
       private: 'Անձնական',
       showEmail: 'Ցույց տալ email հասցեն',
       showEmailDesc: 'Ցուցադրել ձեր email հասցեն ձեր պրոֆիլում',
-      showPhone: 'Ցույց տալ հեռախոսահամարը',
-      showPhoneDesc: 'Ցուցադրել ձեր հեռախոսահամարը ձեր պրոֆիլում',
       dataSharing: 'Տվյալների փոխանակում',
       dataSharingDesc: 'Թույլատրել անանուն տվյալների փոխանակումը հետազոտական նպատակներով'
     },
@@ -1657,6 +1686,7 @@ sendCode: 'Ուղարկել վավերացման կոդը',
       hours2: '2 ժամ'
     },
   accountPage: {
+    eyebrow: 'Ձեր հաշիվը',
   title: "Իմ հաշիվը",
   subtitle: "Կառավարեք ձեր անձնական տվյալներն ու հաշվի կարգավորումները",
 
@@ -1707,6 +1737,7 @@ sendCode: 'Ուղարկել վավերացման կոդը',
 },
 
 dashboard: {
+  eyebrow: 'Ընդհանուր պատկեր',
       title: 'Վահանակ',
       subtitle: 'Բարի գալուստ Ուսանողների հարցումների և արձագանքների համակարգ',
       stats: {
@@ -1746,6 +1777,16 @@ dashboard: {
       reopenConfirm: 'Նորից բացե՞լ այս հարցումը, որպեսզի հնարավոր լինի պատասխանել։',
       closeFailed: 'Չհաջողվեց փոխել այս հարցումը։',
       closedNotice: 'Փակված - միայն արդյունքները',
+      answered: 'Դուք պատասխանել եք',
+      notAnswered: 'Դեռ ոչ',
+      closesOn: 'Փակվում է {date}',
+      participation: 'Ովքեր են պատասխանել',
+      participationSummary: '{total}-ից {answered}-ը պատասխանել են։',
+      participationFailed: 'Չհաջողվեց բեռնել ցանկը։',
+      close: 'Փակել',
+      eyebrow: 'Ձեր հարցումները',
+      countChip: 'Ընդամենը {count}',
+      answeredChip: 'Դուք պատասխանել եք {count}-ին',
       title: 'Բոլոր հարցումները',
       subtitle: 'Համակարգի բոլոր հարցումները՝ նորերից սկսած',
       loading: 'Հարցումները բեռնվում են...',
@@ -1758,6 +1799,7 @@ dashboard: {
     },
 
 courses: {
+  eyebrow: 'Լրացուցիչ դասընթացներ',
   title: 'Դասընթացներ',
   subtitle: 'Դասախոսների լրացուցիչ պարապմունքները։ Միացեք նրանց, որոնց ցանկանում եք մասնակցել։',
   loading: 'Դասընթացները բեռնվում են...',
@@ -1773,6 +1815,7 @@ courses: {
   leaveFailed: 'Չհաջողվեց լքել դասընթացը։'
 },
     news: {
+      eyebrow: 'Համալսարանի նորություններ',
       title: 'Նորություններ',
       subtitle: 'Մնացեք տեղեկացված վերջին նորությունների և հայտարարությունների մասին',
       filters: {
@@ -1905,6 +1948,8 @@ chat: {
 },
 createSurvey: {
       audience: 'Ում համար է այս հարցումը',
+      deadline: 'Փակման ամսաթիվ',
+      deadlineHint: 'Ըստ ցանկության։ Այդ օրից հետո հարցումը ինքն իրեն կփակվի և այլևս պատասխաններ չի ընդունի։',
       audienceHint: 'Ոչինչ չնշելու դեպքում հասանելի է բոլորին։',
         pageTitle: "Ստեղծել Նոր Հարցում",
         pageDescription: "Նախագծեք և կարգավորեք ձեր հարցումների հարցերը",
@@ -1993,7 +2038,9 @@ notExist: "Հարցման արդյունքները, որոնք դուք փնտր
 totalResponses: "Ընդհանուր պատասխաններ",
 endDate: "Ավարտի ամսաթիվ",
 export: "Արտահանել արդյունքները",
-      alreadyAnswered: 'Դուք արդեն պատասխանել եք այս հարցմանը։',
+      alreadyAnswered: 'Դուք արդեն պատասխանել եք այս հարցմանը։ Ձեր պատասխանները հաշվված են արդյունքներում։',
+      alreadyAnsweredTitle: 'Արդեն պատասխանված',
+      surveyClosed: 'Հարցումը փակ է, այլևս հնարավոր չէ պատասխանել։ Արդյունքները մնում են հասանելի։',
       notYourSurvey: 'Այս հարցումը հասանելի չէ ձեր դերի համար։',
       submitFailed: 'Չհաջողվեց ուղարկել պատասխանները։ Կրկին փորձեք։',
 responses: "պատասխաններ",
@@ -2068,6 +2115,7 @@ adminPage: {
           addUser: 'Ավելացնել հաշիվ',
           setPassword: 'Սահմանել գաղտնաբառ',
           setPasswordFor: 'Նոր գաղտնաբառ {name}-ի համար',
+          joinDate: 'Միանալու ամսաթիվ',
           searchPlaceholder: 'Որոնել ըստ անվան, փոստի, ուսանողական համարի, դասընթացի...',
           filterByRole: 'Զտել ըստ դերի',
           allRoles: 'Բոլոր դերերը',
