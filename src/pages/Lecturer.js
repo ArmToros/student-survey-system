@@ -1,3 +1,10 @@
+/**
+ * The lecturer console: the courses this lecturer runs, and how full they are.
+ *
+ * Courses are extra classes a lecturer offers and students enrol in - one
+ * lecturer, many courses. The figures are counted from real enrolments; there
+ * is no score here, because nothing in the system scores anything.
+ */
 import React, { useCallback, useEffect, useState } from 'react';
 import { GraduationCap, BookOpen, BarChart3, MessageCircle } from 'lucide-react';
 import './Lecturer.css';

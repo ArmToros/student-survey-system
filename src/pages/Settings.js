@@ -1,3 +1,14 @@
+/**
+ * Appearance: the theme and the language. That is deliberately all of it.
+ *
+ * Everything else that used to be here - notification toggles, a privacy
+ * switch, two-factor, auto-logout - stored a value and changed nothing, so it
+ * was removed rather than left looking like a working control. KNOWN_GAPS.md
+ * records what went and why.
+ *
+ * Both of these take effect the moment they change; Save writes them to the
+ * account so they survive a new sign-in.
+ */
 import React, { useState, useEffect } from 'react';
 import { Palette, Moon, Sun, Save, RotateCcw, ArrowLeft } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';

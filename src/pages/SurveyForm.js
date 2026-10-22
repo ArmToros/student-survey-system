@@ -1,3 +1,15 @@
+/**
+ * Answering a survey, one question at a time.
+ *
+ * Two states are decided before any question is drawn: a survey this person has
+ * already answered, and one that is closed. The API reports both, so neither is
+ * discovered by filling the form in and having the submission refused at the
+ * end.
+ *
+ * "Multiple choice" and "checkbox" share one control. Both take more than one
+ * answer and the API stores a row per selection; they differ only in the
+ * wording offered when the survey is written.
+ */
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, CheckCircle, AlertCircle } from 'lucide-react';

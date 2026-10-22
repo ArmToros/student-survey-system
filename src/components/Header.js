@@ -1,3 +1,12 @@
+/**
+ * The top bar: the programme name, the nav, and the account menu.
+ *
+ * The one piece worth knowing about is the nav labels. They show when they fit
+ * and collapse to icons when they do not, and which happens is measured rather
+ * than decided at a fixed width - see the effect below. A breakpoint cannot
+ * answer it, because the labels are far longer in Armenian than in English and
+ * an admin has two more of them than a student.
+ */
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {

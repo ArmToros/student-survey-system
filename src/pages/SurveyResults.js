@@ -1,3 +1,14 @@
+/**
+ * What a survey found: totals per question, and a CSV of the same.
+ *
+ * Open to anyone signed in. There are no names here and no answer is tied to a
+ * person, so the people who took the survey can see what it came to. Who has
+ * and has not answered is a separate, staff-only view on the survey list.
+ *
+ * The CSV is built in the browser from what is already on the page, with a byte
+ * order mark so a spreadsheet reads it as UTF-8 - without it Armenian and
+ * Russian come out mangled.
+ */
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Download, BarChart3, Users, Calendar } from 'lucide-react';

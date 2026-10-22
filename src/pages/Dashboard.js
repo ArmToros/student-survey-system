@@ -1,3 +1,10 @@
+/**
+ * The landing page: four figures and the five newest surveys.
+ *
+ * "Completed" is how many surveys this person has answered, not how many the
+ * university has closed - it is read as a personal count, and the admin
+ * console carries the system-wide figures.
+ */
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { BarChart3, Users, CheckCircle, Clock, Plus } from 'lucide-react';

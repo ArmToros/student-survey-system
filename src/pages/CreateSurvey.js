@@ -1,3 +1,14 @@
+/**
+ * Writing a survey. Admins only; the route is guarded and the API checks again.
+ *
+ * Two fields matter beyond the questions. The audience limits who may answer,
+ * and leaving every role unticked means everybody - the same rule news uses.
+ * The closing date is optional, and a survey past it closes itself and stops
+ * accepting answers.
+ *
+ * Question ids here are React keys only. The server assigns the real ones, and
+ * sending a Date.now() value is how survey creation used to fail with a 400.
+ */
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Trash2, Save, Eye } from 'lucide-react';

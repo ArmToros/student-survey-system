@@ -1,3 +1,17 @@
+/**
+ * The admin console. Four things an admin can do, each behind a tile:
+ *
+ *   Broadcast - email everybody in a role, optionally with a file attached.
+ *   News      - write an article and choose which roles it reaches.
+ *   Accounts  - create, edit and remove accounts, and set a password for
+ *               somebody locked out. Searchable, filterable and sortable,
+ *               because twenty rows is already past scanning by eye.
+ *   Support   - the preset questions the support bot answers with.
+ *
+ * Anything that cannot be undone asks first: sending a broadcast, creating or
+ * editing an account, deleting anything. These are one misclick from the wrong
+ * row, and a broadcast reaches real mailboxes.
+ */
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   ShieldCheck,

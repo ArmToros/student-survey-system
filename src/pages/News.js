@@ -1,3 +1,11 @@
+/**
+ * Articles, filtered by category, with a reader for the full text.
+ *
+ * The API decides who sees what: an article may be aimed at particular roles,
+ * and admins see every one of them whoever it was for. The page no longer
+ * passes a role - it used to, which meant the browser was deciding what it was
+ * allowed to read.
+ */
 import React, { useState, useEffect } from 'react';
 import { Calendar, User, BookOpen, X } from 'lucide-react';
 import './News.css';
