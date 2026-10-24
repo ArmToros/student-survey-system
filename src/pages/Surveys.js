@@ -21,6 +21,24 @@ const Surveys = () => {
   const canViewResults = true;
   const canDelete = user?.role === 'admin';
   const isStaff = user?.role === 'admin' || user?.role === 'lecturer';
+
+  /**
+   * Whether this person may answer this survey, by the same rule the API uses:
+   * no audience means everybody, otherwise their role has to be in it.
+   *
+   * Admins see every survey in this list, including ones aimed at other roles,
+   * because they have to be able to close and delete them. That must not turn
+   * into a "Take Survey" button they cannot use - the API refuses it, and the
+   * only thing a button here would buy them is filling the form in first.
+   */
+  const canAnswer = (survey) => {
+    const audience = survey.audience || [];
+    if (audience.length === 0) {
+      return true;
+    }
+
+    return audience.some(role => role.toLowerCase() === user?.role);
+  };
   const [deletingId, setDeletingId] = useState(null);
   const [deleteError, setDeleteError] = useState(null);
   const [closingId, setClosingId] = useState(null);
@@ -220,13 +238,16 @@ ${question}`)) {
                   </div>
                 </div>
                 <div className="survey-row-actions">
-                  {survey.status === 'active' && !survey.alreadyAnswered && (
+                  {survey.status === 'active' && !survey.alreadyAnswered && canAnswer(survey) && (
                     <Link to={`/surveys/${survey.id}`} className="btn btn-primary">
                       {t('dashboard.takeSurvey')}
                     </Link>
                   )}
                   {survey.alreadyAnswered && (
                     <span className="survey-answered">{t('surveysPage.answered')}</span>
+                  )}
+                  {!survey.alreadyAnswered && !canAnswer(survey) && (
+                    <span className="survey-answered">{t('surveysPage.otherRole')}</span>
                   )}
                   {canViewResults && survey.responses > 0 && (
                     <Link to={`/results/${survey.id}`} className="btn btn-secondary">

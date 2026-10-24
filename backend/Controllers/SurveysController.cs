@@ -205,9 +205,14 @@ namespace backend.Controllers
             // 403 rather than 404, because the survey plainly exists - its
             // results are open to everyone - and pretending otherwise would be
             // a worse answer than saying it is not yours to fill in.
+            // No exemption for admins here, deliberately. This endpoint feeds the
+            // page that *answers* a survey, and nothing else reads it - so being
+            // allowed through only means filling the form in and being refused on
+            // submit, which is the thing this check exists to prevent. Admins
+            // manage a survey from the list and read its results; neither needs
+            // the answering form.
             var role = CallerRole;
-            if (role != "Admin"
-                && survey.TargetRoles.Count > 0
+            if (survey.TargetRoles.Count > 0
                 && survey.TargetRoles.All(target => target.Role != role))
             {
                 return StatusCode(403, new
