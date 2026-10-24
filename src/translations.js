@@ -123,7 +123,7 @@ export const translations = {
   // Stats
   statsTitle: "Account Statistics",
   surveysCompleted: "Surveys Completed",
-  daysActive: "Days Active",
+  daysActive: "Days Since Joining",
   messagesSent: "Messages Sent",
 
   // Majors
@@ -929,7 +929,7 @@ sendCode: 'Отправить код подтверждения',
 
   statsTitle: "Статистика аккаунта",
   surveysCompleted: "Пройденные опросы",
-  daysActive: "Дней активности",
+  daysActive: "Дней с регистрации",
   messagesSent: "Отправленные сообщения",
 
   majors: {
@@ -1737,7 +1737,7 @@ sendCode: 'Ուղարկել վավերացման կոդը',
 
   statsTitle: "Հաշվի վիճակագրություն",
   surveysCompleted: "Ավարտված հարցումներ",
-  daysActive: "Ակտիվ օրեր",
+  daysActive: "Օրեր միանալուց",
   messagesSent: "Ուղարկված հաղորդագրություններ",
 
   majors: {

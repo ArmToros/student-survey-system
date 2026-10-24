@@ -74,8 +74,14 @@ are correct for anything created since and empty for anything older:
 - **`UserAccount.JoinDate` is null for admins and lecturers from the backup.**
   It was backfilled from `StartYear`, which only students have. An admin can now
   set it per account; nothing invents one, because a made-up join date is worse
-  than a blank. "Days active" is derived from it and is blank for the same
-  accounts.
+  than a blank. The "days since joining" figure is derived from it and is blank
+  for the same accounts.
+
+**Nothing records a visit.** There is no last-login column and no session log,
+so there is no way to know whether somebody has ever used their account. The
+account page shows "days since joining" - today minus the join date - which is
+what it says and no more. It was labelled "Days Active", which implied days of
+use: a student who signed in once in 2021 and never returned read 1879.
 - **`sysdiagrams` is not created** by the seed path. The backup carries that
   SSMS table; nothing in the app uses it.
 

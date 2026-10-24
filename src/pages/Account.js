@@ -5,8 +5,13 @@
  * data, so they ask support to change them and an admin edits them from the
  * console. The picture is the exception - anyone may change their own.
  *
- * The statistics are counted from real rows. Anything unknown shows a dash
- * rather than a zero, because a zero reads as a fact.
+ * Surveys completed and messages sent are counted from real rows. The third
+ * figure is not: `daysActive` is simply today minus the join date, because
+ * nothing in the database records a visit. It is labelled "days since joining"
+ * for that reason - see the note where it is rendered.
+ *
+ * Anything unknown shows a dash rather than a zero, because a zero reads as a
+ * fact.
  */
 import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
@@ -470,6 +475,11 @@ const Account = () => {
                   <Calendar size={24} />
                 </div>
                 <div className="stat-content">
+                  {/* Calendar days since JoinDate, not days of use - nothing
+                      records a visit, so somebody who signed in once in 2021
+                      and never returned reads the same as a daily user. The
+                      wording says "since joining" rather than "active" so the
+                      number is not claiming more than it knows. */}
                   <h4>{t('accountPage.daysActive')}</h4>
                   <p className="stat-number">{stats && stats.daysActive !== null ? stats.daysActive : '—'}</p>
                 </div>
