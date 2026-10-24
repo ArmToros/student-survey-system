@@ -60,7 +60,10 @@
   transform: translateY(-2px);
 }
 
-.stat-card svg {
+/* Scoped to this page. Unscoped, it reached the Account page too, where the
+   icons sit on an accent-coloured tile - and painted them the same blue as the
+   tile, so they vanished. */
+.survey-results .stat-card svg {
   color: #2563eb;
   flex-shrink: 0;
 }

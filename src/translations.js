@@ -1,5 +1,12 @@
 export const translations = {
   en: {
+    surveyResults: {
+      closesOn: 'Closes on',
+      closedOn: 'Closed on',
+      closingDate: 'Closing date',
+      openEnded: 'No deadline',
+      closed: 'Closed',
+    },
     settings: {
       eyebrow: 'Preferences',
       title: 'Settings',
@@ -802,6 +809,13 @@ register:{
 },
 },
   ru: {
+    surveyResults: {
+      closesOn: 'Закрывается',
+      closedOn: 'Закрыт',
+      closingDate: 'Дата закрытия',
+      openEnded: 'Без срока',
+      closed: 'Закрыт',
+    },
     settings: {
       eyebrow: 'Предпочтения',
       title: 'Настройки',
@@ -1603,6 +1617,13 @@ register: {
 
  },
   am: {
+    surveyResults: {
+      closesOn: 'Փակվում է',
+      closedOn: 'Փակվել է',
+      closingDate: 'Փակման ամսաթիվ',
+      openEnded: 'Առանց ժամկետի',
+      closed: 'Փակված',
+    },
     settings: {
       eyebrow: 'Նախընտրություններ',
       title: 'Կարգավորումներ',

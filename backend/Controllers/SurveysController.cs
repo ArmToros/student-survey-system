@@ -291,9 +291,13 @@ namespace backend.Controllers
                     title = survey.Topic ?? ("Survey " + survey.SurveyId),
                     description = "",
                     totalResponses,
-                    createdDate = (DateTime?)null,
-                    endDate = (DateTime?)null,
-                    status = "active"
+                    // These were hardcoded null from before Survey carried any
+                    // dates, which left the results page showing a dash whatever
+                    // the survey actually had.
+                    createdDate = survey.CreatedAt,
+                    deadline = survey.Deadline,
+                    closedDate = survey.ClosedAt,
+                    status = survey.IsClosed ? "completed" : "active"
                 },
                 results
             });

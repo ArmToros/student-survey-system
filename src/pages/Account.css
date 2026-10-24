@@ -253,6 +253,22 @@ div.profile-avatar {
   transition: background-color 0.3s ease;
 }
 
+/* The icon takes its colour from the tile it sits on. Said explicitly because
+   a page-level rule elsewhere once set a colour on these and the icons came
+   out the same blue as the tile behind them. */
+.stat-icon svg {
+  color: inherit;
+  stroke: currentColor;
+}
+
+/* The label has to be able to shrink, or it pushes out of the tile instead of
+   wrapping - a flex child will not go below its content width unless told. The
+   Armenian labels are two or three times the English ones, so this is the
+   normal case there rather than an edge case. */
+.stat-content {
+  min-width: 0;
+}
+
 .stat-content h4 {
   font-size: 0.9rem;
   color: var(--text-secondary);
@@ -261,6 +277,8 @@ div.profile-avatar {
   text-transform: uppercase;
   letter-spacing: 0.5px;
   transition: color 0.3s ease;
+  overflow-wrap: anywhere;
+  hyphens: auto;
 }
 
 [data-theme="dark"] .stat-content h4 {

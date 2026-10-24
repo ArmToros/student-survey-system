@@ -11,7 +11,7 @@
  */
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Download, BarChart3, Users, Calendar } from 'lucide-react';
+import { ArrowLeft, Download, BarChart3, Users, CalendarClock } from 'lucide-react';
 import './SurveyResults.css';
 import { useLanguage } from '../contexts/LanguageContext';
 import { apiFetch } from '../services/api';
@@ -243,15 +243,35 @@ const SurveyResults = () => {
             </div>
           </div>
           <div className="stat-card">
-            <Calendar size={24} />
+            <CalendarClock size={24} />
             <div>
-              {/* dbo.Survey stores no dates, so both are usually null - show a dash
-                  rather than formatting null into 1/1/1970. */}
-              <h3>{(() => {
-                const date = survey.endDate || survey.createdDate;
-                return date ? new Date(date).toLocaleDateString() : '—';
-              })()}</h3>
-              <p>{survey.endDate ? t('form.endDate') : 'Created'}</p>
+              {/* The closing date is the useful one here: a survey already has
+                  its creation date on the list, and what a reader wants to know
+                  from the results is whether this is still open to answers.
+                  Falls back to when it was closed, then to when it was made. */}
+              {(() => {
+                const closing = survey.deadline || survey.closedDate;
+                if (closing) {
+                  return (
+                    <>
+                      <h3>{new Date(closing).toLocaleDateString()}</h3>
+                      <p>{survey.status === 'completed'
+                        ? t('surveyResults.closedOn')
+                        : t('surveyResults.closesOn')}</p>
+                    </>
+                  );
+                }
+
+                // No deadline was ever set, so it closes only when an admin says.
+                return (
+                  <>
+                    <h3>{survey.status === 'completed'
+                      ? t('surveyResults.closed')
+                      : t('surveyResults.openEnded')}</h3>
+                    <p>{t('surveyResults.closingDate')}</p>
+                  </>
+                );
+              })()}
             </div>
           </div>
           <div className="stat-card">
