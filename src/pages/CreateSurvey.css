@@ -323,3 +323,48 @@
   font-size: 14px;
   cursor: pointer;
 }
+
+/* --- Fields that need fixing --------------------------------------------- */
+
+/* A red outline rather than a red fill: the box still has to be readable while
+   it is being corrected. */
+.form-input.field-invalid,
+.options-list.options-invalid .form-input {
+  border-color: #dc2626;
+  background: #fef2f2;
+}
+
+.form-input.field-invalid:focus,
+.options-list.options-invalid .form-input:focus {
+  border-color: #dc2626;
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15);
+  outline: none;
+}
+
+.field-error {
+  margin: 6px 0 0;
+  color: #dc2626;
+  font-size: 0.85rem;
+}
+
+/* Says which boxes, in one line, where the save button is - so the reason is
+   on screen without scrolling back up a long form. */
+.form-summary-error {
+  margin: 0 0 16px;
+  padding: 12px 16px;
+  border: 1px solid #dc2626;
+  border-radius: 10px;
+  background: #fef2f2;
+  color: #991b1b;
+  font-size: 0.92rem;
+}
+
+[data-theme="dark"] .form-input.field-invalid,
+[data-theme="dark"] .options-list.options-invalid .form-input,
+[data-theme="dark"] .form-summary-error {
+  background: rgba(220, 38, 38, 0.12);
+}
+
+[data-theme="dark"] .form-summary-error {
+  color: #fca5a5;
+}

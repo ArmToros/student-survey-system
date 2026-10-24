@@ -149,10 +149,16 @@ namespace backend.Controllers
                     .Distinct()
                     .ToListAsync();
 
+            // Admins see every survey whoever it was aimed at: they write them,
+            // and one they cannot see is one they cannot close, correct or
+            // delete. Same rule as news.
+            var seesEverything = role == "Admin";
+
             var surveys = await _context.Surveys
                 // No audience rows means the survey is for everyone, which keeps
                 // the surveys restored from the backup visible.
-                .Where(survey => !survey.TargetRoles.Any() ||
+                .Where(survey => seesEverything ||
+                                 !survey.TargetRoles.Any() ||
                                  survey.TargetRoles.Any(target => target.Role == role))
                 .OrderByDescending(survey => survey.SurveyId)
                 .Select(survey => new
@@ -190,6 +196,29 @@ namespace backend.Controllers
             }
 
             var questions = await BuildQuestionsAsync(survey);
+
+            // The list hides a survey from outside its audience, but the id was
+            // enough to open it anyway: somebody could work through every
+            // question and only be refused when they pressed submit. The answer
+            // path has always checked this; now the reading path does too.
+            //
+            // 403 rather than 404, because the survey plainly exists - its
+            // results are open to everyone - and pretending otherwise would be
+            // a worse answer than saying it is not yours to fill in.
+            var role = CallerRole;
+            if (role != "Admin"
+                && survey.TargetRoles.Count > 0
+                && survey.TargetRoles.All(target => target.Role != role))
+            {
+                return StatusCode(403, new
+                {
+                    message = "This survey is not open to your role.",
+                    surveyId = survey.SurveyId,
+                    title = survey.Topic ?? ("Survey " + survey.SurveyId),
+                    // So the page can offer the one thing they may still do.
+                    resultsAvailable = true
+                });
+            }
 
             var callerId = CallerId;
             var alreadyAnswered = callerId != null && await _context.SurveySessions

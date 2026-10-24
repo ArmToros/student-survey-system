@@ -32,6 +32,12 @@ const CreateSurvey = () =>{
   });
   const [saving, setSaving] = useState(false);
 
+  // What is wrong with the form right now: { title, questions: {id: {...}} }.
+  // Empty means nothing is wrong. Populated only after a save attempt, so the
+  // form is not scolding somebody who has not finished typing yet.
+  const [errors, setErrors] = useState({});
+  const [saveError, setSaveError] = useState(null);
+
   const questionTypes = [
     { value: 'single-choice', label: t('createSurvey.single') },
     { value: 'multiple-choice', label: t('createSurvey.multiple') },
@@ -112,17 +118,74 @@ const CreateSurvey = () =>{
     }));
   };
 
-  const handleSave = async () => {
+  /**
+   * Everything the API would refuse, checked here first so the person is told
+   * which box to fix rather than that something went wrong.
+   *
+   * The API drops questions whose text is blank, so a form with one empty
+   * question used to post successfully, come back 400 "at least one question is
+   * required", and show a message about the database. The real fault was an
+   * empty box on screen.
+   */
+  const validate = () => {
+    const found = { questions: {} };
+
     if (!survey.title.trim()) {
-      alert(t('createSurvey.alertTitle'));
-      return;
+      found.title = t('createSurvey.errors.titleRequired');
     }
 
     if (survey.questions.length === 0) {
-      alert(t('createSurvey.addOneQuestion'));
+      found.noQuestions = t('createSurvey.addOneQuestion');
+    }
+
+    survey.questions.forEach(question => {
+      const problems = {};
+
+      if (!question.question.trim()) {
+        problems.question = t('createSurvey.errors.questionRequired');
+      }
+
+      // A choice question with nothing to choose between is not answerable.
+      if (['single-choice', 'multiple-choice', 'checkbox'].includes(question.type)) {
+        const filled = (question.options || []).filter(option => option.trim());
+        if (filled.length < 2) {
+          problems.options = t('createSurvey.errors.optionsRequired');
+        }
+      }
+
+      if (Object.keys(problems).length > 0) {
+        found.questions[question.id] = problems;
+      }
+    });
+
+    const hasAny = Boolean(found.title) || Boolean(found.noQuestions)
+      || Object.keys(found.questions).length > 0;
+
+    return hasAny ? found : null;
+  };
+
+  const handleSave = async () => {
+    setSaveError(null);
+
+    const found = validate();
+    if (found) {
+      setErrors(found);
+
+      // Put the first bad field on screen and in focus, so a long form does
+      // not leave somebody hunting for the red box.
+      window.requestAnimationFrame(() => {
+        const field = document.querySelector('.field-invalid');
+        if (field) {
+          field.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          if (typeof field.focus === 'function') {
+            field.focus({ preventScroll: true });
+          }
+        }
+      });
       return;
     }
 
+    setErrors({});
     setSaving(true);
 
     try {
@@ -150,14 +213,18 @@ const CreateSurvey = () =>{
       });
 
       if (!response.ok) {
-        throw new Error('CREATE_SURVEY_FAILED');
+        // The API explains itself; pass that on rather than guessing at the
+        // cause. Only a request that never arrived gets the generic line.
+        const data = await response.json().catch(() => null);
+        throw new Error(data?.message || 'CREATE_SURVEY_FAILED');
       }
 
-      alert(t('createSurvey.successfully'));
       navigate('/');
     } catch (error) {
       console.error(error);
-      alert('Could not save survey to the database. Please check the backend and try again.');
+      setSaveError(error.message === 'CREATE_SURVEY_FAILED' || error.message === 'API_NETWORK_ERROR'
+        ? t('createSurvey.errors.saveFailed')
+        : error.message);
     } finally {
       setSaving(false);
     }
@@ -213,7 +280,10 @@ const CreateSurvey = () =>{
       return (
         <div className="form-group">
           <label className="form-label">{t('createSurvey.options')}</label>
-          <div className="options-list">
+          {errors.questions?.[question.id]?.options && (
+            <p className="field-error">{errors.questions[question.id].options}</p>
+          )}
+          <div className={`options-list ${errors.questions?.[question.id]?.options ? 'options-invalid' : ''}`}>
             {question.options.map((option, index) => (
               <div key={index} className="option-item">
                 <input
@@ -266,11 +336,18 @@ const CreateSurvey = () =>{
                 <label className="form-label">{t('createSurvey.surveyTitle')}</label>
                 <input
                   type="text"
-                  className="form-input"
+                  className={`form-input ${errors.title ? 'field-invalid' : ''}`}
                   value={survey.title}
-                  onChange={(e) => setSurvey(prev => ({ ...prev, title: e.target.value }))}
+                  onChange={(e) => {
+                    setSurvey(prev => ({ ...prev, title: e.target.value }));
+                    // Clear the mark as soon as it is being fixed.
+                    if (errors.title) {
+                      setErrors(prev => ({ ...prev, title: undefined }));
+                    }
+                  }}
                   placeholder={t('createSurvey.enterTitle')}
                 />
+                {errors.title && <p className="field-error">{errors.title}</p>}
               </div>
               
               <div className="form-group">
@@ -366,11 +443,14 @@ const CreateSurvey = () =>{
                         <label className="form-label">{t('createSurvey.questionText')}</label>
                         <input
                           type="text"
-                          className="form-input"
+                          className={`form-input ${errors.questions?.[question.id]?.question ? 'field-invalid' : ''}`}
                           value={question.question}
                           onChange={(e) => updateQuestion(question.id, 'question', e.target.value)}
                           placeholder={t('createSurvey.enterQuestion')}
                         />
+                        {errors.questions?.[question.id]?.question && (
+                          <p className="field-error">{errors.questions[question.id].question}</p>
+                        )}
                       </div>
                       
                       <div className="form-group">
@@ -406,6 +486,14 @@ const CreateSurvey = () =>{
               </div>
             )}
           </div>
+
+          {(errors.title || errors.noQuestions
+            || Object.keys(errors.questions || {}).length > 0) && (
+            <div className="form-summary-error">
+              {errors.noQuestions || t('createSurvey.errors.summary')}
+            </div>
+          )}
+          {saveError && <div className="form-summary-error">{saveError}</div>}
 
           <div className="survey-actions">
             <button

@@ -30,6 +30,9 @@ const SurveyForm = () => {
   const [submitting, setSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [submitError, setSubmitError] = useState(null);
+  // Set when the API says this survey is not for this person's role. Kept apart
+  // from "not found", because the survey does exist and its results are open.
+  const [forbidden, setForbidden] = useState(false);
 
   useEffect(() => {
     const fallbackSurvey = {
@@ -42,6 +45,14 @@ const SurveyForm = () => {
     const loadSurvey = async () => {
       try {
         const response = await apiFetch(`/api/surveys/${id}`);
+
+        // Not aimed at this role. The survey exists and its results are
+        // public, so this is its own state rather than "not found" - saying
+        // the survey is missing would be untrue and unhelpful.
+        if (response.status === 403) {
+          setForbidden(true);
+          return;
+        }
 
         if (!response.ok) {
           throw new Error('SURVEY_NOT_FOUND');
@@ -243,6 +254,28 @@ const SurveyForm = () => {
             <h2>{t('form.thanks')}</h2>
             <p>{t('form.submit')}</p>
             <p>{t('form.redirecting')}</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (forbidden) {
+    return (
+      <div className="survey-form">
+        <div className="container">
+          <div className="error-message">
+            <AlertCircle size={64} />
+            <h2>{t('form.notYourSurveyTitle')}</h2>
+            <p>{t('form.notYourSurvey')}</p>
+            <div className="question-navigation">
+              <button onClick={() => navigate(`/results/${id}`)} className="btn btn-primary">
+                {t('dashboard.viewResults')}
+              </button>
+              <button onClick={() => navigate('/surveys')} className="btn btn-secondary">
+                {t('form.back')}
+              </button>
+            </div>
           </div>
         </div>
       </div>
